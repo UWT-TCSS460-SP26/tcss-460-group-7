@@ -1,5 +1,7 @@
 # First Meeting
 
+Duy-Hung Le
+
 ## Meeting Manager
 TBD
 
