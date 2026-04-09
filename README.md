@@ -32,7 +32,6 @@ API documentation is at [http://localhost:3000/api-docs](http://localhost:3000/a
 | `npm run format`       | Format code with Prettier         |
 | `npm run format:check` | Check formatting                  |
 
-
 ## Deployed URL
 
 [https://group-project-backend-group-7.onrender.com](https://group-project-backend-group-7.onrender.com)
