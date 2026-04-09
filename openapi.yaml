@@ -37,7 +37,7 @@ paths:
   /hello/users/kassie:
     get:
       tags: [General]
-      summary: Kassie's greeting.
+      summary: Kassie's greeting
       description: Kassie greeting herself to her classmates.
       responses:
         '200':
