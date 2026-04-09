@@ -32,10 +32,10 @@ API documentation is at [http://localhost:3000/api-docs](http://localhost:3000/a
 | `npm test`             | Run tests                         |
 | `npm run status`       | Check service status              |
 | `npm run lint`         | Run ESLint                        |
+| `npm run lint:fix`     | Run ESLint and auto fix issue     |
 | `npm run format`       | Format code with Prettier         |
 | `npm run format:check` | Check formatting                  |
 
-
 ## Deployed URL
 
-[https://tcss-460-group-7.onrender.com](https://tcss-460-group-7.onrender.com)
+Live URL at [https://tcss-460-group-7.onrender.com](https://tcss-460-group-7.onrender.com)
