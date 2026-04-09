@@ -1,8 +1,13 @@
 import { Router } from 'express';
 
-const status = Router();
+const statusRouter = Router();
 
 const message: string = 'Status: OK';
-status.get('/status', (_request, response) => {
-  response.status(200).json({ message: message });
+statusRouter.get('/status', (_request, response) => {
+  if (response.status(200)) {
+    response.status(200).json({ message: message });
+    console.log('Status: OK');
+  }
 });
+
+export { statusRouter };
