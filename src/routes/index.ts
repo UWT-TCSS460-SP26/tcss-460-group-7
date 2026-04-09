@@ -1,10 +1,12 @@
 import { Router } from 'express';
-import { kassieRouter } from './kassie-whitney';
 import { statusRouter } from './heartbeat';
+import { kassieRouter } from './kassie-whitney';
 
 const routes = Router();
-
-routes.use(kassieRouter);
+// Heartbeat router
 routes.use(statusRouter);
+
+// Delete later
+routes.use(kassieRouter);
 
 export { routes };
