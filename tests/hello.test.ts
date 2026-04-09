@@ -11,7 +11,7 @@ describe('Hello Route', () => {
     const response = await request(app).get('/hello/users/kassie');
     expect(response.status).toBe(200);
     expect(response.body.message).toBe(
-      'Hello! My name is Kassie Whitney. I am 33 years old. I am currently a Senior at University of Washington Tacoma! It is nice to meet everyone!',
+      'Hello! My name is Kassie Whitney. I am 33 years old. I am currently a Senior at University of Washington Tacoma! It is nice to meet everyone!'
     );
   });
 });
