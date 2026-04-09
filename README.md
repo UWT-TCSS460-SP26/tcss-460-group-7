@@ -38,4 +38,4 @@ API documentation is at [http://localhost:3000/api-docs](http://localhost:3000/a
 
 ## Deployed URL
 
-[https://group-project-backend-group-7.onrender.com](https://group-project-backend-group-7.onrender.com)
+[https://tcss-460-group-7.onrender.com](https://tcss-460-group-7.onrender.com)
