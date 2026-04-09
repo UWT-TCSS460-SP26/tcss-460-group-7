@@ -45,11 +45,11 @@ paths:
           content:
             application/json:
               schema:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: 'Hello! My name is Kassie Whitney. I am 33 years old. I am currently a Senior at University of Washington Tacoma! It is nice to meet everyone!'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Hello! My name is Kassie Whitney. I am 33 years old. I am currently a Senior at University of Washington Tacoma! It is nice to meet everyone!'
   /status:
     get:
       tags: [General]
