@@ -27,9 +27,11 @@ API documentation is at [http://localhost:3000/api-docs](http://localhost:3000/a
 | `npm run build`        | Compile TypeScript to `dist/`     |
 | `npm start`            | Run compiled output               |
 | `npm test`             | Run tests                         |
+| `npm run status`       | Check service status              |
 | `npm run lint`         | Run ESLint                        |
 | `npm run format`       | Format code with Prettier         |
 | `npm run format:check` | Check formatting                  |
+
 
 ## Deployed URL
 
