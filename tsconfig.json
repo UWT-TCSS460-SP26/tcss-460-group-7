@@ -13,8 +13,8 @@
     "declaration": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "types" : ["node", "jest"],
   },
-  "types" : ["node", "jest"],
   "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist"]
 }
