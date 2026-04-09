@@ -21,6 +21,10 @@ app.get('/openapi.json', (_request: Request, response: Response) => {
 });
 app.use('/api-docs', apiReference({ spec: { url: '/openapi.json' } }));
 
+app.get('/hello', (request: Request, response: Response) => {
+  response.status(200).json({ message: 'Hello, TCSS 460!' });
+});
+
 // Routes
 app.use(routes);
 
