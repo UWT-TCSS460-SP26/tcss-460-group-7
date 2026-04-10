@@ -1,30 +1,68 @@
+// import express, { Request, Response } from 'express';
+// import cors from 'cors';
+// import fs from 'fs';
+// import YAML from 'yaml';
+// import { routes } from './routes';
+// import { apiReference } from '@scalar/express-api-reference';
+// import { logger } from './middleware/logger';
+
+// const app = express();
+
+// // Application-level middleware
+// app.use(cors());
+// app.use(express.json());
+// app.use(logger);
+
+// // OpenAPI documentation
+// const specFile = fs.readFileSync('./openapi.yaml', 'utf8');
+// const spec = YAML.parse(specFile);
+// app.get('/openapi.json', (_request: Request, response: Response) => {
+//   response.json(spec);
+// });
+// app.use('/api-docs', apiReference({ spec: { url: '/openapi.json' } }));
+
+// app.get('/hello', (request: Request, response: Response) => {
+//   response.status(200).json({ message: 'Hello, TCSS 460!' });
+// });
+
+// // Routes
+// app.use(routes);
+
+// // 404 handler — must be after all routes
+// app.use((_request: Request, response: Response) => {
+//   response.status(404).json({ error: 'Route not found' });
+// });
+
+// export { app };
+
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import YAML from 'yaml';
-import { apiReference } from '@scalar/express-api-reference';
-import { greetingDuyHung } from './routes/greetingDuyHung';
+import swaggerUi from 'swagger-ui-express';
+import { routes } from './routes';
+import { logger } from './middleware/logger';
 
 const app = express();
 
 // Application-level middleware
 app.use(cors());
 app.use(express.json());
+app.use(logger);
 
 // OpenAPI documentation
 const specFile = fs.readFileSync('./openapi.yaml', 'utf8');
 const spec = YAML.parse(specFile);
-app.get('/openapi.json', (_request: Request, response: Response) => {
-  response.json(spec);
-});
-app.use('/api-docs', apiReference({ spec: { url: '/openapi.json' } }));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(spec));
 
-// Routes
 app.get('/hello', (_request: Request, response: Response) => {
   response.json({ message: 'Hello, TCSS 460!' });
 });
 
 app.use('/hello/users', greetingDuyHung);
+
+// Routes
+app.use(routes);
 
 // 404 handler — must be after all routes
 app.use((_request: Request, response: Response) => {
