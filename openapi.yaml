@@ -2,8 +2,8 @@ openapi: 3.0.3
 info:
   title: TCSS 460 Group Project API
   description: |
-    **Team:** [Your Team Name]
-    **Deployed URL:** [Your deployed URL]
+    **Team:** Group 7
+    **Deployed URL:** https://tcss-460-group-7.onrender.com
 
     A RESTful API for the TCSS 460 group project.
   version: 0.1.0
@@ -33,3 +33,36 @@ paths:
                   message:
                     type: string
                     example: 'Hello, TCSS 460!'
+
+  /hello/users/kassie:
+    get:
+      tags: [General]
+      summary: Kassie's greeting
+      description: Kassie greeting herself to her classmates.
+      responses:
+        '200':
+          description: A personal greeting from Kassie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Hello! My name is Kassie Whitney. I am 33 years old. I am currently a Senior at University of Washington Tacoma! It is nice to meet everyone!'
+  /status:
+    get:
+      tags: [General]
+      summary: Check status
+      description: Checks the status of the server to ensure nothing was broken
+      responses:
+        '200':
+          description: Checks the client status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Status: OK'
