@@ -3,6 +3,7 @@ import cors from 'cors';
 import fs from 'fs';
 import YAML from 'yaml';
 import { apiReference } from '@scalar/express-api-reference';
+import { greetingDuyHung } from './routes/greetingDuyHung';
 
 const app = express();
 
@@ -23,9 +24,7 @@ app.get('/hello', (_request: Request, response: Response) => {
   response.json({ message: 'Hello, TCSS 460!' });
 });
 
-app.get('/hello/duy-hung', (_request: Request, response: Response) => {
-  response.json({ message: 'Hello, my name is Duy-Hung Le' });
-});
+app.use('/hello/users', greetingDuyHung);
 
 // 404 handler — must be after all routes
 app.use((_request: Request, response: Response) => {
