@@ -59,9 +59,7 @@ app.get('/hello', (_request: Request, response: Response) => {
   response.json({ message: 'Hello, TCSS 460!' });
 });
 
-app.get('/hello/duy-hung', (_request: Request, response: Response) => {
-  response.json({ message: 'Hello, my name is Duy-Hung Le' });
-});
+app.use('/hello/users', greetingDuyHung);
 
 // Routes
 app.use(routes);
