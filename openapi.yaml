@@ -50,6 +50,28 @@ paths:
                   message:
                     type: string
                     example: 'Hello! My name is Kassie Whitney. I am 33 years old. I am currently a Senior at University of Washington Tacoma! It is nice to meet everyone!'
+
+  /hello/users/skyler:
+    get:
+      tags: [General]
+      summary: Get Skyler's greeting
+      description: Returns a hardcoded greeting message from Skyler.
+      operationId: getGreetingSkyler
+      responses:
+        '200':
+          description: Successful greeting response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    description: The greeting message from Skyler.
+                    example: "Hello! My name is Skyler!"
+              example:
+                msg: "Hello! My name is Skyler!"
+
   /status:
     get:
       tags: [General]

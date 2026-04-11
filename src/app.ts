@@ -43,6 +43,8 @@ import swaggerUi from 'swagger-ui-express';
 import { routes } from './routes';
 import { logger } from './middleware/logger';
 
+import { greetingDuyHung } from './routes/greetingDuyHung'; // added by skyler
+
 const app = express();
 
 // Application-level middleware
@@ -60,8 +62,8 @@ app.get('/hello', (_request: Request, response: Response) => {
 });
 
 // Should this be in routes not in app? Was causing issues for run dev
-// also not imported - Skyler 
-//app.use('/hello/users', greetingDuyHung);
+// - Skyler 
+app.use('/hello/users', greetingDuyHung);
 
 // Routes
 app.use(routes);
