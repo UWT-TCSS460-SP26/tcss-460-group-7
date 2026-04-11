@@ -1,4 +1,4 @@
-# First Meeting
+# First Meeting 4/8/26 18:00
 
 **Duration:** 30 minutes  
 **Location:** Discord

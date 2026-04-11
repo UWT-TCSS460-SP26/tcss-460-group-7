@@ -59,7 +59,9 @@ app.get('/hello', (_request: Request, response: Response) => {
   response.json({ message: 'Hello, TCSS 460!' });
 });
 
-app.use('/hello/users', greetingDuyHung);
+// Should this be in routes not in app? Was causing issues for run dev
+// also not imported - Skyler 
+//app.use('/hello/users', greetingDuyHung);
 
 // Routes
 app.use(routes);
