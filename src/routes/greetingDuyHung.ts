@@ -3,6 +3,6 @@ import { getGreeting } from '../controllers/greetingDuyHung';
 
 const greetingDuyHung = Router();
 
-greetingDuyHung.get('/greetingDuyHung', getGreeting);
+greetingDuyHung.get('/hello/users/DuyHung', getGreeting);
 
 export { greetingDuyHung };
