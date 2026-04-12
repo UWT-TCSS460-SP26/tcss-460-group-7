@@ -43,8 +43,6 @@ import swaggerUi from 'swagger-ui-express';
 import { routes } from './routes';
 import { logger } from './middleware/logger';
 
-import { greetingDuyHung } from './routes/greetingDuyHung'; // added by skyler
-
 const app = express();
 
 // Application-level middleware
