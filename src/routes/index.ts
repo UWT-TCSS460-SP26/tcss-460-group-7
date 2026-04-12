@@ -1,8 +1,5 @@
 import { Router } from 'express';
 import { statusRouter } from './heartbeat';
-import { kassieRouter } from './kassie-whitney';
-import { SkylerRouter } from './SkylerBroussard'
-import { greetingDuyHung } from './greetingDuyHung';
 
 
 const routes = Router();
@@ -10,8 +7,5 @@ const routes = Router();
 routes.use(statusRouter);
 
 // Delete later
-routes.use(kassieRouter);
-routes.use(SkylerRouter);
-routes.use(greetingDuyHung);
 
 export { routes };
