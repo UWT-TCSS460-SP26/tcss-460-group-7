@@ -55,10 +55,6 @@ const specFile = fs.readFileSync('./openapi.yaml', 'utf8');
 const spec = YAML.parse(specFile);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(spec));
 
-app.get('/hello', (_request: Request, response: Response) => {
-  response.json({ message: 'Hello, TCSS 460!' });
-});
-
 // Routes
 app.use(routes);
 

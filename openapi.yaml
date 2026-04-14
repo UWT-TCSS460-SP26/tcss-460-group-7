@@ -17,39 +17,7 @@ tags:
     description: General-purpose routes
 
 paths:
-  /hello:
-    get:
-      tags: [General]
-      summary: Hello
-      description: Returns a greeting message.
-      responses:
-        '200':
-          description: A greeting message
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: 'Hello, TCSS 460!'
 
-  /hello/users/kassie:
-    get:
-      tags: [General]
-      summary: Kassie's greeting
-      description: Kassie greeting herself to her classmates.
-      responses:
-        '200':
-          description: A personal greeting from Kassie
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: 'Hello! My name is Kassie Whitney. I am 33 years old. I am currently a Senior at University of Washington Tacoma! It is nice to meet everyone!'
   /status:
     get:
       tags: [General]
