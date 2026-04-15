@@ -15,9 +15,10 @@ servers:
 tags:
   - name: General
     description: General-purpose routes
+  - name: TMDB Auth
+    description: TMDB authentication proxy routes
 
 paths:
-
   /status:
     get:
       tags: [General]
@@ -34,3 +35,117 @@ paths:
                   message:
                     type: string
                     example: 'Status: OK'
+
+  /proxy/auth/request-token:
+    get:
+      tags: [TMDB Auth]
+      summary: Create a TMDB request token
+      description: Requests a new TMDB request token that can be used in the user approval flow.
+      responses:
+        '200':
+          description: Request token created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  expires_at:
+                    type: string
+                    example: '2026-04-15 01:23:45 UTC'
+                  request_token:
+                    type: string
+                    example: 'abc123requesttoken'
+        '500':
+          description: TMDB API key is missing or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '502':
+          description: Failed to reach TMDB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /proxy/auth/login:
+    get:
+      tags: [TMDB Auth]
+      summary: Redirect user to TMDB login and approval
+      description: Redirects the user to TMDB so they can approve a previously created request token.
+      parameters:
+        - in: query
+          name: request_token
+          required: true
+          schema:
+            type: string
+          description: TMDB request token returned by the request-token endpoint.
+      responses:
+        '302':
+          description: Redirects the browser to TMDB approval.
+        '400':
+          description: Request token was missing or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '502':
+          description: Failed to reach TMDB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /proxy/auth/session:
+    post:
+      tags: [TMDB Auth]
+      summary: Exchange an approved request token for a TMDB session ID
+      description: Creates a TMDB session ID from an approved request token.
+      parameters:
+        - in: query
+          name: request_token
+          required: true
+          schema:
+            type: string
+          description: Approved TMDB request token.
+      responses:
+        '200':
+          description: Session ID created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                    example: 'c9c3f1a2b4d5e6f7890abc123def4567'
+        '400':
+          description: Request token was missing or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: TMDB API key is missing or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '502':
+          description: Failed to reach TMDB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: 'Failed to reach TMDB service'
