@@ -1,7 +1,7 @@
 {
   "name": "tcss460-group-project-backend",
-  "version": "1.0.0",
-  "description": "TCSS 460 Group Project — Express + TypeScript API",
+  "version": "0.0.0",
+  "description": "TCSS 460 Group-7 Project — Express + TypeScript API",
   "author": "",
   "license": "ISC",
   "main": "dist/index.js",
