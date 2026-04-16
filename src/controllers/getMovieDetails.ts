@@ -2,12 +2,12 @@
 import { Request, Response } from 'express';
 
 export const getMovieDetails = async (req: Request, res: Response) => {
-  const { movieId } = req.params;
+  const { Id } = req.query;
   const apiKey = process.env.TMDB_API_KEY; // CHANGE if we have different env var name
 
   try {
     // Fetch from TMDB
-    const result = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}`);
+    const result = await fetch(`https://api.themoviedb.org/3/movie/${Id}?api_key=${apiKey}`);
     const data: any = await result.json();
 
     if (!result.ok) return res.status(result.status).json(data);
