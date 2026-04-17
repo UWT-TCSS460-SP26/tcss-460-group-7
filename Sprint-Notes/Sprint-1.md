@@ -19,9 +19,9 @@
 
     * Search for TV shows so that "I can display search results with poster images and key metadata".
         - API proxies this to TMDB:
-            * Minimum support -> searching by title
+            * Minimum support -> x searching by title
             * Other suport -> searching by:
-                - Genre
+                - x Genre
                 - cast
                 - crew
                 - runtime
