@@ -21,24 +21,24 @@ describe('Authorization Route testing', () => {
     process.env.TMDB_API_KEY = originalApiKey;
   });
 
-  it('GET /proxy/auth/request-token - returns the temporary token used for logging in a user', async () => {
-    const response = await request(app).get('/proxy/auth/request-token');
+  it('GET /protected/auth/request-token - returns the temporary token used for logging in a user', async () => {
+    const response = await request(app).get('/protected/auth/request-token');
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     expect(response.body.request_token).toBe('mock-request-token');
   });
 
-  it('GET /proxy/auth/request-token/bad-path - returns 404 for an invalid request-token route', async () => {
-    const response = await request(app).get('/proxy/auth/request-token/bad-path');
+  it('GET /protected/auth/request-token/bad-path - returns 404 for an invalid request-token route', async () => {
+    const response = await request(app).get('/protected/auth/request-token/bad-path');
 
     expect(response.status).toBe(404);
     expect(response.body.error).toBe('Route not found');
   });
 
-  it('GET /proxy/auth/login - redirects the user to TMDB login when request_token is provided', async () => {
+  it('GET /protected/auth/login - redirects the user to TMDB login when request_token is provided', async () => {
     const response = await request(app)
-      .get('/proxy/auth/login')
+      .get('/protected/auth/login')
       .query({ request_token: 'mock-request-token' });
 
     expect(response.status).toBe(302);
@@ -47,21 +47,21 @@ describe('Authorization Route testing', () => {
     );
   });
 
-  it('GET /proxy/auth/login - returns 400 when request_token is missing', async () => {
-    const response = await request(app).get('/proxy/auth/login');
+  it('GET /protected/auth/login - returns 400 when request_token is missing', async () => {
+    const response = await request(app).get('/protected/auth/login');
 
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('Valid request token is required');
   });
 
-  it('GET /proxy/auth/login/bad-path - returns 404 for an invalid login route', async () => {
-    const response = await request(app).get('/proxy/auth/login/bad-path');
+  it('GET /protected/auth/login/bad-path - returns 404 for an invalid login route', async () => {
+    const response = await request(app).get('/protected/auth/login/bad-path');
 
     expect(response.status).toBe(404);
     expect(response.body.error).toBe('Route not found');
   });
 
-  it('POST /proxy/auth/session - returns the session_id for an approved request token', async () => {
+  it('POST /protected/auth/session - returns the session_id for an approved request token', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -71,22 +71,22 @@ describe('Authorization Route testing', () => {
     } as Awaited<ReturnType<typeof fetch>>);
 
     const response = await request(app)
-      .post('/proxy/auth/session')
+      .post('/protected/auth/session')
       .query({ request_token: 'approved-request-token' });
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ session_id: 'mock-session-id' });
   });
 
-  it('POST /proxy/auth/session - returns 400 when request_token is missing', async () => {
-    const response = await request(app).post('/proxy/auth/session');
+  it('POST /protected/auth/session - returns 400 when request_token is missing', async () => {
+    const response = await request(app).post('/protected/auth/session');
 
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('Valid request token is required');
   });
 
-  it('POST /proxy/auth/session/bad-path - returns 404 for an invalid session route', async () => {
-    const response = await request(app).post('/proxy/auth/session/bad-path');
+  it('POST /protected/auth/session/bad-path - returns 404 for an invalid session route', async () => {
+    const response = await request(app).post('/protected/auth/session/bad-path');
 
     expect(response.status).toBe(404);
     expect(response.body.error).toBe('Route not found');

@@ -17,6 +17,8 @@ tags:
     description: General-purpose routes
   - name: TMDB Auth
     description: TMDB authentication proxy routes
+  - name: TV Search
+    description: TMDB TV search proxy routes
 
 paths:
   /status:
@@ -36,7 +38,7 @@ paths:
                     type: string
                     example: 'Status: OK'
 
-  /proxy/auth/request-token:
+  /protected/auth/request-token:
     get:
       tags: [TMDB Auth]
       summary: Create a TMDB request token
@@ -71,7 +73,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /proxy/auth/login:
+  /protected/auth/login:
     get:
       tags: [TMDB Auth]
       summary: Redirect user to TMDB login and approval
@@ -99,7 +101,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /proxy/auth/session:
+  /protected/auth/session:
     post:
       tags: [TMDB Auth]
       summary: Exchange an approved request token for a TMDB session ID
@@ -141,8 +143,221 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /proxy/tv/search/title:
+    get:
+      tags: [TV Search]
+      summary: Search TV shows by title
+      description: Searches TMDB for TV shows by title and returns key metadata with poster and backdrop image URLs.
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+          description: TV show title to search for.
+          example: breaking bad
+      responses:
+        '200':
+          description: TV search results returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TVSearchResponse'
+        '400':
+          description: Missing or invalid query parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumericErrorResponse'
+        '500':
+          description: TMDB API token is not configured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /proxy/tv/search/genre:
+    get:
+      tags: [TV Search]
+      summary: Search TV shows by genre
+      description: Discovers TMDB TV shows by genre and returns key metadata with poster and backdrop image URLs.
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+          description: TV genre name. Spaces are normalized to underscores.
+          example: drama
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: TMDB result page number.
+      responses:
+        '200':
+          description: TV genre search results returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TVSearchResponse'
+        '400':
+          description: Invalid genre or page parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumericErrorResponse'
+        '404':
+          description: Genre was not found in the local TV genre map
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumericErrorResponse'
+        '500':
+          description: TMDB API token is not configured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /proxy/tv/search/cast:
+    get:
+      tags: [TV Search]
+      summary: Search TV shows by cast member
+      description: Searches TMDB for a person, retrieves that person's TV credits, and optionally filters the credits by TV genre.
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+          description: Cast member name.
+          example: tom hanks
+        - in: query
+          name: genre
+          required: false
+          schema:
+            type: string
+          description: Optional TV genre name used to filter the cast member's TV credits.
+          example: drama
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Local result page number for the cast member's TV credits.
+      responses:
+        '200':
+          description: Cast TV credit results returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TVSearchResponse'
+        '400':
+          description: Invalid cast, genre, or page parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumericErrorResponse'
+        '404':
+          description: Cast member or genre was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumericErrorResponse'
+        '500':
+          description: TMDB API token is not configured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
+    TVSearchResponse:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        totalPages:
+          type: integer
+          example: 1
+        totalResults:
+          type: integer
+          example: 10
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TVSearchResult'
+
+    TVSearchResult:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1396
+        name:
+          type: string
+          example: Breaking Bad
+        originalName:
+          type: string
+          example: Breaking Bad
+        overview:
+          type: string
+          example: A chemistry teacher starts a new life.
+        firstAirDate:
+          type: string
+          example: '2008-01-20'
+        genreIds:
+          type: array
+          items:
+            type: integer
+          example: [18, 80]
+        popularity:
+          type: number
+          example: 100.5
+        voteAverage:
+          type: number
+          example: 8.9
+        voteCount:
+          type: integer
+          example: 1000
+        originalLanguage:
+          type: string
+          example: en
+        posterPath:
+          type: string
+          nullable: true
+          example: /poster.jpg
+        posterUrl:
+          type: string
+          nullable: true
+          example: https://image.tmdb.org/t/p/w500/poster.jpg
+        backdropPath:
+          type: string
+          nullable: true
+          example: /backdrop.jpg
+        backdropUrl:
+          type: string
+          nullable: true
+          example: https://image.tmdb.org/t/p/w500/backdrop.jpg
+
+    NumericErrorResponse:
+      type: object
+      properties:
+        error:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: Missing required query parameter
+
     ErrorResponse:
       type: object
       properties:

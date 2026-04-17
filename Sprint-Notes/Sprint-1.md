@@ -22,7 +22,7 @@
             * Minimum support -> x searching by title
             * Other suport -> searching by:
                 - x Genre
-                - cast
+                - x cast
                 - crew
                 - runtime
                 - trailers
