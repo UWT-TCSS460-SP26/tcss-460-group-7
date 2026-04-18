@@ -19,11 +19,16 @@ describe('TV Details Route', () => {
     const mockTMDBResponse = {
       id: 246,
       name: 'Avatar: The Last Airbender',
-      genres: [{ id: 10759, name: 'Action & Adventure' }, { id: 16, name: 'Animation' }, { id: 10762, name: 'Kids' }],
+      genres: [
+        { id: 10759, name: 'Action & Adventure' },
+        { id: 16, name: 'Animation' },
+        { id: 10762, name: 'Kids' },
+      ],
       first_air_date: '2005-02-21',
       number_of_episodes: 61,
       number_of_seasons: 3,
-      overview: 'In a war-torn world of elemental magic, a young boy reawakens to undertake a dangerous mystic quest to fulfill his destiny as the Avatar, and bring peace to the world.',
+      overview:
+        'In a war-torn world of elemental magic, a young boy reawakens to undertake a dangerous mystic quest to fulfill his destiny as the Avatar, and bring peace to the world.',
       poster_path: '/cZ0d3rtvX5s1bUu3Wej2p3m2g2Y.jpg',
     };
 
@@ -42,21 +47,20 @@ describe('TV Details Route', () => {
       year: '2005-02-21',
       episodes: 61,
       seasons: 3,
-      summary: 'In a war-torn world of elemental magic, a young boy reawakens to undertake a dangerous mystic quest to fulfill his destiny as the Avatar, and bring peace to the world.',
+      summary:
+        'In a war-torn world of elemental magic, a young boy reawakens to undertake a dangerous mystic quest to fulfill his destiny as the Avatar, and bring peace to the world.',
       poster_url: 'https://image.tmdb.org/t/p/w500/cZ0d3rtvX5s1bUu3Wej2p3m2g2Y.jpg',
     });
-    
+
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('https://api.themoviedb.org/3/tv/246')
     );
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('api_key=test_api_key')
-    );
+    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('api_key=test_api_key'));
   });
 
   it('GET /tv/details?Id=999999 - should return error from TMDB', async () => {
     const mockTMDBError = { status_message: 'The resource you requested could not be found.' };
-    
+
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 404,

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { statusRouter } from './heartbeat';
 import { protectedRoutes } from './protected';
-import { searchTvRoutes, getMovieDetailsRouter, getTVDetailsRouter} from './proxy';
+import { searchTvRoutes, getMovieDetailsRouter, getTVDetailsRouter } from './proxy';
 
 const routes = Router();
 // Heartbeat router

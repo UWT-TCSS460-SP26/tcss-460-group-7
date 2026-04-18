@@ -30,8 +30,10 @@ export const getTVDetails = async (req: Request, res: Response) => {
 
   try {
     // Fetch from TMDB
-    const result = await fetch(`https://api.themoviedb.org/3/tv/${Id}?api_key=${process.env.TMDB_API_KEY}`);
-    
+    const result = await fetch(
+      `https://api.themoviedb.org/3/tv/${Id}?api_key=${process.env.TMDB_API_KEY}`
+    );
+
     const data = (await result.json()) as TMDBTVResponse; // get data assign type to TMDBTVResponse
 
     if (!result.ok) return res.status(result.status).json(data);
