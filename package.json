@@ -14,8 +14,8 @@
     "start": "node dist/src/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "eslint .",
-    "lint:fix": "eslint --fix .",
+    "lint": "eslint --config eslint.config.mjs .",
+    "lint:fix": "eslint --config eslint.config.mjs --fix .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "status": "jest -- tests/heartbeat.test.ts"
