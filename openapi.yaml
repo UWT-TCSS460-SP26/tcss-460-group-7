@@ -363,29 +363,29 @@ paths:
                 properties:
                   id:
                     type: integer
-                    example: 1399
+                    example: 246
                   title:
                     type: string
-                    example: 'Game of Thrones'
+                    example: 'Avatar: The Last Airbender'
                   genre:
                     type: string
-                    example: 'Sci-Fi & Fantasy, Drama'
+                    example: 'Action & Adventure, Animation, Kids'
                   year:
                     type: string
-                    example: '2011-04-17'
+                    example: '2005-02-21'
                   episodes:
                     type: integer
-                    example: 73
+                    example: 61
                   seasons:
                     type: integer
-                    example: 8
+                    example: 3
                   summary:
                     type: string
-                    example: 'Seven noble families fight for control of the mythical land of Westeros.'
+                    example: 'In a war-torn world of elemental magic, a young boy reawakens to undertake a dangerous mystic quest to fulfill his destiny as the Avatar, and bring peace to the world.'
                   poster_url:
                     type: string
                     nullable: true
-                    example: 'https://image.tmdb.org/t/p/w500/1XS1oqL89opfnbLl8WnZY1O1uJx.jpg'
+                    example: 'https://image.tmdb.org/t/p/w500/cZ0d3rtvX5s1bUu3Wej2p3m2g2Y.jpg'
         '404':
           description: TV show not found on TMDB
           content:

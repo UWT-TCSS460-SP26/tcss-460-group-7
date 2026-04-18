@@ -15,16 +15,16 @@ describe('TV Details Route', () => {
     global.fetch = originalFetch;
   });
 
-  it('GET /tv/details?Id=1399 - should return transformed tv details', async () => {
+  it('GET /tv/details?Id=246 - should return transformed tv details for Avatar: The Last Airbender', async () => {
     const mockTMDBResponse = {
-      id: 1399,
-      name: 'Game of Thrones', // Note: TV shows use 'name' instead of 'title' in TMDB
-      genres: [{ id: 10765, name: 'Sci-Fi & Fantasy' }, { id: 18, name: 'Drama' }],
-      release_date: '2011-04-17', // Based on your controller expecting release_date
-      number_of_episodes: 73,
-      number_of_seasons: 8,
-      overview: 'Seven noble families fight for control of the mythical land of Westeros.',
-      poster_path: '/1XS1oqL89opfnbLl8WnZY1O1uJx.jpg',
+      id: 246,
+      name: 'Avatar: The Last Airbender',
+      genres: [{ id: 10759, name: 'Action & Adventure' }, { id: 16, name: 'Animation' }, { id: 10762, name: 'Kids' }],
+      first_air_date: '2005-02-21',
+      number_of_episodes: 61,
+      number_of_seasons: 3,
+      overview: 'In a war-torn world of elemental magic, a young boy reawakens to undertake a dangerous mystic quest to fulfill his destiny as the Avatar, and bring peace to the world.',
+      poster_path: '/cZ0d3rtvX5s1bUu3Wej2p3m2g2Y.jpg',
     };
 
     mockFetch.mockResolvedValueOnce({
@@ -32,22 +32,22 @@ describe('TV Details Route', () => {
       json: async () => mockTMDBResponse,
     } as Response);
 
-    const response = await request(app).get('/tv/details?Id=1399');
+    const response = await request(app).get('/tv/details?Id=246');
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
-      id: 1399,
-      title: 'Game of Thrones',
-      genre: 'Sci-Fi & Fantasy, Drama',
-      year: '2011-04-17',
-      episodes: 73,
-      seasons: 8,
-      summary: 'Seven noble families fight for control of the mythical land of Westeros.',
-      poster_url: 'https://image.tmdb.org/t/p/w500/1XS1oqL89opfnbLl8WnZY1O1uJx.jpg',
+      id: 246,
+      title: 'Avatar: The Last Airbender',
+      genre: 'Action & Adventure, Animation, Kids',
+      year: '2005-02-21',
+      episodes: 61,
+      seasons: 3,
+      summary: 'In a war-torn world of elemental magic, a young boy reawakens to undertake a dangerous mystic quest to fulfill his destiny as the Avatar, and bring peace to the world.',
+      poster_url: 'https://image.tmdb.org/t/p/w500/cZ0d3rtvX5s1bUu3Wej2p3m2g2Y.jpg',
     });
     
     expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('https://api.themoviedb.org/3/tv/1399')
+      expect.stringContaining('https://api.themoviedb.org/3/tv/246')
     );
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('api_key=test_api_key')
@@ -69,21 +69,21 @@ describe('TV Details Route', () => {
     expect(response.body).toEqual(mockTMDBError);
   });
 
-  it('GET /tv/details?Id=1399 - should handle fetch failure (502 Bad Gateway)', async () => {
+  it('GET /tv/details?Id=246 - should handle fetch failure (502 Bad Gateway)', async () => {
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-    const response = await request(app).get('/tv/details?Id=1399');
+    const response = await request(app).get('/tv/details?Id=246');
 
     expect(response.status).toBe(502);
     expect(response.body).toEqual({ error: 'Failed to reach TMDB' });
   });
 
-  it('GET /tv/details?Id=1399 - should handle missing poster and release date', async () => {
+  it('GET /tv/details?Id=246 - should handle missing poster and release date', async () => {
     const mockTMDBResponse = {
-      id: 1399,
+      id: 246,
       name: 'TV Show without poster',
       genres: [{ id: 18, name: 'Drama' }],
-      release_date: '',
+      first_air_date: '',
       number_of_episodes: 10,
       number_of_seasons: 1,
       overview: 'No overview',
@@ -95,10 +95,33 @@ describe('TV Details Route', () => {
       json: async () => mockTMDBResponse,
     } as Response);
 
-    const response = await request(app).get('/tv/details?Id=1399');
+    const response = await request(app).get('/tv/details?Id=246');
 
     expect(response.status).toBe(200);
     expect(response.body.year).toBe('Unknown');
     expect(response.body.poster_url).toBeNull();
+  });
+
+  it('GET /tv/details?Id=246 - should handle empty genres array', async () => {
+    const mockTMDBResponse = {
+      id: 246,
+      name: 'TV Show with no genres',
+      genres: [], // Empty genres array
+      first_air_date: '2022-01-01',
+      number_of_episodes: 1,
+      number_of_seasons: 1,
+      overview: 'An overview.',
+      poster_path: '/poster.jpg',
+    };
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockTMDBResponse,
+    } as Response);
+
+    const response = await request(app).get('/tv/details?Id=246');
+
+    expect(response.status).toBe(200);
+    expect(response.body.genre).toBe(''); // Expect an empty string
   });
 });
