@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { statusRouter } from './heartbeat';
 import { protectedRoutes } from './protected';
-import { searchTvRoutes } from './proxy';
+import { proxyRoutes } from './proxy';
 
 const routes = Router();
 // Heartbeat router
@@ -10,6 +10,6 @@ routes.use(statusRouter);
 routes.use(protectedRoutes);
 
 // Search query routes
-routes.use(searchTvRoutes);
+routes.use(proxyRoutes);
 
 export { routes };
