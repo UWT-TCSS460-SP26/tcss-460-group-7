@@ -19,10 +19,7 @@ describe('TV Details Route', () => {
     const mockTMDBResponse = {
       id: 1399,
       name: 'Game of Thrones', // Note: TV shows use 'name' instead of 'title' in TMDB
-      genres: [
-        { id: 10765, name: 'Sci-Fi & Fantasy' },
-        { id: 18, name: 'Drama' },
-      ],
+      genres: [{ id: 10765, name: 'Sci-Fi & Fantasy' }, { id: 18, name: 'Drama' }],
       release_date: '2011-04-17', // Based on your controller expecting release_date
       number_of_episodes: 73,
       number_of_seasons: 8,
@@ -48,16 +45,18 @@ describe('TV Details Route', () => {
       summary: 'Seven noble families fight for control of the mythical land of Westeros.',
       poster_url: 'https://image.tmdb.org/t/p/w500/1XS1oqL89opfnbLl8WnZY1O1uJx.jpg',
     });
-
+    
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('https://api.themoviedb.org/3/tv/1399')
     );
-    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('api_key=test_api_key'));
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('api_key=test_api_key')
+    );
   });
 
   it('GET /tv/details?Id=999999 - should return error from TMDB', async () => {
     const mockTMDBError = { status_message: 'The resource you requested could not be found.' };
-
+    
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 404,
@@ -102,19 +101,4 @@ describe('TV Details Route', () => {
     expect(response.body.year).toBe('Unknown');
     expect(response.body.poster_url).toBeNull();
   });
-
-  /*
-   * --- JEST FUNCTIONS EXPLAINED ---
-   * .mockResolvedValueOnce() : Fakes a successful async response (Promise.resolve)
-   *  for the very next time the mock is called. Allows faking API data without real network calls.
-   *
-   * .mockRejectedValueOnce() : Fakes an async crash or network error (Promise.reject)
-   *  for the next call. Useful for testing error handling (catch blocks).
-   *
-   * .toHaveBeenCalledWith()  : Asserts that your code actually called the mock function
-   * with specific arguments (e.g., making sure the fetch URL is correct).
-   *
-   * expect.stringContaining(): Used inside assertions when you only care that a string contains
-   * a specific piece of text, rather than matching the whole exact string.
-   */
 });
