@@ -1,13 +1,13 @@
 // controllers/getMovieDetails.ts
 import { Request, Response } from 'express';
 
-export const getMovieDetails = async (req: Request, res: Response) => {
+export const getTVDetails = async (req: Request, res: Response) => {
   const { Id } = req.query;
   const apiKey = process.env.TMDB_API_KEY; // CHANGE if we have different env var name
 
   try {
     // Fetch from TMDB
-    const result = await fetch(`https://api.themoviedb.org/3/movie/${Id}?api_key=${apiKey}`);
+    const result = await fetch(`https://api.themoviedb.org/3/tv/${Id}?api_key=${apiKey}`);
     const data: any = await result.json();
 
     if (!result.ok) return res.status(result.status).json(data);
@@ -15,9 +15,11 @@ export const getMovieDetails = async (req: Request, res: Response) => {
     // Transform the data
     const transformedMovie = {
       id: data.id,
-      title: data.title,
+      title: data.name,
       genre: data.genres.map((g: any) => g.name).join(', '), // Convert genres array to string the theme json for genres is [{ id: 28, name: 'Action' }, { id: 12, name: 'Adventure' }, ...]
       year: data.release_date ? data.release_date : 'Unknown',
+      episodes: data.number_of_episodes,
+      seasons: data.number_of_seasons,
       summary: data.overview,
       poster_url: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : null,
     };

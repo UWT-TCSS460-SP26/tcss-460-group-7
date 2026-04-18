@@ -15,6 +15,10 @@ servers:
 tags:
   - name: General
     description: General-purpose routes
+  - name: Movies
+    description: Movie related routes
+  - name: TV Shows
+    description: TV Show related routes
 
 paths:
   /status:
@@ -33,3 +37,129 @@ paths:
                   message:
                     type: string
                     example: 'Status: OK'
+
+  /movie/details:
+    get:
+      tags: [Movies]
+      summary: Get movie details
+      description: Fetches and transforms movie details from TMDB using a movie ID.
+      parameters:
+        - in: query
+          name: Id
+          required: true
+          schema:
+            type: integer
+          description: The TMDB ID of the movie
+      responses:
+        '200':
+          description: Successful response with transformed movie details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 550
+                  title:
+                    type: string
+                    example: 'Fight Club'
+                  genre:
+                    type: string
+                    example: 'Drama'
+                  year:
+                    type: string
+                    example: '1999-10-15'
+                  summary:
+                    type: string
+                    example: 'A ticking-time-bomb insomniac and a slippery soap salesman...'
+                  poster_url:
+                    type: string
+                    nullable: true
+                    example: 'https://image.tmdb.org/t/p/w500/pB8BM79JsS0Zv9Uv00pYI0mhaZ5.jpg'
+        '404':
+          description: Movie not found on TMDB
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status_message:
+                    type: string
+                    example: 'The resource you requested could not be found.'
+        '502':
+          description: Failed to reach TMDB
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'Failed to reach TMDB'
+
+  /tv/details:
+    get:
+      tags: [TV Shows]
+      summary: Get TV show details
+      description: Fetches and transforms TV show details from TMDB using a TV show ID.
+      parameters:
+        - in: query
+          name: Id
+          required: true
+          schema:
+            type: integer
+          description: The TMDB ID of the TV show
+      responses:
+        '200':
+          description: Successful response with transformed TV show details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1399
+                  title:
+                    type: string
+                    example: 'Game of Thrones'
+                  genre:
+                    type: string
+                    example: 'Sci-Fi & Fantasy, Drama'
+                  year:
+                    type: string
+                    example: '2011-04-17'
+                  episodes:
+                    type: integer
+                    example: 73
+                  seasons:
+                    type: integer
+                    example: 8
+                  summary:
+                    type: string
+                    example: 'Seven noble families fight for control of the mythical land of Westeros.'
+                  poster_url:
+                    type: string
+                    nullable: true
+                    example: 'https://image.tmdb.org/t/p/w500/1XS1oqL89opfnbLl8WnZY1O1uJx.jpg'
+        '404':
+          description: TV show not found on TMDB
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status_message:
+                    type: string
+                    example: 'The resource you requested could not be found.'
+        '502':
+          description: Failed to reach TMDB
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'Failed to reach TMDB'
