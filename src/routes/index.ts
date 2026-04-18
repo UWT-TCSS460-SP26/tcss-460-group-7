@@ -9,6 +9,6 @@ routes.use(statusRouter);
 
 // Delete later
 routes.use(getMovieDetailsRouter);
-routes.use(getTVDetailsRouter)
+routes.use(getTVDetailsRouter);
 
 export { routes };

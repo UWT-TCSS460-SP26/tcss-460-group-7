@@ -44,14 +44,12 @@ describe('Movie Details Route', () => {
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('https://api.themoviedb.org/3/movie/550')
     );
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('api_key=test_api_key')
-    );
+    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('api_key=test_api_key'));
   });
 
   it('GET /movie/details?Id=999999 - should return error from TMDB', async () => {
     const mockTMDBError = { status_message: 'The resource you requested could not be found.' };
-    
+
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 404,
@@ -95,18 +93,18 @@ describe('Movie Details Route', () => {
     expect(response.body.poster_url).toBeNull();
   });
 
-  /* 
+  /*
    * --- JEST FUNCTIONS EXPLAINED ---
    * .mockResolvedValueOnce() : Fakes a successful async response (Promise.resolve)
    *  for the very next time the mock is called. Allows faking API data without real network calls.
-   * 
+   *
    * .mockRejectedValueOnce() : Fakes an async crash or network error (Promise.reject)
    *  for the next call. Useful for testing error handling (catch blocks).
-   * 
-   * .toHaveBeenCalledWith()  : Asserts that your code actually called the mock function 
+   *
+   * .toHaveBeenCalledWith()  : Asserts that your code actually called the mock function
    * with specific arguments (e.g., making sure the fetch URL is correct).
-   * 
-   * expect.stringContaining(): Used inside assertions when you only care that a string contains 
+   *
+   * expect.stringContaining(): Used inside assertions when you only care that a string contains
    * a specific piece of text, rather than matching the whole exact string.
    */
 });
