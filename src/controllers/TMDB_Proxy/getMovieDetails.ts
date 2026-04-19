@@ -28,20 +28,23 @@ const formatMovieDetailsResponse = (data: TMDBMovieResponse) => {
 export const getMovieDetails = async (req: Request, res: Response) => {
   const { Id } = req.query;
 
+  if (!Id) {
+    return res.status(400).json({ error: 'Missing required query parameter: Id' });
+  }
+
   try {
     // Fetch from TMDB
-    const result = await fetch(
-      `
-      https://api.themoviedb.org/3/movie/${Id}?`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.TMDB_API_TOKEN}`,
-          accept: 'application/json',
-        },
-      }
-    );
+    const result = await fetch(`https://api.themoviedb.org/3/movie/${Id}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.TMDB_API_TOKEN}`,
+        accept: 'application/json',
+      },
+    });
+
     const data = (await result.json()) as TMDBMovieResponse; // get data assign type to TMDBMovieResponse
+
     if (!result.ok) return res.status(result.status).json(data); // if not ok return stat code
+
     const formattedMovieDetail = formatMovieDetailsResponse(data); // format the data
 
     res.json(formattedMovieDetail);

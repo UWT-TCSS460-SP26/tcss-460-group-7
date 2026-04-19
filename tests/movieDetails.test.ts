@@ -8,14 +8,14 @@ describe('Movie Details Route', () => {
   beforeEach(() => {
     mockFetch = jest.fn();
     global.fetch = mockFetch;
-    process.env.TMDB_API_KEY = 'test_api_key';
+    process.env.TMDB_API_TOKEN = 'test_api_token';
   });
 
   afterEach(() => {
     global.fetch = originalFetch;
   });
 
-  it('GET /movie/details?Id=550 - should return transformed movie details', async () => {
+  it('GET /proxy/movie/details?Id=550 - should return transformed movie details', async () => {
     const mockTMDBResponse = {
       id: 550,
       title: 'Fight Club',
@@ -30,7 +30,7 @@ describe('Movie Details Route', () => {
       json: async () => mockTMDBResponse,
     } as Response);
 
-    const response = await request(app).get('/movie/details?Id=550');
+    const response = await request(app).get('/proxy/movie/details?Id=550');
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -41,13 +41,18 @@ describe('Movie Details Route', () => {
       summary: 'A ticking-time-bomb insomniac and a slippery soap salesman...',
       poster_url: 'https://image.tmdb.org/t/p/w500/pB8BM79JsS0Zv9Uv00pYI0mhaZ5.jpg',
     });
+
     expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('https://api.themoviedb.org/3/movie/550')
+      expect.stringContaining('https://api.themoviedb.org/3/movie/550'),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer test_api_token',
+        }),
+      })
     );
-    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('api_key=test_api_key'));
   });
 
-  it('GET /movie/details?Id=999999 - should return error from TMDB', async () => {
+  it('GET /proxy/movie/details?Id=999999 - should return error from TMDB', async () => {
     const mockTMDBError = { status_message: 'The resource you requested could not be found.' };
 
     mockFetch.mockResolvedValueOnce({
@@ -56,22 +61,22 @@ describe('Movie Details Route', () => {
       json: async () => mockTMDBError,
     } as Response);
 
-    const response = await request(app).get('/movie/details?Id=999999');
+    const response = await request(app).get('/proxy/movie/details?Id=999999');
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual(mockTMDBError);
   });
 
-  it('GET /movie/details?Id=550 - should handle fetch failure (502 Bad Gateway)', async () => {
+  it('GET /proxy/movie/details?Id=550 - should handle fetch failure (502 Bad Gateway)', async () => {
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-    const response = await request(app).get('/movie/details?Id=550');
+    const response = await request(app).get('/proxy/movie/details?Id=550');
 
     expect(response.status).toBe(502);
     expect(response.body).toEqual({ error: 'Failed to reach TMDB' });
   });
 
-  it('GET /movie/details?Id=550 - should handle missing poster and release date', async () => {
+  it('GET /proxy/movie/details?Id=550 - should handle missing poster and release date', async () => {
     const mockTMDBResponse = {
       id: 550,
       title: 'Movie without poster',
@@ -86,25 +91,16 @@ describe('Movie Details Route', () => {
       json: async () => mockTMDBResponse,
     } as Response);
 
-    const response = await request(app).get('/movie/details?Id=550');
+    const response = await request(app).get('/proxy/movie/details?Id=550');
 
     expect(response.status).toBe(200);
     expect(response.body.year).toBe('Unknown');
     expect(response.body.poster_url).toBeNull();
   });
 
-  /*
-   * --- JEST FUNCTIONS EXPLAINED ---
-   * .mockResolvedValueOnce() : Fakes a successful async response (Promise.resolve)
-   *  for the very next time the mock is called. Allows faking API data without real network calls.
-   *
-   * .mockRejectedValueOnce() : Fakes an async crash or network error (Promise.reject)
-   *  for the next call. Useful for testing error handling (catch blocks).
-   *
-   * .toHaveBeenCalledWith()  : Asserts that your code actually called the mock function
-   * with specific arguments (e.g., making sure the fetch URL is correct).
-   *
-   * expect.stringContaining(): Used inside assertions when you only care that a string contains
-   * a specific piece of text, rather than matching the whole exact string.
-   */
+  it('GET /proxy/movie/details - should return 400 if Id is missing', async () => {
+    const response = await request(app).get('/proxy/movie/details');
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: 'Missing required query parameter: Id' });
+  });
 });
