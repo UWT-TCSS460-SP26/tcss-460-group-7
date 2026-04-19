@@ -36,7 +36,7 @@ export const getTVDetails = async (req: Request, res: Response) => {
   }
 
   try {
-    // Fetch from TMDB using Bearer Token for consistency
+    // Fetch from TMDB using Bearer Token
     const result = await fetch(`https://api.themoviedb.org/3/tv/${Id}`, {
       headers: {
         Authorization: `Bearer ${process.env.TMDB_API_TOKEN}`,
@@ -54,7 +54,7 @@ export const getTVDetails = async (req: Request, res: Response) => {
     const formattedTVDetail = formatTVDetailsResponse(data);
 
     res.json(formattedTVDetail);
-  } catch (error) {
+  } catch (_error) {
     res.status(502).json({ error: 'Failed to reach TMDB' });
   }
 };

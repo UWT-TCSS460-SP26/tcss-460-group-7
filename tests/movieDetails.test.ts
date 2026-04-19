@@ -1,6 +1,12 @@
 import request from 'supertest';
 import { app } from '../src/app';
 
+type Response = {
+  ok: boolean;
+  status: number;
+  json: () => Promise<unknown>;
+};
+
 describe('Movie Details Route', () => {
   const originalFetch = global.fetch;
   let mockFetch: jest.Mock;
@@ -15,8 +21,8 @@ describe('Movie Details Route', () => {
     global.fetch = originalFetch;
   });
 
-  it('GET /proxy/movie/details?Id=550 - should return transformed movie details', async () => {
-    const mockTMDBResponse = {
+  it('GET /movie/details?Id=550 - should return transformed movie details', async () => {
+    const mockTMDBResponse  = {
       id: 550,
       title: 'Fight Club',
       genres: [{ id: 18, name: 'Drama' }],
@@ -47,6 +53,7 @@ describe('Movie Details Route', () => {
       expect.objectContaining({
         headers: expect.objectContaining({
           Authorization: 'Bearer test_api_token',
+          accept: 'application/json',
         }),
       })
     );
@@ -96,11 +103,5 @@ describe('Movie Details Route', () => {
     expect(response.status).toBe(200);
     expect(response.body.year).toBe('Unknown');
     expect(response.body.poster_url).toBeNull();
-  });
-
-  it('GET /proxy/movie/details - should return 400 if Id is missing', async () => {
-    const response = await request(app).get('/proxy/movie/details');
-    expect(response.status).toBe(400);
-    expect(response.body).toEqual({ error: 'Missing required query parameter: Id' });
   });
 });

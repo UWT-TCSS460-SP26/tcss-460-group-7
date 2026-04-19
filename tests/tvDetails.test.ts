@@ -1,6 +1,12 @@
 import request from 'supertest';
 import { app } from '../src/app';
 
+type Response = {
+  ok: boolean;
+  status: number;
+  json: () => Promise<unknown>;
+};
+
 describe('TV Details Route', () => {
   const originalFetch = global.fetch;
   let mockFetch: jest.Mock;
@@ -57,6 +63,7 @@ describe('TV Details Route', () => {
       expect.objectContaining({
         headers: expect.objectContaining({
           Authorization: 'Bearer test_api_token',
+          accept: 'application/json',
         }),
       })
     );
