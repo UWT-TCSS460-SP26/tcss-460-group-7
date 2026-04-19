@@ -1,6 +1,12 @@
 import request from 'supertest';
 import { app } from '../src/app';
 
+type Response = {
+  ok: boolean;
+  status: number;
+  json: () => Promise<unknown>;
+};
+
 describe('Movie Details Route', () => {
   const originalFetch = global.fetch;
   let mockFetch: jest.Mock;
@@ -8,7 +14,7 @@ describe('Movie Details Route', () => {
   beforeEach(() => {
     mockFetch = jest.fn();
     global.fetch = mockFetch;
-    process.env.TMDB_API_KEY = 'test_api_key';
+    process.env.TMDB_API_TOKEN = 'test_api_token';
   });
 
   afterEach(() => {
@@ -16,7 +22,7 @@ describe('Movie Details Route', () => {
   });
 
   it('GET /movie/details?Id=550 - should return transformed movie details', async () => {
-    const mockTMDBResponse = {
+    const mockTMDBResponse  = {
       id: 550,
       title: 'Fight Club',
       genres: [{ id: 18, name: 'Drama' }],
@@ -41,10 +47,16 @@ describe('Movie Details Route', () => {
       summary: 'A ticking-time-bomb insomniac and a slippery soap salesman...',
       poster_url: 'https://image.tmdb.org/t/p/w500/pB8BM79JsS0Zv9Uv00pYI0mhaZ5.jpg',
     });
+
     expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('https://api.themoviedb.org/3/movie/550')
+      expect.stringContaining('https://api.themoviedb.org/3/movie/550'),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer test_api_token',
+          accept: 'application/json',
+        }),
+      })
     );
-    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('api_key=test_api_key'));
   });
 
   it('GET /movie/details?Id=999999 - should return error from TMDB', async () => {
@@ -92,19 +104,4 @@ describe('Movie Details Route', () => {
     expect(response.body.year).toBe('Unknown');
     expect(response.body.poster_url).toBeNull();
   });
-
-  /*
-   * --- JEST FUNCTIONS EXPLAINED ---
-   * .mockResolvedValueOnce() : Fakes a successful async response (Promise.resolve)
-   *  for the very next time the mock is called. Allows faking API data without real network calls.
-   *
-   * .mockRejectedValueOnce() : Fakes an async crash or network error (Promise.reject)
-   *  for the next call. Useful for testing error handling (catch blocks).
-   *
-   * .toHaveBeenCalledWith()  : Asserts that your code actually called the mock function
-   * with specific arguments (e.g., making sure the fetch URL is correct).
-   *
-   * expect.stringContaining(): Used inside assertions when you only care that a string contains
-   * a specific piece of text, rather than matching the whole exact string.
-   */
 });

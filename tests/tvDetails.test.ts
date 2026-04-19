@@ -1,6 +1,12 @@
 import request from 'supertest';
 import { app } from '../src/app';
 
+type Response = {
+  ok: boolean;
+  status: number;
+  json: () => Promise<unknown>;
+};
+
 describe('TV Details Route', () => {
   const originalFetch = global.fetch;
   let mockFetch: jest.Mock;
@@ -8,7 +14,7 @@ describe('TV Details Route', () => {
   beforeEach(() => {
     mockFetch = jest.fn();
     global.fetch = mockFetch;
-    process.env.TMDB_API_KEY = 'test_api_key';
+    process.env.TMDB_API_TOKEN = 'test_api_token';
   });
 
   afterEach(() => {
@@ -53,9 +59,14 @@ describe('TV Details Route', () => {
     });
 
     expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('https://api.themoviedb.org/3/tv/246')
+      expect.stringContaining('https://api.themoviedb.org/3/tv/246'),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer test_api_token',
+          accept: 'application/json',
+        }),
+      })
     );
-    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('api_key=test_api_key'));
   });
 
   it('GET /tv/details?Id=999999 - should return error from TMDB', async () => {

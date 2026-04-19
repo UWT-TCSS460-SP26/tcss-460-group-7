@@ -29,23 +29,21 @@ export const getMovieDetails = async (req: Request, res: Response) => {
   const { Id } = req.query;
 
   try {
-    // Fetch from TMDB
-    const result = await fetch(
-      `
-      https://api.themoviedb.org/3/movie/${Id}?`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.TMDB_API_TOKEN}`,
-          accept: 'application/json',
-        },
-      }
-    );
-    const data = (await result.json()) as TMDBMovieResponse; // get data assign type to TMDBMovieResponse
-    if (!result.ok) return res.status(result.status).json(data); // if not ok return stat code
-    const formattedMovieDetail = formatMovieDetailsResponse(data); // format the data
+    // Fetch from TMDB using Bearer Token
+    const result = await fetch(`https://api.themoviedb.org/3/movie/${Id}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.TMDB_API_TOKEN}`,
+        accept: 'application/json',
+      },
+    });
+
+    const data = (await result.json()) as TMDBMovieResponse;
+    if (!result.ok) return res.status(result.status).json(data);
+
+    const formattedMovieDetail = formatMovieDetailsResponse(data);
 
     res.json(formattedMovieDetail);
-  } catch (error) {
+  } catch (_error) {
     res.status(502).json({ error: 'Failed to reach TMDB' });
   }
 };

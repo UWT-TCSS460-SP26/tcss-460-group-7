@@ -12,6 +12,10 @@ type TMDBTVResponse = {
   poster_path: string | null;
 };
 
+const buildImageUrl = (path: string | null) => {
+  return path ? `https://image.tmdb.org/t/p/w500${path}` : null;
+};
+
 const formatTVDetailsResponse = (data: TMDBTVResponse) => {
   return {
     id: data.id,
@@ -21,7 +25,7 @@ const formatTVDetailsResponse = (data: TMDBTVResponse) => {
     episodes: data.number_of_episodes,
     seasons: data.number_of_seasons,
     summary: data.overview,
-    poster_url: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : null,
+    poster_url: buildImageUrl(data.poster_path),
   };
 };
 
@@ -29,12 +33,15 @@ export const getTVDetails = async (req: Request, res: Response) => {
   const { Id } = req.query;
 
   try {
-    // Fetch from TMDB
-    const result = await fetch(
-      `https://api.themoviedb.org/3/tv/${Id}?api_key=${process.env.TMDB_API_KEY}`
-    );
+    // Fetch from TMDB using Bearer Token
+    const result = await fetch(`https://api.themoviedb.org/3/tv/${Id}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.TMDB_API_TOKEN}`,
+        accept: 'application/json',
+      },
+    });
 
-    const data = (await result.json()) as TMDBTVResponse; // get data assign type to TMDBTVResponse
+    const data = (await result.json()) as TMDBTVResponse;
 
     if (!result.ok) return res.status(result.status).json(data);
 
@@ -42,7 +49,7 @@ export const getTVDetails = async (req: Request, res: Response) => {
     const formattedTVDetail = formatTVDetailsResponse(data);
 
     res.json(formattedTVDetail);
-  } catch (error) {
+  } catch (_error) {
     res.status(502).json({ error: 'Failed to reach TMDB' });
   }
 };
