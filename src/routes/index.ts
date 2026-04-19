@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { statusRouter } from './heartbeat';
 import { protectedRoutes } from './protected';
-import { proxyRouter} from './proxy';
+import { proxyRouter } from './proxy';
 
 const routes = Router();
 // Heartbeat router

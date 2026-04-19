@@ -22,7 +22,7 @@ describe('Movie Details Route', () => {
   });
 
   it('GET /movie/details?Id=550 - should return transformed movie details', async () => {
-    const mockTMDBResponse  = {
+    const mockTMDBResponse = {
       id: 550,
       title: 'Fight Club',
       genres: [{ id: 18, name: 'Drama' }],
