@@ -3,10 +3,15 @@ import { searchRouter } from './searchTv';
 import { getMovieDetailsRouter } from './getMovieDetails';
 import { getTVDetailsRouter } from './getTVDetails';
 
-const searchTvRoutes = Router();
+const proxyRouter = Router();
 
-searchTvRoutes.use('/proxy', searchRouter);
-searchTvRoutes.use('/proxy', getMovieDetailsRouter);
-searchTvRoutes.use('/proxy', getTVDetailsRouter);
+// Proxy routes
+proxyRouter.use('/proxy', searchRouter);
 
-export { searchTvRoutes, getMovieDetailsRouter, getTVDetailsRouter };
+// get movie details route
+proxyRouter.use('/proxy', getMovieDetailsRouter);
+
+// get TV details route
+proxyRouter.use('/proxy', getTVDetailsRouter);
+
+export { proxyRouter };

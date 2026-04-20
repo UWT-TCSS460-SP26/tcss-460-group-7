@@ -28,6 +28,10 @@ const formatMovieDetailsResponse = (data: TMDBMovieResponse) => {
 export const getMovieDetails = async (req: Request, res: Response) => {
   const { Id } = req.query;
 
+  if (!Id) {
+    return res.status(400).json({ error: 'Missing required query parameter: Id' });
+  }
+
   try {
     // Fetch from TMDB using Bearer Token
     const result = await fetch(`https://api.themoviedb.org/3/movie/${Id}`, {

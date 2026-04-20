@@ -1,4 +1,3 @@
-// controllers/getTVDetails.ts
 import { Request, Response } from 'express';
 
 type TMDBTVResponse = {
@@ -32,6 +31,10 @@ const formatTVDetailsResponse = (data: TMDBTVResponse) => {
 export const getTVDetails = async (req: Request, res: Response) => {
   const { Id } = req.query;
 
+  if (!Id) {
+    return res.status(400).json({ error: 'Missing required query parameter: Id' });
+  }
+
   try {
     // Fetch from TMDB using Bearer Token
     const result = await fetch(`https://api.themoviedb.org/3/tv/${Id}`, {
@@ -43,7 +46,9 @@ export const getTVDetails = async (req: Request, res: Response) => {
 
     const data = (await result.json()) as TMDBTVResponse;
 
-    if (!result.ok) return res.status(result.status).json(data);
+    if (!result.ok) {
+      return res.status(result.status).json(data);
+    }
 
     // Transform the data
     const formattedTVDetail = formatTVDetailsResponse(data);

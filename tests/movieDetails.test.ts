@@ -22,7 +22,7 @@ describe('Movie Details Route', () => {
   });
 
   it('GET /movie/details?Id=550 - should return transformed movie details', async () => {
-    const mockTMDBResponse  = {
+    const mockTMDBResponse = {
       id: 550,
       title: 'Fight Club',
       genres: [{ id: 18, name: 'Drama' }],
@@ -36,7 +36,7 @@ describe('Movie Details Route', () => {
       json: async () => mockTMDBResponse,
     } as Response);
 
-    const response = await request(app).get('/movie/details?Id=550');
+    const response = await request(app).get('/proxy/movie/details?Id=550');
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -59,7 +59,7 @@ describe('Movie Details Route', () => {
     );
   });
 
-  it('GET /movie/details?Id=999999 - should return error from TMDB', async () => {
+  it('GET /proxy/movie/details?Id=999999 - should return error from TMDB', async () => {
     const mockTMDBError = { status_message: 'The resource you requested could not be found.' };
 
     mockFetch.mockResolvedValueOnce({
@@ -68,22 +68,22 @@ describe('Movie Details Route', () => {
       json: async () => mockTMDBError,
     } as Response);
 
-    const response = await request(app).get('/movie/details?Id=999999');
+    const response = await request(app).get('/proxy/movie/details?Id=999999');
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual(mockTMDBError);
   });
 
-  it('GET /movie/details?Id=550 - should handle fetch failure (502 Bad Gateway)', async () => {
+  it('GET /proxy/movie/details?Id=550 - should handle fetch failure (502 Bad Gateway)', async () => {
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-    const response = await request(app).get('/movie/details?Id=550');
+    const response = await request(app).get('/proxy/movie/details?Id=550');
 
     expect(response.status).toBe(502);
     expect(response.body).toEqual({ error: 'Failed to reach TMDB' });
   });
 
-  it('GET /movie/details?Id=550 - should handle missing poster and release date', async () => {
+  it('GET /proxy/movie/details?Id=550 - should handle missing poster and release date', async () => {
     const mockTMDBResponse = {
       id: 550,
       title: 'Movie without poster',
@@ -98,7 +98,7 @@ describe('Movie Details Route', () => {
       json: async () => mockTMDBResponse,
     } as Response);
 
-    const response = await request(app).get('/movie/details?Id=550');
+    const response = await request(app).get('/proxy/movie/details?Id=550');
 
     expect(response.status).toBe(200);
     expect(response.body.year).toBe('Unknown');

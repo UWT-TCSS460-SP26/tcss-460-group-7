@@ -21,7 +21,7 @@ describe('TV Details Route', () => {
     global.fetch = originalFetch;
   });
 
-  it('GET /tv/details?Id=246 - should return transformed tv details for Avatar: The Last Airbender', async () => {
+  it('GET /proxy/tv/details?Id=246 - should return transformed tv details for Avatar: The Last Airbender', async () => {
     const mockTMDBResponse = {
       id: 246,
       name: 'Avatar: The Last Airbender',
@@ -43,7 +43,7 @@ describe('TV Details Route', () => {
       json: async () => mockTMDBResponse,
     } as Response);
 
-    const response = await request(app).get('/tv/details?Id=246');
+    const response = await request(app).get('/proxy/tv/details?Id=246');
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -69,7 +69,7 @@ describe('TV Details Route', () => {
     );
   });
 
-  it('GET /tv/details?Id=999999 - should return error from TMDB', async () => {
+  it('GET /proxy/tv/details?Id=999999 - should return error from TMDB', async () => {
     const mockTMDBError = { status_message: 'The resource you requested could not be found.' };
 
     mockFetch.mockResolvedValueOnce({
@@ -78,22 +78,22 @@ describe('TV Details Route', () => {
       json: async () => mockTMDBError,
     } as Response);
 
-    const response = await request(app).get('/tv/details?Id=999999');
+    const response = await request(app).get('/proxy/tv/details?Id=999999');
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual(mockTMDBError);
   });
 
-  it('GET /tv/details?Id=246 - should handle fetch failure (502 Bad Gateway)', async () => {
+  it('GET /proxy/tv/details?Id=246 - should handle fetch failure (502 Bad Gateway)', async () => {
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-    const response = await request(app).get('/tv/details?Id=246');
+    const response = await request(app).get('/proxy/tv/details?Id=246');
 
     expect(response.status).toBe(502);
     expect(response.body).toEqual({ error: 'Failed to reach TMDB' });
   });
 
-  it('GET /tv/details?Id=246 - should handle missing poster and release date', async () => {
+  it('GET /proxy/tv/details?Id=246 - should handle missing poster and release date', async () => {
     const mockTMDBResponse = {
       id: 246,
       name: 'TV Show without poster',
@@ -110,14 +110,14 @@ describe('TV Details Route', () => {
       json: async () => mockTMDBResponse,
     } as Response);
 
-    const response = await request(app).get('/tv/details?Id=246');
+    const response = await request(app).get('/proxy/tv/details?Id=246');
 
     expect(response.status).toBe(200);
     expect(response.body.year).toBe('Unknown');
     expect(response.body.poster_url).toBeNull();
   });
 
-  it('GET /tv/details?Id=246 - should handle empty genres array', async () => {
+  it('GET /proxy/tv/details?Id=246 - should handle empty genres array', async () => {
     const mockTMDBResponse = {
       id: 246,
       name: 'TV Show with no genres',
@@ -134,9 +134,15 @@ describe('TV Details Route', () => {
       json: async () => mockTMDBResponse,
     } as Response);
 
-    const response = await request(app).get('/tv/details?Id=246');
+    const response = await request(app).get('/proxy/tv/details?Id=246');
 
     expect(response.status).toBe(200);
     expect(response.body.genre).toBe(''); // Expect an empty string
+  });
+
+  it('GET /proxy/tv/details - should return 400 if Id is missing', async () => {
+    const response = await request(app).get('/proxy/tv/details');
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: 'Missing required query parameter: Id' });
   });
 });
