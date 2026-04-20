@@ -80,9 +80,13 @@ describe('Popular Movies Routes', () => {
 
   // --- TMDB Error ---
   it('GET /proxy/movies/popular - returns TMDB error status when TMDB request fails', async () => {
-    global.fetch = jest.fn().mockResolvedValue(
-      mockFetchResponse({ status_message: 'Invalid API key' }, 401) as Awaited<ReturnType<typeof fetch>>
-    );
+    global.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        mockFetchResponse({ status_message: 'Invalid API key' }, 401) as Awaited<
+          ReturnType<typeof fetch>
+        >
+      );
 
     const response = await request(app).get('/proxy/movies/popular');
 

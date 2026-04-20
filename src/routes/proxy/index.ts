@@ -10,6 +10,4 @@ proxyRoutes.use('/proxy', searchRouter);
 proxyRoutes.use('/proxy', popularTVRouter);
 proxyRoutes.use('/proxy', popularMoviesRouter);
 
-
-
 export { proxyRoutes };
