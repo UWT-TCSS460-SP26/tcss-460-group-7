@@ -21,6 +21,10 @@ tags:
     description: TMDB TV search proxy routes
   - name: Popular
     description: Popular movies and TV shows
+  - name: Movies Details
+    description: Movie related routes
+  - name: TV Shows Details
+    description: TV Show related routes
 
 paths:
   /status:
@@ -363,10 +367,199 @@ paths:
           content:
             application/json:
               schema:
+  /proxy/movie/details:
+    get:
+      tags: [Movies Details]
+      summary: Get movie details
+      description: Fetches and transforms movie details from TMDB using a movie ID.
+      parameters:
+        - in: query
+          name: Id
+          required: true
+          schema:
+            type: integer
+          description: The TMDB ID of the movie
+      responses:
+        '200':
+          description: Successful response with transformed movie details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 550
+                  title:
+                    type: string
+                    example: 'Fight Club'
+                  genre:
+                    type: string
+                    example: 'Drama'
+                  year:
+                    type: string
+                    example: '1999-10-15'
+                  summary:
+                    type: string
+                    example: 'A ticking-time-bomb insomniac and a slippery soap salesman...'
+                  poster_url:
+                    type: string
+                    nullable: true
+                    example: 'https://image.tmdb.org/t/p/w500/pB8BM79JsS0Zv9Uv00pYI0mhaZ5.jpg'
+                $ref: '#/components/schemas/MovieDetailsResponse'
+        '404':
+          description: Movie not found on TMDB
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status_message:
+                    type: string
+                    example: 'The resource you requested could not be found.'
+                $ref: '#/components/schemas/TMDBErrorResponse'
+        '502':
+          description: Failed to reach TMDB
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'Failed to reach TMDB'
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /proxy/tv/details:
+    get:
+      tags: [TV Shows Details]
+      summary: Get TV show details
+      description: Fetches and transforms TV show details from TMDB using a TV show ID.
+      parameters:
+        - in: query
+          name: Id
+          required: true
+          schema:
+            type: integer
+          description: The TMDB ID of the TV show
+      responses:
+        '200':
+          description: Successful response with transformed TV show details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 246
+                  title:
+                    type: string
+                    example: 'Avatar: The Last Airbender'
+                  genre:
+                    type: string
+                    example: 'Action & Adventure, Animation, Kids'
+                  year:
+                    type: string
+                    example: '2005-02-21'
+                  episodes:
+                    type: integer
+                    example: 61
+                  seasons:
+                    type: integer
+                    example: 3
+                  summary:
+                    type: string
+                    example: 'In a war-torn world of elemental magic, a young boy reawakens to undertake a dangerous mystic quest to fulfill his destiny as the Avatar, and bring peace to the world.'
+                  poster_url:
+                    type: string
+                    nullable: true
+                    example: 'https://image.tmdb.org/t/p/w500/cZ0d3rtvX5s1bUu3Wej2p3m2g2Y.jpg'
+                $ref: '#/components/schemas/TVDetailsResponse'
+        '404':
+          description: TV show not found on TMDB
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status_message:
+                    type: string
+                    example: 'The resource you requested could not be found.'
+                $ref: '#/components/schemas/TMDBErrorResponse'
+        '502':
+          description: Failed to reach TMDB
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'Failed to reach TMDB'
                 $ref: '#/components/schemas/ErrorResponse'
 
 components:
   schemas:
+    MovieDetailsResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 550
+        title:
+          type: string
+          example: 'Fight Club'
+        genre:
+          type: string
+          example: 'Drama'
+        year:
+          type: string
+          example: '1999-10-15'
+        summary:
+          type: string
+          example: 'A ticking-time-bomb insomniac and a slippery soap salesman...'
+        poster_url:
+          type: string
+          nullable: true
+          example: 'https://image.tmdb.org/t/p/w500/pB8BM79JsS0Zv9Uv00pYI0mhaZ5.jpg'
+
+    TVDetailsResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 246
+        title:
+          type: string
+          example: 'Avatar: The Last Airbender'
+        genre:
+          type: string
+          example: 'Action & Adventure, Animation, Kids'
+        year:
+          type: string
+          example: '2005-02-21'
+        episodes:
+          type: integer
+          example: 61
+        seasons:
+          type: integer
+          example: 3
+        summary:
+          type: string
+          example: 'In a war-torn world of elemental magic, a young boy reawakens to undertake a dangerous mystic quest to fulfill his destiny as the Avatar, and bring peace to the world.'
+        poster_url:
+          type: string
+          nullable: true
+          example: 'https://image.tmdb.org/t/p/w500/cZ0d3rtvX5s1bUu3Wej2p3m2g2Y.jpg'
+
+    TMDBErrorResponse:
+      type: object
+      properties:
+        status_message:
+          type: string
+          example: 'The resource you requested could not be found.'
+
     TVSearchResponse:
       type: object
       properties:

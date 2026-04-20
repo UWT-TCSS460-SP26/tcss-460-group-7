@@ -80,17 +80,7 @@ export default [
     },
   },
   {
-    ignores: [
-      'dist/',
-      'node_modules/',
-      'coverage/',
-      'jest.config.js',
-      'eslint.config.js',
-      'eslint.config.mjs',
-      'tests/**/*.js',
-      'tests/**/*.js.map',
-      'tests/**/*.d.ts',
-    ],
+    ignores: ['dist/', 'node_modules/', 'coverage/', 'jest.config.js'],
   },
   prettierConfig,
 ];
