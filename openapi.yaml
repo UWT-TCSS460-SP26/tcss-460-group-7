@@ -17,6 +17,8 @@ tags:
     description: General-purpose routes
   - name: TV Search
     description: TMDB TV search proxy routes
+  - name: Movie Search
+    description: TMDB movie search proxy routes
   - name: Popular
     description: Popular movies and TV shows
   - name: Movies Details
@@ -64,6 +66,45 @@ paths:
                 $ref: '#/components/schemas/TVSearchResponse'
         '400':
           description: Missing or invalid query parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumericErrorResponse'
+        '500':
+          description: TMDB API token is not configured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/movie/search/title:
+    get:
+      tags: [Movie Search]
+      summary: Search movies by title
+      description: Searches TMDB for movies by title and returns key metadata with poster and backdrop image URLs.
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+          description: Movie title to search for.
+          example: inception
+      responses:
+        '200':
+          description: Movie search results returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieSearchResponse'
+        '400':
+          description: Missing or invalid query parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumericErrorResponse'
+        '401':
+          description: TMDB request failed
           content:
             application/json:
               schema:
@@ -260,6 +301,7 @@ paths:
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /v1/movie/details:
     get:
       tags: [Movies Details]
@@ -502,6 +544,75 @@ components:
         voteCount:
           type: integer
           example: 1000
+        originalLanguage:
+          type: string
+          example: en
+        posterPath:
+          type: string
+          nullable: true
+          example: /poster.jpg
+        posterUrl:
+          type: string
+          nullable: true
+          example: https://image.tmdb.org/t/p/w500/poster.jpg
+        backdropPath:
+          type: string
+          nullable: true
+          example: /backdrop.jpg
+        backdropUrl:
+          type: string
+          nullable: true
+          example: https://image.tmdb.org/t/p/w500/backdrop.jpg
+
+    MovieSearchResponse:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        totalPages:
+          type: integer
+          example: 1
+        totalResults:
+          type: integer
+          example: 10
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MovieSearchResult'
+
+    MovieSearchResult:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 27205
+        title:
+          type: string
+          example: Inception
+        originalTitle:
+          type: string
+          example: Inception
+        overview:
+          type: string
+          example: A thief who steals corporate secrets through dream-sharing technology.
+        releaseDate:
+          type: string
+          example: '2010-07-16'
+        genreIds:
+          type: array
+          items:
+            type: integer
+          example: [28, 878]
+        popularity:
+          type: number
+          example: 120
+        voteAverage:
+          type: number
+          example: 8.4
+        voteCount:
+          type: integer
+          example: 36000
         originalLanguage:
           type: string
           example: en

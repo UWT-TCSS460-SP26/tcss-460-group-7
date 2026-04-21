@@ -1,28 +1,18 @@
 import { Router } from 'express';
-import { searchRouter } from './searchTv';
+import { searchTvShowRouter } from './searchTv';
+import { searchMovieRouter } from './searchMovie';
 import { popularTVRouter } from './popularTv';
 import { popularMoviesRouter } from './popularMovies';
-
-// renamed as index will contain all proxy routes - skyler
-const proxyRoutes = Router();
-
-proxyRoutes.use('/v1', searchRouter);
-proxyRoutes.use('/v1', popularTVRouter);
-proxyRoutes.use('/v1', popularMoviesRouter);
-
-export { proxyRoutes };
 import { getMovieDetailsRouter } from './getMovieDetails';
 import { getTVDetailsRouter } from './getTVDetails';
 
-const proxyRouter = Router();
+const proxyRoutes = Router();
 
-// Proxy routes
-proxyRouter.use('/v1', searchRouter);
+proxyRoutes.use('/v1', searchTvShowRouter);
+proxyRoutes.use('/v1', getTVDetailsRouter);
+proxyRoutes.use('/v1', searchMovieRouter);
+proxyRoutes.use('/v1', popularTVRouter);
+proxyRoutes.use('/v1', popularMoviesRouter);
+proxyRoutes.use('/v1', getMovieDetailsRouter);
 
-// get movie details route
-proxyRouter.use('/v1', getMovieDetailsRouter);
-
-// get TV details route
-proxyRouter.use('/v1', getTVDetailsRouter);
-
-export { proxyRouter };
+export { proxyRoutes };
