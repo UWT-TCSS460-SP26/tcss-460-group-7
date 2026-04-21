@@ -41,7 +41,7 @@ describe('TV Search Proxy Routes', () => {
     process.env.TMDB_API_TOKEN = originalToken;
   });
 
-  it('GET /proxy/tv/search/title - returns formatted TV metadata with poster images', async () => {
+  it('GET /v1/tv/search/title - returns formatted TV metadata with poster images', async () => {
     global.fetch = jest.fn().mockResolvedValue(
       mockFetchResponse({
         page: 1,
@@ -51,7 +51,7 @@ describe('TV Search Proxy Routes', () => {
       }) as Awaited<ReturnType<typeof fetch>>
     );
 
-    const response = await request(app).get('/proxy/tv/search/title').query({ q: 'breaking bad' });
+    const response = await request(app).get('/v1/tv/search/title').query({ q: 'breaking bad' });
 
     expect(response.status).toBe(200);
     expect(global.fetch).toHaveBeenCalledWith(
@@ -88,8 +88,8 @@ describe('TV Search Proxy Routes', () => {
     });
   });
 
-  it('GET /proxy/tv/search/title - returns 400 when q is missing', async () => {
-    const response = await request(app).get('/proxy/tv/search/title');
+  it('GET /v1/tv/search/title - returns 400 when q is missing', async () => {
+    const response = await request(app).get('/v1/tv/search/title');
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
@@ -98,7 +98,38 @@ describe('TV Search Proxy Routes', () => {
     });
   });
 
-  it('GET /proxy/tv/search/genre - searches TV shows by genre', async () => {
+  it('GET /v1/tv/search/title - returns 400 when q is blank', async () => {
+    global.fetch = jest.fn();
+
+    const response = await request(app).get('/v1/tv/search/title').query({ q: '   ' });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: 400,
+      message: 'Missing required query parameter',
+    });
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('GET /v1/tv/search/title - returns TMDB error statuses', async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        mockFetchResponse({ status_message: 'Invalid API key' }, 401) as Awaited<
+          ReturnType<typeof fetch>
+        >
+      );
+
+    const response = await request(app).get('/v1/tv/search/title').query({ q: 'lost' });
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({
+      error: 401,
+      message: 'TMDB search request had failed',
+    });
+  });
+
+  it('GET /v1/tv/search/genre - searches TV shows by genre', async () => {
     global.fetch = jest.fn().mockResolvedValue(
       mockFetchResponse({
         page: 2,
@@ -116,9 +147,7 @@ describe('TV Search Proxy Routes', () => {
       }) as Awaited<ReturnType<typeof fetch>>
     );
 
-    const response = await request(app)
-      .get('/proxy/tv/search/genre')
-      .query({ q: 'drama', page: '2' });
+    const response = await request(app).get('/v1/tv/search/genre').query({ q: 'drama', page: '2' });
 
     expect(response.status).toBe(200);
     expect(global.fetch).toHaveBeenCalledWith(
@@ -138,8 +167,8 @@ describe('TV Search Proxy Routes', () => {
     });
   });
 
-  it('GET /proxy/tv/search/genre - returns 404 for an unknown genre', async () => {
-    const response = await request(app).get('/proxy/tv/search/genre').query({ q: 'not-a-genre' });
+  it('GET /v1/tv/search/genre - returns 404 for an unknown genre', async () => {
+    const response = await request(app).get('/v1/tv/search/genre').query({ q: 'not-a-genre' });
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
@@ -148,7 +177,20 @@ describe('TV Search Proxy Routes', () => {
     });
   });
 
-  it('GET /proxy/tv/search/cast - returns cast TV credits filtered by genre', async () => {
+  it('GET /v1/tv/search/genre - returns 400 for invalid page numbers', async () => {
+    global.fetch = jest.fn();
+
+    const response = await request(app).get('/v1/tv/search/genre').query({ q: 'drama', page: '0' });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: 400,
+      message: 'invalid page number',
+    });
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('GET /v1/tv/search/cast - returns cast TV credits filtered by genre', async () => {
     global.fetch = jest
       .fn()
       .mockResolvedValueOnce(
@@ -174,7 +216,7 @@ describe('TV Search Proxy Routes', () => {
       );
 
     const response = await request(app)
-      .get('/proxy/tv/search/cast')
+      .get('/v1/tv/search/cast')
       .query({ q: 'tom hanks', genre: 'action' });
 
     expect(response.status).toBe(200);
@@ -197,19 +239,85 @@ describe('TV Search Proxy Routes', () => {
     });
   });
 
-  it('GET /proxy/tv/search/cast - returns 404 when the cast member is not found', async () => {
+  it('GET /v1/tv/search/cast - returns 404 when the cast member is not found', async () => {
     global.fetch = jest.fn().mockResolvedValue(
       mockFetchResponse({
         results: [],
       }) as Awaited<ReturnType<typeof fetch>>
     );
 
-    const response = await request(app).get('/proxy/tv/search/cast').query({ q: 'unknown person' });
+    const response = await request(app).get('/v1/tv/search/cast').query({ q: 'unknown person' });
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
       error: 404,
       message: 'Cast member not found',
+    });
+  });
+
+  it('GET /v1/tv/search/cast - returns 400 when q is missing', async () => {
+    global.fetch = jest.fn();
+
+    const response = await request(app).get('/v1/tv/search/cast');
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: 400,
+      message: 'invalid cast format',
+    });
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('GET /v1/tv/search/cast - returns 404 for an unknown genre filter', async () => {
+    global.fetch = jest.fn();
+
+    const response = await request(app)
+      .get('/v1/tv/search/cast')
+      .query({ q: 'tom hanks', genre: 'not-a-genre' });
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      error: 404,
+      message: 'Genre not found',
+    });
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('GET /v1/tv/search/cast - paginates unfiltered cast TV credits', async () => {
+    const cast = Array.from({ length: 21 }, (_, index) =>
+      tvShow({
+        id: index + 1,
+        name: `TV Credit ${index + 1}`,
+      })
+    );
+
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce(
+        mockFetchResponse({
+          results: [{ id: 31 }],
+        }) as Awaited<ReturnType<typeof fetch>>
+      )
+      .mockResolvedValueOnce(
+        mockFetchResponse({
+          cast,
+        }) as Awaited<ReturnType<typeof fetch>>
+      );
+
+    const response = await request(app)
+      .get('/v1/tv/search/cast')
+      .query({ q: 'tom hanks', page: '2' });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      page: 2,
+      totalPages: 2,
+      totalResults: 21,
+    });
+    expect(response.body.results).toHaveLength(1);
+    expect(response.body.results[0]).toMatchObject({
+      id: 21,
+      name: 'TV Credit 21',
     });
   });
 });

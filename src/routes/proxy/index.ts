@@ -6,9 +6,9 @@ import { popularMoviesRouter } from './popularMovies';
 // renamed as index will contain all proxy routes - skyler
 const proxyRoutes = Router();
 
-proxyRoutes.use('/proxy', searchRouter);
-proxyRoutes.use('/proxy', popularTVRouter);
-proxyRoutes.use('/proxy', popularMoviesRouter);
+proxyRoutes.use('/v1', searchRouter);
+proxyRoutes.use('/v1', popularTVRouter);
+proxyRoutes.use('/v1', popularMoviesRouter);
 
 export { proxyRoutes };
 import { getMovieDetailsRouter } from './getMovieDetails';
@@ -17,12 +17,12 @@ import { getTVDetailsRouter } from './getTVDetails';
 const proxyRouter = Router();
 
 // Proxy routes
-proxyRouter.use('/proxy', searchRouter);
+proxyRouter.use('/v1', searchRouter);
 
 // get movie details route
-proxyRouter.use('/proxy', getMovieDetailsRouter);
+proxyRouter.use('/v1', getMovieDetailsRouter);
 
 // get TV details route
-proxyRouter.use('/proxy', getTVDetailsRouter);
+proxyRouter.use('/v1', getTVDetailsRouter);
 
 export { proxyRouter };
