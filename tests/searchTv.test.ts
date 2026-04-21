@@ -147,9 +147,7 @@ describe('TV Search Proxy Routes', () => {
       }) as Awaited<ReturnType<typeof fetch>>
     );
 
-    const response = await request(app)
-      .get('/v1/tv/search/genre')
-      .query({ q: 'drama', page: '2' });
+    const response = await request(app).get('/v1/tv/search/genre').query({ q: 'drama', page: '2' });
 
     expect(response.status).toBe(200);
     expect(global.fetch).toHaveBeenCalledWith(
@@ -182,9 +180,7 @@ describe('TV Search Proxy Routes', () => {
   it('GET /v1/tv/search/genre - returns 400 for invalid page numbers', async () => {
     global.fetch = jest.fn();
 
-    const response = await request(app)
-      .get('/v1/tv/search/genre')
-      .query({ q: 'drama', page: '0' });
+    const response = await request(app).get('/v1/tv/search/genre').query({ q: 'drama', page: '0' });
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
