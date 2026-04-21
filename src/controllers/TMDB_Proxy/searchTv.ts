@@ -201,8 +201,8 @@ export const getSearchedTVGenre = async (request: Request, response: Response) =
  * query with page number ?cast={enter the actors name}&page=1
  *
  * @param request actors name and/or (optional) page number
- * @param response staatus code 200, 400
- * @returns a list of TV shows that the cast memeber is in
+ * @param response status code 200, 400
+ * @returns a list of TV shows that the cast member is in
  */
 export const getSearchedTVCast = async (request: Request, response: Response) => {
   const cast = request.query.q as string;
