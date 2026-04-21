@@ -98,9 +98,7 @@ describe('Movie Search Proxy Routes', () => {
       }) as Awaited<ReturnType<typeof fetch>>
     );
 
-    const response = await request(app)
-      .get('/v1/movie/search/title')
-      .query({ q: 'spider man' });
+    const response = await request(app).get('/v1/movie/search/title').query({ q: 'spider man' });
 
     expect(response.status).toBe(200);
     expect(global.fetch).toHaveBeenCalledWith(
