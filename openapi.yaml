@@ -149,7 +149,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /proxy/tv/search/title:
+  /v1/tv/search/title:
     get:
       tags: [TV Search]
       summary: Search TV shows by title
@@ -182,7 +182,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /proxy/tv/search/genre:
+  /v1/tv/search/genre:
     get:
       tags: [TV Search]
       summary: Search TV shows by genre
@@ -229,7 +229,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /proxy/tv/search/cast:
+  /v1/tv/search/cast:
     get:
       tags: [TV Search]
       summary: Search TV shows by cast member
@@ -283,7 +283,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /proxy/tv/popular:
+  /v1/tv/popular:
     get:
       tags: [Popular]
       summary: Get popular TV shows
@@ -326,7 +326,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /proxy/movies/popular:
+  /v1/movies/popular:
     get:
       tags: [Popular]
       summary: Get popular movies
@@ -367,7 +367,7 @@ paths:
           content:
             application/json:
               schema:
-  /proxy/movie/details:
+  /v1/movie/details:
     get:
       tags: [Movies Details]
       summary: Get movie details
@@ -430,7 +430,7 @@ paths:
                     example: 'Failed to reach TMDB'
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /proxy/tv/details:
+  /v1/tv/details:
     get:
       tags: [TV Shows Details]
       summary: Get TV show details
