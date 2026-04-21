@@ -7,12 +7,12 @@ import {
   getSearchedTVCast,
 } from '../../controllers/TMDB_Proxy/searchTv';
 
-const searchRouter = Router();
+const searchTvShowRouter = Router();
 
-searchRouter.use(requireEnvVar('TMDB_API_TOKEN'));
+searchTvShowRouter.use(requireEnvVar('TMDB_API_TOKEN'));
 
-searchRouter.get('/tv/search/title', getSearchedTVTitle);
-searchRouter.get('/tv/search/genre', getSearchedTVGenre);
-searchRouter.get('/tv/search/cast', getSearchedTVCast);
+searchTvShowRouter.get('/tv/search/title', getSearchedTVTitle);
+searchTvShowRouter.get('/tv/search/genre', getSearchedTVGenre);
+searchTvShowRouter.get('/tv/search/cast', getSearchedTVCast);
 
-export { searchRouter };
+export { searchTvShowRouter };
