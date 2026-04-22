@@ -25,3 +25,4 @@ coverage/
 
 # AI agent
 .codex
+/generated/prisma
