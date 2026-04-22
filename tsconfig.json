@@ -15,6 +15,6 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["node", "jest"]
   },
-  "include": ["src/**/*"], //"tests/**/*" take outside for deployment
+  "include": ["src/**/*", "src/lib"], //"tests/**/*" take outside for deployment
   "exclude": ["node_modules", "dist"]
 }
