@@ -333,7 +333,7 @@ paths:
                     example: 'Drama'
                   year:
                     type: string
-                    example: '1999-10-15'
+                    example: '1999'
                   summary:
                     type: string
                     example: 'A ticking-time-bomb insomniac and a slippery soap salesman...'
@@ -396,7 +396,7 @@ paths:
                     example: 'Action & Adventure, Animation, Kids'
                   year:
                     type: string
-                    example: '2005-02-21'
+                    example: '2005'
                   episodes:
                     type: integer
                     example: 61
@@ -450,7 +450,7 @@ components:
           example: 'Drama'
         year:
           type: string
-          example: '1999-10-15'
+          example: '1999'
         summary:
           type: string
           example: 'A ticking-time-bomb insomniac and a slippery soap salesman...'
@@ -473,7 +473,7 @@ components:
           example: 'Action & Adventure, Animation, Kids'
         year:
           type: string
-          example: '2005-02-21'
+          example: '2005'
         episodes:
           type: integer
           example: 61

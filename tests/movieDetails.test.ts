@@ -43,7 +43,7 @@ describe('Movie Details Route', () => {
       id: 550,
       title: 'Fight Club',
       genre: 'Drama',
-      year: '1999-10-15',
+      year: '1999',
       summary: 'A ticking-time-bomb insomniac and a slippery soap salesman...',
       poster_url: 'https://image.tmdb.org/t/p/w500/pB8BM79JsS0Zv9Uv00pYI0mhaZ5.jpg',
     });
@@ -171,5 +171,6 @@ describe('Movie Details Route', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.genre).toBe('');
+    expect(response.body.year).toBe('2020');
   });
 });

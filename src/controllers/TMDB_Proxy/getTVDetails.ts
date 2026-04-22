@@ -20,7 +20,7 @@ const formatTVDetailsResponse = (data: TMDBTVResponse) => {
     id: data.id,
     title: data.name,
     genre: data.genres.map((g) => g.name).join(', '),
-    year: data.first_air_date ? data.first_air_date : 'Unknown',
+    year: data.first_air_date ? data.first_air_date.slice(0, 4) : 'Unknown',
     episodes: data.number_of_episodes,
     seasons: data.number_of_seasons,
     summary: data.overview,
