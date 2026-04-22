@@ -19,7 +19,7 @@ const formatMovieDetailsResponse = (data: TMDBMovieResponse) => {
     id: data.id,
     title: data.title,
     genre: data.genres.map((g) => g.name).join(', '),
-    year: data.release_date ? data.release_date : 'Unknown',
+    year: data.release_date ? data.release_date.slice(0, 4) : 'Unknown',
     summary: data.overview,
     poster_url: buildImageUrl(data.poster_path),
   };

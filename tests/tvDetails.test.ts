@@ -50,7 +50,7 @@ describe('TV Details Route', () => {
       id: 246,
       title: 'Avatar: The Last Airbender',
       genre: 'Action & Adventure, Animation, Kids',
-      year: '2005-02-21',
+      year: '2005',
       episodes: 61,
       seasons: 3,
       summary:
@@ -153,6 +153,7 @@ describe('TV Details Route', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.genre).toBe(''); // Expect an empty string
+    expect(response.body.year).toBe('2022');
   });
 
   it('GET /v1/tv/details - should return 400 if Id is missing', async () => {
@@ -184,6 +185,7 @@ describe('TV Details Route', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
+      year: '2026',
       episodes: 0,
       seasons: 0,
       poster_url: 'https://image.tmdb.org/t/p/w500/upcoming.jpg',
