@@ -1,0 +1,10 @@
+services:
+  db:
+    image: postgres:17
+    container_name: tcss460-group7-db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: tcss460
+    ports:
+      - '5432:5432'

@@ -3,6 +3,7 @@ import { statusRouter } from './heartbeat';
 import { protectedRoutes } from './protected';
 import { proxyRoutes } from './proxy';
 import devAuthRouter from './devAuth';
+import { usersRouter } from './users';
 
 const routes = Router();
 
@@ -16,5 +17,8 @@ routes.use(protectedRoutes);
 
 // Search query routes
 routes.use(proxyRoutes);
+
+// User routes
+routes.use('/users', usersRouter);
 
 export { routes };

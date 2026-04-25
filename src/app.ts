@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import YAML from 'yaml';
@@ -24,6 +24,15 @@ app.use(routes);
 // 404 handler — must be after all routes
 app.use((_request: Request, response: Response) => {
   response.status(404).json({ error: 'Route not found' });
+});
+
+// Malformed JSON handler
+app.use((err: any, _request: Request, response: Response, _next: NextFunction) => {
+  if (err.type === 'entity.parse.failed') {
+    response.status(400).json({ error: 'Malformed JSON in request body' });
+    return;
+  }
+  response.status(500).json({ error: 'Internal server error' });
 });
 
 export { app };
