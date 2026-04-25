@@ -59,7 +59,8 @@ router.post('/dev-login', async (request: Request, response: Response): Promise<
     create: {
       username,
       email: email ?? `${username}@dev.local`,
-      role: 'user',
+      display_name: null,
+      role: 2,
     },
   });
 

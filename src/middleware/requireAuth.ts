@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 export interface AuthenticatedUser {
   sub: number;
   email: string;
-  role: string;
+  role: number;
 }
 
 declare global {
@@ -50,7 +50,7 @@ export const requireAuth = (request: Request, response: Response, next: NextFunc
  *
  *   router.delete('/reviews/:id', requireAuth, requireRole('admin'), handler);
  */
-export const requireRole = (role: string) => {
+export const requireRole = (role: number) => {
   return (request: Request, response: Response, next: NextFunction): void => {
     if (!request.user) {
       response.status(401).json({ error: 'Not authenticated' });
