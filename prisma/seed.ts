@@ -26,16 +26,66 @@ async function main() {
   }
 
   const seedReviews = [
-    { authorId: createdUsers[0].id, title_id: 246, content: 'A truly magnificent show with great character development!', header: 'Masterpiece' },
-    { authorId: createdUsers[1].id, title_id: 246, content: 'A bit slow at the start, but gets incredible.', header: 'Great Watch' },
-    { authorId: createdUsers[2].id, title_id: 1399, content: 'The lore and world-building is just phenomenal.', header: 'Epic Fantasy' },
-    { authorId: createdUsers[3].id, title_id: 1399, content: 'Disappointed with the later seasons.', header: 'Could be better' },
-    { authorId: createdUsers[4].id, title_id: 1396, content: 'One of the best writing I have ever seen on television.', header: 'Incredible Writing' },
-    { authorId: createdUsers[5].id, title_id: 1396, content: 'Very intense, great acting all around.', header: 'Intense and Gripping' },
-    { authorId: createdUsers[1].id, title_id: 66732, content: 'Loved the 80s nostalgia and the mystery.', header: 'Spooky and Fun' },
-    { authorId: createdUsers[2].id, title_id: 66732, content: 'Felt a bit repetitive after a few seasons.', header: 'Overrated' },
-    { authorId: createdUsers[3].id, title_id: 456, content: 'Classic comedy that shaped a generation.', header: 'Iconic' },
-    { authorId: createdUsers[4].id, title_id: 456, content: 'Has its moments, but not my absolute favorite.', header: 'Good for a laugh' },
+    {
+      authorId: createdUsers[0].id,
+      title_id: 246,
+      content: 'A truly magnificent show with great character development!',
+      header: 'Masterpiece',
+    },
+    {
+      authorId: createdUsers[1].id,
+      title_id: 246,
+      content: 'A bit slow at the start, but gets incredible.',
+      header: 'Great Watch',
+    },
+    {
+      authorId: createdUsers[2].id,
+      title_id: 1399,
+      content: 'The lore and world-building is just phenomenal.',
+      header: 'Epic Fantasy',
+    },
+    {
+      authorId: createdUsers[3].id,
+      title_id: 1399,
+      content: 'Disappointed with the later seasons.',
+      header: 'Could be better',
+    },
+    {
+      authorId: createdUsers[4].id,
+      title_id: 1396,
+      content: 'One of the best writing I have ever seen on television.',
+      header: 'Incredible Writing',
+    },
+    {
+      authorId: createdUsers[5].id,
+      title_id: 1396,
+      content: 'Very intense, great acting all around.',
+      header: 'Intense and Gripping',
+    },
+    {
+      authorId: createdUsers[1].id,
+      title_id: 66732,
+      content: 'Loved the 80s nostalgia and the mystery.',
+      header: 'Spooky and Fun',
+    },
+    {
+      authorId: createdUsers[2].id,
+      title_id: 66732,
+      content: 'Felt a bit repetitive after a few seasons.',
+      header: 'Overrated',
+    },
+    {
+      authorId: createdUsers[3].id,
+      title_id: 456,
+      content: 'Classic comedy that shaped a generation.',
+      header: 'Iconic',
+    },
+    {
+      authorId: createdUsers[4].id,
+      title_id: 456,
+      content: 'Has its moments, but not my absolute favorite.',
+      header: 'Good for a laugh',
+    },
   ];
 
   console.log('Seeding reviews...');
@@ -46,7 +96,9 @@ async function main() {
       console.log(`Seeded review for title_id: ${review.title_id} by authorId: ${review.authorId}`);
     } catch (err: any) {
       if (err.code === 'P2002') {
-        console.log(`Review for title_id: ${r.title_id} by authorId: ${r.authorId} already exists, skipping.`);
+        console.log(
+          `Review for title_id: ${r.title_id} by authorId: ${r.authorId} already exists, skipping.`
+        );
       } else throw err;
     }
   }

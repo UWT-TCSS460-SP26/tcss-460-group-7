@@ -32,7 +32,7 @@ export const createReview = async (req: Request, res: Response): Promise<void> =
 
 // GET /review — fetch all reviews, paginated with optional filters. Requires auth and admin role (1).
 
-const ALLOWED_SORT_FIELDS = ['id', 'authorId', 'title_id', 'createdAt' , 'upvotes', 'downvotes'];
+const ALLOWED_SORT_FIELDS = ['id', 'authorId', 'title_id', 'createdAt', 'upvotes', 'downvotes'];
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 100;
 
@@ -47,7 +47,7 @@ export const getAllReviews = async (request: Request, response: Response): Promi
   const order = request.query.order === 'desc' ? 'desc' : 'asc';
   const { id } = request.query;
   const where = {
-    ...(id ? { id: Number(id) } : {})
+    ...(id ? { id: Number(id) } : {}),
   };
   try {
     const [reviews, total] = await Promise.all([
@@ -69,7 +69,6 @@ export const getAllReviews = async (request: Request, response: Response): Promi
   }
 };
 
-
 // GET /review/:id — fetch a user by their id. Public, no auth required.
 export const getReviewById = async (req: Request, res: Response): Promise<void> => {
   const id = Number(req.params.id);
@@ -84,8 +83,8 @@ export const getReviewById = async (req: Request, res: Response): Promise<void> 
 // PUT /reviews/:id — update a review. Requires auth; users can only update their own reviews.
 export const updateReview = async (req: Request, res: Response): Promise<void> => {
   const reviewId = Number(req.params.id);
-  
-  const { content, header } = req.body as { 
+
+  const { content, header } = req.body as {
     content?: string;
     header?: string;
   };
@@ -104,12 +103,12 @@ export const updateReview = async (req: Request, res: Response): Promise<void> =
       res.status(403).json({ error: 'You can only update your own reviews' });
       return;
     }
-    
+
     const updatedReview = await prisma.review.update({
       where: { id: reviewId },
-      data: { 
-        content, 
-        header, 
+      data: {
+        content,
+        header,
       },
     });
 
