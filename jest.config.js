@@ -4,8 +4,14 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/tests'],
   testMatch: ['**/*.test.ts'],
+  setupFiles: ['<rootDir>/tests/setup.ts'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@/generated/prisma/client$': '<rootDir>/tests/__mocks__/generatedPrismaClient.ts',
+    '^../generated/prisma/client$': '<rootDir>/tests/__mocks__/generatedPrismaClient.ts',
+    '^\\.\\./generated/prisma/client$': '<rootDir>/tests/__mocks__/generatedPrismaClient.ts',
+    '^\\.\\/generated/prisma/client$': '<rootDir>/tests/__mocks__/generatedPrismaClient.ts',
     '^@scalar/express-api-reference$': '<rootDir>/tests/__mocks__/scalarMock.cjs',
   },
 };

@@ -1,8 +1,7 @@
 FROM node:22-bookworm-slim
 
 WORKDIR /app
-
-ENV DATABASE_URL=file:/app/data/dev.db
+ENV DATABASE_URL=postgresql://postgres:mysecretpassword@db:5432/tcss460_group_project
 
 RUN apt-get update -y && apt-get install -y openssl \
   && rm -rf /var/lib/apt/lists/*
@@ -22,4 +21,4 @@ RUN npm run build
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma db push --schema prisma/schema.prisma && npx prisma db seed && npm start"]
+CMD ["sh", "-c", "until npx prisma migrate deploy --schema prisma/schema.prisma; do echo 'Waiting for database...'; sleep 2; done && npx prisma db seed --schema prisma/schema.prisma && npm start"]

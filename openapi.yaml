@@ -25,6 +25,8 @@ tags:
     description: Movie related routes
   - name: TV Shows Details
     description: TV Show related routes
+  - name: Ratings
+    description: Authenticated user rating routes
 
 paths:
   /status:
@@ -434,7 +436,297 @@ paths:
                     example: 'Failed to reach TMDB'
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /v1/ratings/{title_id}:
+    post:
+      tags: [Ratings]
+      summary: Create or replace the authenticated user's rating for a title
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: title_id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingWriteRequest'
+      responses:
+        '201':
+          description: Rating created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingResponse'
+        '200':
+          description: Existing rating updated instead of created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingResponse'
+        '400':
+          description: Invalid path or body input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while creating or updating the rating
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      tags: [Ratings]
+      summary: Update the authenticated user's rating for a title
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: title_id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingWriteRequest'
+      responses:
+        '200':
+          description: Rating updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingResponse'
+        '400':
+          description: Invalid path or body input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Rating was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while updating the rating
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [Ratings]
+      summary: Delete the authenticated user's rating for a title
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: title_id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Rating deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingResponse'
+        '400':
+          description: Invalid path input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Rating was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while deleting the rating
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/ratings/title/{title_id}:
+    get:
+      tags: [Ratings]
+      summary: Get all ratings for a title
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: title_id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Ratings returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingListResponse'
+        '400':
+          description: Invalid path input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No ratings were found for the title
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while fetching title ratings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/ratings/user/{authorId}/title/{title_id}:
+    get:
+      tags: [Ratings]
+      summary: Get one user's rating for one title
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: authorId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - in: path
+          name: title_id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: User rating returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingResponse'
+        '400':
+          description: Invalid path input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: The user has not rated the title
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while fetching the rating
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/ratings/user/{authorId}:
+    get:
+      tags: [Ratings]
+      summary: Get a paginated list of ratings by user
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: authorId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+      responses:
+        '200':
+          description: User ratings returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRatingListResponse'
+        '400':
+          description: Invalid path or query input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while fetching user ratings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     MovieDetailsResponse:
       type: object
@@ -735,3 +1027,81 @@ components:
         popularity:
           type: number
           example: 95.2
+
+    RatingAuthor:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 7
+        display_name:
+          type: string
+          nullable: true
+          example: Kassie
+
+    Rating:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        authorId:
+          type: integer
+          example: 7
+        rating:
+          type: integer
+          example: 4
+        title_id:
+          type: integer
+          example: 99
+        author:
+          $ref: '#/components/schemas/RatingAuthor'
+
+    RatingResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Rating'
+
+    RatingListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rating'
+
+    RatingsPagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        pageSize:
+          type: integer
+          example: 10
+        totalRatings:
+          type: integer
+          example: 12
+        totalPages:
+          type: integer
+          example: 2
+
+    PaginatedRatingListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rating'
+        pagination:
+          $ref: '#/components/schemas/RatingsPagination'
+
+    RatingWriteRequest:
+      type: object
+      required:
+        - rating
+      properties:
+        rating:
+          type: integer
+          example: 4

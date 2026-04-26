@@ -3,28 +3,43 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  username String @unique
-  email    String @unique
-  role     String @default("user")
-  rating rating[]
+  id           Int       @id @default(autoincrement())
+  username     String    @unique
+  email        String    @unique
+  display_name String?
+  role         Int       @default(2)
+  reviews      Review[]
+  ratings      Rating[]
+
+  @@map("users")
 }
 
 
-model rating {
-  id Int @id @default(autoincrement())
-  authorId Int @map("author_id")
-  author User @relation(fields: [authorId], references: [id])
-  rating Int 
-  titleId Int
+model Review {
+  id        Int      @id @default(autoincrement())
+  authorId  Int?
+  author    User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  content   String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  header    String?
+  title_id  Int      @unique
 
-  @@unique([authorId, titleId])
+  @@map("reviews")
+}
+
+
+model Rating {
+  id       Int   @id @default(autoincrement())
+  authorId Int?
+  author   User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  rating   Int
+  title_id Int
+
+  @@unique([authorId, title_id])
   @@map("ratings")
 }
