@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: mysecretpassword
       POSTGRES_DB: tcss460_group_project
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -17,7 +17,7 @@ services:
     depends_on:
       - db
     ports:
-      - "3000:3000"
+      - '3000:3000'
     env_file:
       - .env
     environment:

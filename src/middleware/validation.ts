@@ -83,9 +83,7 @@ export const validateCreateOrUpdateRating = [
   requireIntegerBody('rating'),
 ];
 
-export const validateRatingsByTitleId = [
-  requirePositiveIntegerParam('title_id'),
-];
+export const validateRatingsByTitleId = [requirePositiveIntegerParam('title_id')];
 
 export const validateUserRatingLookup = [
   requirePositiveIntegerParam('authorId'),
@@ -97,6 +95,4 @@ export const validateUserRatingsPagination = [
   requirePositiveIntegerQuery('page'),
 ];
 
-export const validateDeleteRating = [
-  requirePositiveIntegerParam('title_id'),
-];
+export const validateDeleteRating = [requirePositiveIntegerParam('title_id')];

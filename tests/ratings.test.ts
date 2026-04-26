@@ -452,18 +452,14 @@ describe('Rating Routes', () => {
     it('returns one user rating for one title', async () => {
       mockPrisma.rating.findUnique.mockResolvedValue(ratingRecord());
 
-      const response = await request(app)
-        .get('/v1/ratings/user/7/title/99')
-        .set(authHeader());
+      const response = await request(app).get('/v1/ratings/user/7/title/99').set(authHeader());
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ data: ratingRecord() });
     });
 
     it('returns 400 for invalid authorId', async () => {
-      const response = await request(app)
-        .get('/v1/ratings/user/0/title/99')
-        .set(authHeader());
+      const response = await request(app).get('/v1/ratings/user/0/title/99').set(authHeader());
 
       expect(response.status).toBe(400);
       expect(response.body).toEqual({ error: 'authorId must be a positive integer' });
@@ -541,9 +537,7 @@ describe('Rating Routes', () => {
     it('deletes a rating', async () => {
       mockPrisma.rating.delete.mockResolvedValue(ratingRecord());
 
-      const response = await request(app)
-        .delete('/v1/ratings/99')
-        .set(authHeader());
+      const response = await request(app).delete('/v1/ratings/99').set(authHeader());
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ data: ratingRecord() });
@@ -557,9 +551,7 @@ describe('Rating Routes', () => {
         })
       );
 
-      const response = await request(app)
-        .delete('/v1/ratings/99')
-        .set(authHeader());
+      const response = await request(app).delete('/v1/ratings/99').set(authHeader());
 
       expect(response.status).toBe(404);
       expect(response.body).toEqual({ error: 'Rating not found' });
