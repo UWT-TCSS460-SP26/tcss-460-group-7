@@ -24,12 +24,14 @@ model User {
 
 model Review {
   id        Int      @id @default(autoincrement())
-  authorId  Int?
-  author    User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorId  Int?     // foreign key to User, nullable to allow for reviews without an author
+  author    User?    @relation(fields: [authorId], references: [id], onDelete: SetNull) // RELATIONSHIP USER 1 : N REVIEW
   content   String?
   createdAt DateTime @default(now())
   header    String?
-  title_id  Int      @unique
+  upvotes   Int      @default(0)
+  downvotes Int      @default(0)
+  title_id  Int
 
   @@map("reviews")
 }
