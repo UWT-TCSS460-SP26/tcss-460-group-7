@@ -1,5 +1,6 @@
 // Controllers for the users domain. Teammates: add review.ts and rating.ts in this folder.
 import { Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 
 // POST /reviews — create a new review. Requires auth.
@@ -21,10 +22,12 @@ export const createReview = async (req: Request, res: Response): Promise<void> =
       },
     });
     res.status(201).json(review);
-  } catch (err: any) {
-    if (err.code === 'P2002') {
-      res.status(409).json({ error: 'You have already reviewed this title' });
-      return;
+  } catch (err: unknown) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === 'P2002') {
+        res.status(409).json({ error: 'You have already reviewed this title' });
+        return;
+      }
     }
     res.status(500).json({ error: 'Failed to create review' });
   }
@@ -113,7 +116,7 @@ export const updateReview = async (req: Request, res: Response): Promise<void> =
     });
 
     res.status(200).json(updatedReview);
-  } catch (err: any) {
+  } catch (err: unknown) {
     res.status(500).json({ error: 'Failed to update review' });
   }
 };
@@ -143,7 +146,7 @@ export const deleteReview = async (req: Request, res: Response): Promise<void> =
     });
 
     res.status(200).json(deletedReview);
-  } catch (err: any) {
+  } catch (err: unknown) {
     res.status(500).json({ error: 'Failed to delete review' });
   }
 };
@@ -160,10 +163,12 @@ export const upvoteReview = async (req: Request, res: Response): Promise<void> =
       },
     });
     res.status(200).json(updatedReview);
-  } catch (err: any) {
-    if (err.code === 'P2025') {
-      res.status(404).json({ error: 'Review not found' });
-      return;
+  } catch (err: unknown) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === 'P2025') {
+        res.status(404).json({ error: 'Review not found' });
+        return;
+      }
     }
     res.status(500).json({ error: 'Failed to upvote review' });
   }
@@ -181,10 +186,12 @@ export const downvoteReview = async (req: Request, res: Response): Promise<void>
       },
     });
     res.status(200).json(updatedReview);
-  } catch (err: any) {
-    if (err.code === 'P2025') {
-      res.status(404).json({ error: 'Review not found' });
-      return;
+  } catch (err: unknown) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === 'P2025') {
+        res.status(404).json({ error: 'Review not found' });
+        return;
+      }
     }
     res.status(500).json({ error: 'Failed to downvote review' });
   }
@@ -215,7 +222,7 @@ export const removeUpvoteReview = async (req: Request, res: Response): Promise<v
       },
     });
     res.status(200).json(updatedReview);
-  } catch (err: any) {
+  } catch (err: unknown) {
     res.status(500).json({ error: 'Failed to remove upvote' });
   }
 };
@@ -245,10 +252,12 @@ export const removeDownvoteReview = async (req: Request, res: Response): Promise
       },
     });
     res.status(200).json(updatedReview);
-  } catch (err: any) {
-    if (err.code === 'P2025') {
-      res.status(404).json({ error: 'Review not found' });
-      return;
+  } catch (err: unknown) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === 'P2025') {
+        res.status(404).json({ error: 'Review not found' });
+        return;
+      }
     }
     res.status(500).json({ error: 'Failed to remove downvote' });
   }
