@@ -21,4 +21,8 @@ routes.use(proxyRoutes);
 // User routes
 routes.use('/users', usersRouter);
 
+// Review routes
+import { reviewsRouter } from './reviews';
+routes.use('/reviews', reviewsRouter);
+
 export { routes };

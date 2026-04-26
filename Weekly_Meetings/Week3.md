@@ -36,4 +36,4 @@ Meetings: messages through discord checking meeting on Sunday.
 
 ## Agenda Item 6: Next Meeting, When?
 
-Sunday at night.
+Sunday at night 6PM to wrap up requirements.

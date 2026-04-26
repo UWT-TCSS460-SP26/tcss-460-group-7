@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { requireAuth, requireRole } from '../middleware/requireAuth';
-import { validateUserId, validateCreateUser, validateUpdateUser } from '../middleware/users';
+import { validateUserId, validateCreateUser, validateUpdateUser } from '../middleware/database_validation/users';
 import {
   createUser,
   getAllUsers,
