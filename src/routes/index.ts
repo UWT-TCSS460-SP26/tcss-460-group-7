@@ -4,6 +4,7 @@ import { protectedRoutes } from './protected';
 import { proxyRoutes } from './proxy';
 import devAuthRouter from './devAuth';
 import { usersRouter } from './users';
+import { reviewsRouter } from './reviews';
 
 const routes = Router();
 
@@ -22,7 +23,6 @@ routes.use(proxyRoutes);
 routes.use('/users', usersRouter);
 
 // Review routes
-import { reviewsRouter } from './reviews';
 routes.use('/reviews', reviewsRouter);
 
 export { routes };
