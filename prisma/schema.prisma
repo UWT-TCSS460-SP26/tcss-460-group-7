@@ -12,4 +12,19 @@ model User {
   username String @unique
   email    String @unique
   role     String @default("user")
+  rating rating[]
+}
+
+
+model rating {
+  id Int @id @default(autoincrement())
+  authorId Int @map("author_id")
+  author User @relation(fields: [authorId], references: [id])
+  rating Int 
+  titleId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([authorId, titleId])
+  @@map("ratings")
 }
