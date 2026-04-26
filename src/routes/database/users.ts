@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { requireAuth, requireRole } from '../middleware/requireAuth';
+import { requireAuth, requireRole } from '../../middleware/requireAuth';
 import {
   validateUserId,
   validateCreateUser,
   validateUpdateUser,
-} from '../middleware/database_validations/users';
+} from '../../middleware/database/users';
 import {
   //
   createUser,
@@ -12,7 +12,7 @@ import {
   getUserById,
   updateUser,
   deleteUser,
-} from '../controllers/users/user';
+} from '../../controllers/database/user';
 
 const usersRouter = Router();
 

@@ -9,8 +9,10 @@ info:
   version: 0.1.0
 
 servers:
-  - url: https://tcss-460-group-7.onrender.com
+  - url: http://localhost:3000
     description: Local development
+  - url: https://tcss-460-group-7.onrender.com
+    description: cloud development
 
 tags:
   - name: General
@@ -27,6 +29,8 @@ tags:
     description: Movie related routes
   - name: TV Shows Details
     description: TV Show related routes
+  - name: Reviews
+    description: Review management routes
 
 paths:
   /status:
@@ -655,6 +659,337 @@ paths:
                     example: 'Failed to reach TMDB'
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /reviews:
+    post:
+      tags: [Reviews]
+      summary: Create a review
+      description: Creates a new review for a title. Requires authentication.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReviewRequest'
+      responses:
+        '201':
+          description: Review created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: User has already reviewed this title
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [Reviews]
+      summary: Get all reviews (admin only)
+      description: Returns a paginated list of all reviews. Requires admin role.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 25
+            maximum: 100
+          description: Results per page
+        - in: query
+          name: sort
+          schema:
+            type: string
+            default: createdAt
+          description: Field to sort by
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+          description: Sort order
+        - in: query
+          name: id
+          schema:
+            type: integer
+          description: Filter by specific review ID
+      responses:
+        '200':
+          description: Paginated list of reviews
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReviewsResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reviews/{id}:
+    get:
+      tags: [Reviews]
+      summary: Get a review by id
+      description: Returns a single review by its id. Public, no auth required.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Review id
+      responses:
+        '200':
+          description: Review found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid review ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [Reviews]
+      summary: Update a review
+      description: Updates a review's content or header. Users can only update their own reviews.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Review id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReviewRequest'
+      responses:
+        '200':
+          description: Review updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid request body or ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Cannot update another user's review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Reviews]
+      summary: Delete a review
+      description: Deletes a review. Users can delete their own review; admins can delete any review.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Review id
+      responses:
+        '200':
+          description: Review deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid review ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Cannot delete another user's review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reviews/{id}/upvote:
+    post:
+      tags: [Reviews]
+      summary: Upvote a review
+      description: Increments the upvote count of a review. Requires auth.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Review id
+      responses:
+        '200':
+          description: Review upvoted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reviews/{id}/downvote:
+    post:
+      tags: [Reviews]
+      summary: Downvote a review
+      description: Increments the downvote count of a review. Requires auth.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Review id
+      responses:
+        '200':
+          description: Review downvoted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reviews/{id}/remove-upvote:
+    post:
+      tags: [Reviews]
+      summary: Remove an upvote
+      description: Decrements the upvote count of a review. Will not go below zero. Requires auth.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Review id
+      responses:
+        '200':
+          description: Upvote removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Upvotes cannot be negative
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reviews/{id}/remove-downvote:
+    post:
+      tags: [Reviews]
+      summary: Remove a downvote
+      description: Decrements the downvote count of a review. Will not go below zero. Requires auth.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Review id
+      responses:
+        '200':
+          description: Downvote removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Downvotes cannot be negative
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1025,3 +1360,84 @@ components:
         popularity:
           type: number
           example: 95.2
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        authorId:
+          type: integer
+          example: 2
+        title_id:
+          type: integer
+          example: 246
+        content:
+          type: string
+          example: 'This is a fantastic show with great character development!'
+        header:
+          type: string
+          nullable: true
+          example: 'Masterpiece'
+        upvotes:
+          type: integer
+          example: 5
+        downvotes:
+          type: integer
+          example: 0
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-04-26T12:00:00.000Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2026-04-26T12:05:00.000Z'
+
+    CreateReviewRequest:
+      type: object
+      required: [title_id, content, header]
+      properties:
+        title_id:
+          type: integer
+          example: 246
+        content:
+          type: string
+          example: 'This is a fantastic show with great character development!'
+        header:
+          type: string
+          example: 'Masterpiece'
+
+    UpdateReviewRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          example: "I changed my mind, it's actually just okay."
+        header:
+          type: string
+          example: 'Just okay'
+
+    PaginatedReviewsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 25
+            total:
+              type: integer
+              example: 42
+            totalPages:
+              type: integer
+              example: 2

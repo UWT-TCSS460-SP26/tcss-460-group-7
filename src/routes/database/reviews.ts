@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { requireAuth, requireRole } from '../middleware/requireAuth';
+import { requireAuth, requireRole } from '../../middleware/requireAuth';
 import {
   validateReviewId,
   validateCreateReview,
   validateUpdateReview,
-} from '../middleware/database_validations/reviews';
+} from '../../middleware/database/reviews';
 import {
   createReview,
   getAllReviews,
@@ -15,7 +15,7 @@ import {
   downvoteReview,
   removeUpvoteReview,
   removeDownvoteReview,
-} from '../controllers/reviews/reviews';
+} from '../../controllers/database/reviews';
 
 const reviewsRouter = Router();
 

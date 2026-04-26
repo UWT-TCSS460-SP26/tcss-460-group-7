@@ -3,8 +3,8 @@ import { statusRouter } from './heartbeat';
 import { protectedRoutes } from './protected';
 import { proxyRoutes } from './proxy';
 import devAuthRouter from './devAuth';
-import { usersRouter } from './users';
-import { reviewsRouter } from './reviews';
+import { usersRouter } from './database/users';
+import { reviewsRouter } from './database/reviews';
 
 const routes = Router();
 
