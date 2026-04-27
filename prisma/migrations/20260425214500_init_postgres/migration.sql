@@ -2,7 +2,7 @@
 CREATE SCHEMA IF NOT EXISTS "public";
 
 -- CreateTable
-CREATE TABLE "users" (
+CREATE TABLE IF NOT EXISTS "users" (
     "id" SERIAL NOT NULL,
     "username" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE "users" (
 );
 
 -- CreateTable
-CREATE TABLE "ratings" (
+CREATE TABLE IF NOT EXISTS "ratings" (
     "id" SERIAL NOT NULL,
     "author_id" INTEGER NOT NULL,
     "rating" INTEGER NOT NULL,
@@ -24,13 +24,14 @@ CREATE TABLE "ratings" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
+CREATE UNIQUE INDEX IF NOT EXISTS "users_username_key" ON "users"("username");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+CREATE UNIQUE INDEX IF NOT EXISTS "users_email_key" ON "users"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ratings_author_id_title_id_key" ON "ratings"("author_id", "title_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "ratings_author_id_title_id_key" ON "ratings"("author_id", "title_id");
 
 -- AddForeignKey
+ALTER TABLE "ratings" DROP CONSTRAINT IF EXISTS "ratings_author_id_fkey";
 ALTER TABLE "ratings" ADD CONSTRAINT "ratings_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
