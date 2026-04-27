@@ -30,6 +30,7 @@ src/generated/
 
 # AI agent
 .codex
+.claude/
 /generated/prisma
 
 /generated/prisma

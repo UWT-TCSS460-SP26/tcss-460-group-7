@@ -674,13 +674,6 @@ paths:
           schema:
             type: integer
             minimum: 1
-  /reviews:
-    post:
-      tags: [Reviews]
-      summary: Create a review
-      description: Creates a new review for a title. Requires authentication.
-      security:
-        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -702,31 +695,8 @@ paths:
                 $ref: '#/components/schemas/RatingResponse'
         '400':
           description: Invalid path or body input
-              $ref: '#/components/schemas/CreateReviewRequest'
-      responses:
-        '201':
-          description: Review created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Review'
-        '400':
-          description: Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Missing or invalid bearer token
-        '409':
-          description: User has already reviewed this title
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: Server error while creating or updating the rating
-          description: Internal server error
           content:
             application/json:
               schema:
@@ -758,7 +728,74 @@ paths:
                 $ref: '#/components/schemas/RatingResponse'
         '400':
           description: Invalid path or body input
+    delete:
+      tags: [Ratings]
+      summary: Delete the authenticated user's rating for a title
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: title_id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Rating deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingResponse'
+        '400':
+          description: Invalid path input
+        '500':
+          description: Server error while deleting the rating
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
+  /reviews:
+    post:
+      tags: [Reviews]
+      summary: Create a review
+      description: Creates a new review for a title. Requires authentication.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReviewRequest'
+      responses:
+        '201':
+          description: Review created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+        '409':
+          description: User has already reviewed this title
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     get:
       tags: [Reviews]
       summary: Get all reviews (admin only)
@@ -852,10 +889,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-    delete:
-      tags: [Ratings]
-      summary: Delete the authenticated user's rating for a title
-
     put:
       tags: [Reviews]
       summary: Update a review
@@ -864,20 +897,6 @@ paths:
         - bearerAuth: []
       parameters:
         - in: path
-          name: title_id
-          required: true
-          schema:
-            type: integer
-            minimum: 1
-      responses:
-        '200':
-          description: Rating deleted
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RatingResponse'
-        '400':
-          description: Invalid path input
           name: id
           required: true
           schema:
@@ -911,23 +930,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Rating was not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Server error while deleting the rating
           description: Review not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
-  /v1/ratings/title/{title_id}:
-    get:
-      tags: [Ratings]
-      summary: Get all ratings for a title
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     delete:
       tags: [Reviews]
       summary: Delete a review
@@ -936,20 +949,6 @@ paths:
         - bearerAuth: []
       parameters:
         - in: path
-          name: title_id
-          required: true
-          schema:
-            type: integer
-            minimum: 1
-      responses:
-        '200':
-          description: Ratings returned successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RatingListResponse'
-        '400':
-          description: Invalid path input
           name: id
           required: true
           schema:
@@ -977,6 +976,39 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/ratings/title/{title_id}:
+    get:
+      tags: [Ratings]
+      summary: Get all ratings for a title
+      parameters:
+        - in: path
+          name: title_id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Ratings returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingListResponse'
+        '400':
+          description: Invalid path input
+        '404':
           description: No ratings were found for the title
           content:
             application/json:
@@ -984,7 +1016,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: Server error while fetching title ratings
-          description: Review not found
           content:
             application/json:
               schema:
@@ -994,13 +1025,6 @@ paths:
     get:
       tags: [Ratings]
       summary: Get one user's rating for one title
-  /reviews/{id}/upvote:
-    post:
-      tags: [Reviews]
-      summary: Upvote a review
-      description: Increments the upvote count of a review. Requires auth.
-      security:
-        - bearerAuth: []
       parameters:
         - in: path
           name: authorId
@@ -1023,6 +1047,22 @@ paths:
                 $ref: '#/components/schemas/RatingResponse'
         '400':
           description: Invalid path input
+        '404':
+          description: Rating not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reviews/{id}/upvote:
+    post:
+      tags: [Reviews]
+      summary: Upvote a review
+      description: Increments the upvote count of a review. Requires auth.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
           name: id
           required: true
           schema:
@@ -1035,6 +1075,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Review'
+        '401':
+          description: Missing or invalid bearer token
         '404':
           description: Review not found
           content:
@@ -1063,12 +1105,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Review'
-        '404':
-          description: Review not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Missing or invalid bearer token
           content:
@@ -1076,7 +1112,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: The user has not rated the title
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /reviews/{id}/remove-upvote:
     post:
@@ -1105,26 +1145,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Server error while fetching the rating
         '404':
           description: Review not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while fetching the rating
 
   /v1/ratings/user/{authorId}:
     get:
       tags: [Ratings]
       summary: Get a paginated list of ratings by user
-  /reviews/{id}/remove-downvote:
-    post:
-      tags: [Reviews]
-      summary: Remove a downvote
-      description: Decrements the downvote count of a review. Will not go below zero. Requires auth.
-      security:
-        - bearerAuth: []
       parameters:
         - in: path
           name: authorId
@@ -1148,6 +1181,18 @@ paths:
                 $ref: '#/components/schemas/PaginatedRatingListResponse'
         '400':
           description: Invalid path or query input
+        '500':
+          description: Server error while fetching user ratings
+
+  /reviews/{id}/remove-downvote:
+    post:
+      tags: [Reviews]
+      summary: Remove a downvote
+      description: Decrements the downvote count of a review. Will not go below zero. Requires auth.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
           name: id
           required: true
           schema:
@@ -1172,14 +1217,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Server error while fetching user ratings
         '404':
           description: Review not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
 
 components:
   securitySchemes:
@@ -1564,7 +1609,6 @@ components:
           example: Kassie
 
     Rating:
-    Review:
       type: object
       properties:
         id:
@@ -1581,6 +1625,37 @@ components:
           example: 99
         author:
           $ref: '#/components/schemas/RatingAuthor'
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        authorId:
+          type: integer
+          nullable: true
+          example: 7
+        title_id:
+          type: integer
+          example: 246
+        content:
+          type: string
+          example: 'This is a fantastic show with great character development!'
+        header:
+          type: string
+          nullable: true
+          example: 'Masterpiece'
+        upvotes:
+          type: integer
+          example: 5
+        downvotes:
+          type: integer
+          example: 0
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-04-26T12:00:00.000Z'
 
     RatingResponse:
       type: object
@@ -1613,31 +1688,14 @@ components:
           example: 2
 
     PaginatedRatingListResponse:
-          example: 2
-        title_id:
-          type: integer
-          example: 246
-        content:
-          type: string
-          example: 'This is a fantastic show with great character development!'
-        header:
-          type: string
-          nullable: true
-          example: 'Masterpiece'
-        upvotes:
-          type: integer
-          example: 5
-        downvotes:
-          type: integer
-          example: 0
-        createdAt:
-          type: string
-          format: date-time
-          example: '2026-04-26T12:00:00.000Z'
-        updatedAt:
-          type: string
-          format: date-time
-          example: '2026-04-26T12:05:00.000Z'
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rating'
+        pagination:
+          $ref: '#/components/schemas/RatingsPagination'
 
     CreateReviewRequest:
       type: object
@@ -1681,19 +1739,3 @@ components:
         rating:
           type: integer
           example: 4
-            $ref: '#/components/schemas/Review'
-        pagination:
-          type: object
-          properties:
-            page:
-              type: integer
-              example: 1
-            limit:
-              type: integer
-              example: 25
-            total:
-              type: integer
-              example: 42
-            totalPages:
-              type: integer
-              example: 2
