@@ -26,7 +26,10 @@ coverage/
 # Local database
 prisma/*.db
 prisma/*.db-journal
+src/generated/
 
 # AI agent
 .codex
+/generated/prisma
+
 /generated/prisma

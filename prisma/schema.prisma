@@ -36,7 +36,6 @@ model Review {
   @@map("reviews")
 }
 
-
 model Rating {
   id       Int   @id @default(autoincrement())
   authorId Int?
@@ -44,5 +43,6 @@ model Rating {
   rating   Int
   title_id Int
 
+  @@unique([authorId, title_id])
   @@map("ratings")
 }
