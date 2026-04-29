@@ -29,15 +29,15 @@ const formatTVDetailsResponse = (data: TMDBTVResponse) => {
 };
 
 export const getTVDetails = async (req: Request, res: Response) => {
-  const { Id } = req.query;
+  const { id } = req.params;
 
-  if (!Id) {
-    return res.status(400).json({ error: 'Missing required query parameter: Id' });
+  if (!id) {
+    return res.status(400).json({ error: 'Missing required path parameter: id' });
   }
 
   try {
     // Fetch from TMDB using Bearer Token
-    const result = await fetch(`https://api.themoviedb.org/3/tv/${Id}`, {
+    const result = await fetch(`https://api.themoviedb.org/3/tv/${id}`, {
       headers: {
         Authorization: `Bearer ${process.env.TMDB_API_TOKEN}`,
         accept: 'application/json',

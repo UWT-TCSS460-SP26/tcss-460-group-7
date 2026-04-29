@@ -529,14 +529,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /v1/movie/details:
+  /v1/movie/{id}:
     get:
       tags: [Movies Details]
       summary: Get movie details
       description: Fetches and transforms movie details from TMDB using a movie ID.
       parameters:
-        - in: query
-          name: Id
+        - in: path
+          name: id
           required: true
           schema:
             type: integer
@@ -592,14 +592,14 @@ paths:
                     example: 'Failed to reach TMDB'
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /v1/tv/details:
+  /v1/tv/{id}:
     get:
       tags: [TV Shows Details]
       summary: Get TV show details
       description: Fetches and transforms TV show details from TMDB using a TV show ID.
       parameters:
-        - in: query
-          name: Id
+        - in: path
+          name: id
           required: true
           schema:
             type: integer
