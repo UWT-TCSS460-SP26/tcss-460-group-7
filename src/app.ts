@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import YAML from 'yaml';
-import swaggerUi from 'swagger-ui-express';
+import { apiReference } from '@scalar/express-api-reference';
 import { routes } from './routes';
 import { logger } from './middleware/logger';
 
@@ -16,7 +16,15 @@ app.use(logger);
 // OpenAPI documentation
 const specFile = fs.readFileSync('./openapi.yaml', 'utf8');
 const spec = YAML.parse(specFile);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(spec));
+
+app.use(
+  '/api-docs',
+  apiReference({
+    spec: {
+      content: spec,
+    },
+  })
+);
 
 // Routes
 app.use(routes);
