@@ -15,7 +15,7 @@ cp .env.example .env
 npm run dev
 
 # Run service test for Heartbeat
-npm run status
+npm run health
 ```
 
 The server starts at [http://localhost:3000](http://localhost:3000).
