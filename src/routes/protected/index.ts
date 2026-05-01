@@ -1,8 +1,8 @@
 import { Router } from 'express';
+import { ratingsRouter } from '../database/ratings';
 
 const protectedRoutes = Router();
 
-// Week 5: add JWT middleware here
-// protectedRoutes.use(verifyJwt);
+protectedRoutes.use('/v1/ratings', ratingsRouter);
 
 export { protectedRoutes };

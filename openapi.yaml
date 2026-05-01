@@ -9,12 +9,16 @@ info:
   version: 0.1.0
 
 servers:
-  - url: https://tcss-460-group-7.onrender.com
+  - url: http://localhost:3000
     description: Local development
+  - url: https://tcss-460-group-7.onrender.com
+    description: cloud development
 
 tags:
   - name: General
     description: General-purpose routes
+  - name: Users
+    description: User management routes
   - name: TV Search
     description: TMDB TV search proxy routes
   - name: Movie Search
@@ -25,6 +29,10 @@ tags:
     description: Movie related routes
   - name: TV Shows Details
     description: TV Show related routes
+  - name: Ratings
+    description: Authenticated user rating routes
+  - name: Reviews
+    description: Review management routes
 
 paths:
   /status:
@@ -43,6 +51,225 @@ paths:
                   message:
                     type: string
                     example: 'Status: OK'
+
+  /users:
+    post:
+      tags: [Users]
+      summary: Create a user
+      description: Registers a new user. display_name is optional and stored as null if not provided.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Missing or invalid fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Username or email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [Users]
+      summary: Get all users (admin only)
+      description: Returns a paginated, filterable list of all users. Requires admin role.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+          description: Results per page
+        - in: query
+          name: username
+          schema:
+            type: string
+          description: Filter by partial username match (case-insensitive)
+        - in: query
+          name: email
+          schema:
+            type: string
+          description: Filter by partial email match (case-insensitive)
+        - in: query
+          name: role
+          schema:
+            type: integer
+            enum: [1, 2]
+          description: Filter by role (1 = admin, 2 = user)
+      responses:
+        '200':
+          description: Paginated list of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUsersResponse'
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: Get a user by id
+      description: Returns a single user by their id. Public, no auth required.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User id
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [Users]
+      summary: Update display_name
+      description: Updates a user's display_name. Users can only update their own account.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid id or missing display_name
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Cannot update another user's account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Users]
+      summary: Delete a user
+      description: Deletes a user. Users can delete their own account; admins can delete anyone.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User id
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User deleted
+        '400':
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Cannot delete another user's account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/tv/search/title:
     get:
@@ -302,14 +529,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /v1/movie/details:
+  /v1/movie/{id}:
     get:
       tags: [Movies Details]
       summary: Get movie details
       description: Fetches and transforms movie details from TMDB using a movie ID.
       parameters:
-        - in: query
-          name: Id
+        - in: path
+          name: id
           required: true
           schema:
             type: integer
@@ -365,14 +592,14 @@ paths:
                     example: 'Failed to reach TMDB'
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /v1/tv/details:
+  /v1/tv/{id}:
     get:
       tags: [TV Shows Details]
       summary: Get TV show details
       description: Fetches and transforms TV show details from TMDB using a TV show ID.
       parameters:
-        - in: query
-          name: Id
+        - in: path
+          name: id
           required: true
           schema:
             type: integer
@@ -434,8 +661,642 @@ paths:
                     example: 'Failed to reach TMDB'
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /v1/ratings/{title_id}:
+    post:
+      tags: [Ratings]
+      summary: Create or replace the authenticated user's rating for a title
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: title_id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingWriteRequest'
+      responses:
+        '201':
+          description: Rating created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingResponse'
+        '200':
+          description: Existing rating updated instead of created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingResponse'
+        '400':
+          description: Invalid path or body input
+        '500':
+          description: Server error while creating or updating the rating
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      tags: [Ratings]
+      summary: Update the authenticated user's rating for a title
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: title_id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingWriteRequest'
+      responses:
+        '200':
+          description: Rating updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingResponse'
+        '400':
+          description: Invalid path or body input
+    delete:
+      tags: [Ratings]
+      summary: Delete the authenticated user's rating for a title
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: title_id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Rating deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingResponse'
+        '400':
+          description: Invalid path input
+        '500':
+          description: Server error while deleting the rating
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reviews:
+    post:
+      tags: [Reviews]
+      summary: Create a review
+      description: Creates a new review for a title. Requires authentication.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReviewRequest'
+      responses:
+        '201':
+          description: Review created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+        '409':
+          description: User has already reviewed this title
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags: [Reviews]
+      summary: Get all reviews (admin only)
+      description: Returns a paginated list of all reviews. Requires admin role.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 25
+            maximum: 100
+          description: Results per page
+        - in: query
+          name: sort
+          schema:
+            type: string
+            default: createdAt
+          description: Field to sort by
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+          description: Sort order
+        - in: query
+          name: id
+          schema:
+            type: integer
+          description: Filter by specific review ID
+      responses:
+        '200':
+          description: Paginated list of reviews
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReviewsResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Rating was not found
+
+  /reviews/{id}:
+    get:
+      tags: [Reviews]
+      summary: Get a review by id
+      description: Returns a single review by its id. Public, no auth required.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Review id
+      responses:
+        '200':
+          description: Review found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid review ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while updating the rating
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags: [Reviews]
+      summary: Update a review
+      description: Updates a review's content or header. Users can only update their own reviews.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Review id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReviewRequest'
+      responses:
+        '200':
+          description: Review updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid request body or ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+        '403':
+          description: Cannot update another user's review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [Reviews]
+      summary: Delete a review
+      description: Deletes a review. Users can delete their own review; admins can delete any review.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Review id
+      responses:
+        '200':
+          description: Review deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid review ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+        '403':
+          description: Cannot delete another user's review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/ratings/title/{title_id}:
+    get:
+      tags: [Ratings]
+      summary: Get all ratings for a title
+      parameters:
+        - in: path
+          name: title_id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Ratings returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingListResponse'
+        '400':
+          description: Invalid path input
+        '404':
+          description: No ratings were found for the title
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while fetching title ratings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/ratings/user/{authorId}/title/{title_id}:
+    get:
+      tags: [Ratings]
+      summary: Get one user's rating for one title
+      parameters:
+        - in: path
+          name: authorId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - in: path
+          name: title_id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: User rating returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingResponse'
+        '400':
+          description: Invalid path input
+        '404':
+          description: Rating not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reviews/{id}/upvote:
+    post:
+      tags: [Reviews]
+      summary: Upvote a review
+      description: Increments the upvote count of a review. Requires auth.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Review id
+      responses:
+        '200':
+          description: Review upvoted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '401':
+          description: Missing or invalid bearer token
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reviews/{id}/downvote:
+    post:
+      tags: [Reviews]
+      summary: Downvote a review
+      description: Increments the downvote count of a review. Requires auth.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Review id
+      responses:
+        '200':
+          description: Review downvoted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reviews/{id}/remove-upvote:
+    post:
+      tags: [Reviews]
+      summary: Remove an upvote
+      description: Decrements the upvote count of a review. Will not go below zero. Requires auth.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Review id
+      responses:
+        '200':
+          description: Upvote removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Upvotes cannot be negative
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while fetching the rating
+
+  /v1/ratings/user/{authorId}:
+    get:
+      tags: [Ratings]
+      summary: Get a paginated list of ratings by user
+      parameters:
+        - in: path
+          name: authorId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+      responses:
+        '200':
+          description: User ratings returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRatingListResponse'
+        '400':
+          description: Invalid path or query input
+        '500':
+          description: Server error while fetching user ratings
+
+  /reviews/{id}/remove-downvote:
+    post:
+      tags: [Reviews]
+      summary: Remove a downvote
+      description: Decrements the downvote count of a review. Will not go below zero. Requires auth.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Review id
+      responses:
+        '200':
+          description: Downvote removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Downvotes cannot be negative
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: stardust42
+        email:
+          type: string
+          example: stardust42@dev.local
+        display_name:
+          type: string
+          nullable: true
+          example: Stardust
+        role:
+          type: integer
+          example: 2
+          description: 1 = admin, 2 = user
+
+    CreateUserRequest:
+      type: object
+      required: [username, email]
+      properties:
+        username:
+          type: string
+          example: stardust42
+        email:
+          type: string
+          example: stardust42@dev.local
+        display_name:
+          type: string
+          nullable: true
+          example: Stardust
+
+    UpdateUserRequest:
+      type: object
+      required: [display_name]
+      properties:
+        display_name:
+          type: string
+          example: My New Name
+
+    PaginatedUsersResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 42
+        totalPages:
+          type: integer
+          example: 3
     MovieDetailsResponse:
       type: object
       properties:
@@ -735,3 +1596,146 @@ components:
         popularity:
           type: number
           example: 95.2
+
+    RatingAuthor:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 7
+        display_name:
+          type: string
+          nullable: true
+          example: Kassie
+
+    Rating:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        authorId:
+          type: integer
+          example: 7
+        rating:
+          type: integer
+          example: 4
+        title_id:
+          type: integer
+          example: 99
+        author:
+          $ref: '#/components/schemas/RatingAuthor'
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        authorId:
+          type: integer
+          nullable: true
+          example: 7
+        title_id:
+          type: integer
+          example: 246
+        content:
+          type: string
+          example: 'This is a fantastic show with great character development!'
+        header:
+          type: string
+          nullable: true
+          example: 'Masterpiece'
+        upvotes:
+          type: integer
+          example: 5
+        downvotes:
+          type: integer
+          example: 0
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-04-26T12:00:00.000Z'
+
+    RatingResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Rating'
+
+    RatingListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rating'
+
+    RatingsPagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        pageSize:
+          type: integer
+          example: 10
+        totalRatings:
+          type: integer
+          example: 12
+        totalPages:
+          type: integer
+          example: 2
+
+    PaginatedRatingListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rating'
+        pagination:
+          $ref: '#/components/schemas/RatingsPagination'
+
+    CreateReviewRequest:
+      type: object
+      required: [title_id, content, header]
+      properties:
+        title_id:
+          type: integer
+          example: 246
+        content:
+          type: string
+          example: 'This is a fantastic show with great character development!'
+        header:
+          type: string
+          example: 'Masterpiece'
+
+    UpdateReviewRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          example: "I changed my mind, it's actually just okay."
+        header:
+          type: string
+          example: 'Just okay'
+
+    PaginatedReviewsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rating'
+        pagination:
+          $ref: '#/components/schemas/RatingsPagination'
+
+    RatingWriteRequest:
+      type: object
+      required:
+        - rating
+      properties:
+        rating:
+          type: integer
+          example: 4

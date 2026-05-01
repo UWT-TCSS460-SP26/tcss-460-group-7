@@ -8,7 +8,7 @@ const router = Router();
  * POST /auth/dev-login
  *
  * TEMPORARY — Sprint 2 only. Accepts a username, find-or-creates a user row
- * with role='user', and returns a signed JWT. This endpoint does NOT validate
+ * with a default user role, and returns a signed JWT. This endpoint does NOT validate
  * a password. It is a local-development stand-in for the real Auth-Squared
  * integration coming in Sprint 3.
  *
@@ -32,7 +32,7 @@ const router = Router();
  *     id       Int    @id @default(autoincrement())
  *     username String @unique
  *     email    String @unique
- *     role     String @default("user")
+ *     role     Int    @default(2)
  *     // ... other fields your team designs
  *   }
  *
@@ -59,7 +59,8 @@ router.post('/dev-login', async (request: Request, response: Response): Promise<
     create: {
       username,
       email: email ?? `${username}@dev.local`,
-      role: 'user',
+      display_name: null,
+      role: 2,
     },
   });
 
