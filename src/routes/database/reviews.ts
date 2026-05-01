@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth, requireRole } from '../../middleware/requireAuth';
 import {
   validateReviewId,
+  validateReviewTitlePagination,
   validateCreateReview,
   validateUpdateReview,
 } from '../../middleware/database/reviews';
@@ -9,6 +10,7 @@ import {
   createReview,
   getAllReviews,
   getReviewById,
+  getReviewsByTitleId,
   updateReview,
   deleteReview,
   upvoteReview,
@@ -20,6 +22,7 @@ import {
 const reviewsRouter = Router();
 
 // Public routes
+reviewsRouter.get('/title/:title_id', validateReviewTitlePagination, getReviewsByTitleId);
 reviewsRouter.get('/:id', validateReviewId, getReviewById);
 
 // Authenticated routes

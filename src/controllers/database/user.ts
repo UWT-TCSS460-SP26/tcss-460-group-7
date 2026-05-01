@@ -1,6 +1,20 @@
 // Controllers for the users domain. Teammates: add review.ts and rating.ts in this folder.
 import { Request, Response } from 'express';
 import { prisma } from '../../lib/prisma';
+import { Prisma } from '@prisma/client';
+
+const getErrorCode = (error: unknown): string | undefined => {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return error.code;
+  }
+
+  if (typeof error === 'object' && error !== null && 'code' in error) {
+    const { code } = error as { code?: unknown };
+    return typeof code === 'string' ? code : undefined;
+  }
+
+  return undefined;
+};
 
 // POST /users — create a new user. display_name is optional and stored as null if not provided.
 export const createUser = async (req: Request, res: Response): Promise<void> => {
@@ -20,11 +34,12 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
       },
     });
     res.status(201).json(user);
-  } catch (err: any) {
-    if (err.code === 'P2002') {
+  } catch (error) {
+    if (getErrorCode(error) === 'P2002') {
       res.status(409).json({ error: 'username or email already exists' });
       return;
     }
+
     res.status(500).json({ error: 'Failed to create user' });
   }
 };
@@ -37,7 +52,7 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
   const skip = (page - 1) * limit;
 
   //filter system
-  const where: Record<string, any> = {};
+  const where: Record<string, unknown> = {};
   if (req.query.username)
     where.username = { contains: req.query.username as string, mode: 'insensitive' };
   if (req.query.email) where.email = { contains: req.query.email as string, mode: 'insensitive' };
@@ -87,11 +102,12 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       data: { display_name },
     });
     res.status(200).json(user);
-  } catch (err: any) {
-    if (err.code === 'P2025') {
+  } catch (error) {
+    if (getErrorCode(error) === 'P2025') {
       res.status(404).json({ error: 'User not found' });
       return;
     }
+
     res.status(500).json({ error: 'Failed to update user' });
   }
 };
@@ -110,11 +126,12 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
   try {
     await prisma.user.delete({ where: { id } });
     res.status(200).json({ message: 'User deleted' });
-  } catch (err: any) {
-    if (err.code === 'P2025') {
+  } catch (error) {
+    if (getErrorCode(error) === 'P2025') {
       res.status(404).json({ error: 'User not found' });
       return;
     }
+
     res.status(500).json({ error: 'Failed to delete user' });
   }
 };

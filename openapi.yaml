@@ -35,7 +35,7 @@ tags:
     description: Review management routes
 
 paths:
-  /status:
+  /health:
     get:
       tags: [General]
       summary: Check status
@@ -661,6 +661,52 @@ paths:
                     example: 'Failed to reach TMDB'
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /v1/media/{mediaType}/{id}:
+    get:
+      tags: [Front End API]
+      summary: Get enriched media details with community sentiment
+      description: Returns TMDB metadata together with aggregate community rating stats and recent reviews for a movie or TV show.
+      parameters:
+        - in: path
+          name: mediaType
+          required: true
+          schema:
+            type: string
+            enum: [movie, tv]
+          description: Whether the title is a movie or TV show
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The TMDB ID of the movie or TV show
+      responses:
+        '200':
+          description: Enriched media response with metadata, aggregate sentiment, and recent reviews
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrichedMediaResponse'
+        '400':
+          description: Invalid media type or title ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Title not found on TMDB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TMDBErrorResponse'
+        '502':
+          description: Failed to build the enriched response or reach TMDB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /v1/ratings/{title_id}:
     post:
       tags: [Ratings]
@@ -855,6 +901,54 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Rating was not found
+
+  /reviews/title/{title_id}:
+    get:
+      tags: [Reviews]
+      summary: Get all reviews for a title
+      description: Returns a paginated list of reviews for a specific movie or TV title. Public, no auth required.
+      parameters:
+        - in: path
+          name: title_id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: TMDB title identifier
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 25
+          description: Results per page
+      responses:
+        '200':
+          description: Paginated list of reviews for the requested title
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReviewsResponse'
+        '400':
+          description: Invalid title ID or pagination query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while fetching title reviews
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /reviews/{id}:
     get:
@@ -1349,6 +1443,113 @@ components:
           nullable: true
           example: 'https://image.tmdb.org/t/p/w500/cZ0d3rtvX5s1bUu3Wej2p3m2g2Y.jpg'
 
+    EnrichedMediaMetadata:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 550
+        title:
+          type: string
+          example: Fight Club
+        genre:
+          type: string
+          example: Drama
+        year:
+          type: string
+          example: '1999'
+        summary:
+          type: string
+          example: A ticking-time-bomb insomniac and a slippery soap salesman...
+        poster_url:
+          type: string
+          nullable: true
+          example: https://image.tmdb.org/t/p/w500/pB8BM79JsS0Zv9Uv00pYI0mhaZ5.jpg
+        episodes:
+          type: integer
+          nullable: true
+          example: 61
+        seasons:
+          type: integer
+          nullable: true
+          example: 3
+
+    CommunityAggregate:
+      type: object
+      properties:
+        averageRating:
+          type: number
+          nullable: true
+          example: 4.3
+        ratingCount:
+          type: integer
+          example: 17
+        reviewCount:
+          type: integer
+          example: 6
+
+    ReviewAuthorPreview:
+      type: object
+      nullable: true
+      properties:
+        id:
+          type: integer
+          example: 3
+        username:
+          type: string
+          example: kassie
+        display_name:
+          type: string
+          nullable: true
+          example: Kassie
+
+    ReviewPreview:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 12
+        authorId:
+          type: integer
+          nullable: true
+          example: 3
+        header:
+          type: string
+          nullable: true
+          example: Worth it
+        content:
+          type: string
+          nullable: true
+          example: Really strong performances and a memorable ending.
+        upvotes:
+          type: integer
+          example: 4
+        downvotes:
+          type: integer
+          example: 0
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-05-01T00:00:00.000Z'
+        author:
+          $ref: '#/components/schemas/ReviewAuthorPreview'
+
+    EnrichedMediaResponse:
+      type: object
+      properties:
+        mediaType:
+          type: string
+          enum: [movie, tv]
+          example: movie
+        metadata:
+          $ref: '#/components/schemas/EnrichedMediaMetadata'
+        community:
+          $ref: '#/components/schemas/CommunityAggregate'
+        recentReviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewPreview'
+
     TMDBErrorResponse:
       type: object
       properties:
@@ -1727,9 +1928,22 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/Rating'
+            $ref: '#/components/schemas/Review'
         pagination:
-          $ref: '#/components/schemas/RatingsPagination'
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 25
+            total:
+              type: integer
+              example: 12
+            totalPages:
+              type: integer
+              example: 1
 
     RatingWriteRequest:
       type: object

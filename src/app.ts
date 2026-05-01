@@ -1,8 +1,7 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response, NextFunction, RequestHandler } from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import YAML from 'yaml';
-import { apiReference } from '@scalar/express-api-reference';
 import { routes } from './routes';
 import { logger } from './middleware/logger';
 
@@ -16,15 +15,22 @@ app.use(logger);
 // OpenAPI documentation
 const specFile = fs.readFileSync('./openapi.yaml', 'utf8');
 const spec = YAML.parse(specFile);
+const apiDocsMiddlewarePromise: Promise<RequestHandler> =
+  import('@scalar/express-api-reference').then(
+    ({ apiReference }) =>
+      apiReference({
+        content: spec,
+      }) as RequestHandler
+  );
 
-app.use(
-  '/api-docs',
-  apiReference({
-    spec: {
-      content: spec,
-    },
-  })
-);
+app.use('/api-docs', async (request: Request, response: Response, next: NextFunction) => {
+  try {
+    const apiDocsMiddleware = await apiDocsMiddlewarePromise;
+    apiDocsMiddleware(request, response, next);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // Routes
 app.use(routes);
@@ -35,8 +41,13 @@ app.use((_request: Request, response: Response) => {
 });
 
 // Malformed JSON handler
-app.use((err: any, _request: Request, response: Response, _next: NextFunction) => {
-  if (err.type === 'entity.parse.failed') {
+app.use((err: unknown, _request: Request, response: Response, _next: NextFunction) => {
+  if (
+    typeof err === 'object' &&
+    err !== null &&
+    'type' in err &&
+    err.type === 'entity.parse.failed'
+  ) {
     response.status(400).json({ error: 'Malformed JSON in request body' });
     return;
   }

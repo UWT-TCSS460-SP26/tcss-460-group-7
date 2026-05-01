@@ -9,10 +9,10 @@ import { getTVDetailsRouter } from './getTVDetails';
 const proxyRoutes = Router();
 
 proxyRoutes.use('/v1', searchTvShowRouter);
-proxyRoutes.use('/v1', getTVDetailsRouter);
 proxyRoutes.use('/v1', searchMovieRouter);
 proxyRoutes.use('/v1', popularTVRouter);
 proxyRoutes.use('/v1', popularMoviesRouter);
+proxyRoutes.use('/v1', getTVDetailsRouter);
 proxyRoutes.use('/v1', getMovieDetailsRouter);
 
 export { proxyRoutes };

@@ -91,6 +91,76 @@ describe('Reviews API Endpoints', () => {
     });
   });
 
+  describe('GET /reviews/title/:title_id', () => {
+    it('should return a paginated list of reviews for a movie title', async () => {
+      const mockReviews = [
+        {
+          id: 1,
+          authorId: 2,
+          title_id: 246,
+          content: 'Great movie',
+          header: 'Loved it',
+          upvotes: 4,
+          downvotes: 0,
+          createdAt: '2026-04-26T12:00:00.000Z',
+          author: {
+            id: 2,
+            display_name: 'Kassie',
+            username: 'kassie',
+          },
+        },
+      ];
+
+      (prisma.review.findMany as jest.Mock).mockResolvedValue(mockReviews);
+      (prisma.review.count as jest.Mock).mockResolvedValue(1);
+
+      const response = await request(app).get('/reviews/title/246?page=2&limit=5');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        data: mockReviews,
+        pagination: {
+          page: 2,
+          limit: 5,
+          total: 1,
+          totalPages: 1,
+        },
+      });
+      expect(prisma.review.findMany).toHaveBeenCalledWith({
+        where: { title_id: 246 },
+        include: {
+          author: {
+            select: {
+              id: true,
+              display_name: true,
+              username: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: 5,
+        take: 5,
+      });
+      expect(prisma.review.count).toHaveBeenCalledWith({
+        where: { title_id: 246 },
+      });
+    });
+
+    it('should return 400 if title_id is invalid', async () => {
+      const response = await request(app).get('/reviews/title/0');
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Invalid title ID');
+    });
+
+    it('should return 400 if pagination query is invalid', async () => {
+      const response = await request(app).get('/reviews/title/246?page=0');
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Invalid pagination query');
+    });
+  });
+
   describe('GET /reviews/:id', () => {
     it('should return a specific review by its ID', async () => {
       const mockReview = { id: 1, content: 'Found Review' };

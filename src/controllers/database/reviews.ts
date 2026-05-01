@@ -39,6 +39,49 @@ const ALLOWED_SORT_FIELDS = ['id', 'authorId', 'title_id', 'createdAt', 'upvotes
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 100;
 
+// GET /reviews/title/:title_id — fetch all reviews for a movie, paginated.
+export const getReviewsByTitleId = async (req: Request, res: Response): Promise<void> => {
+  const title_id = Number(req.params.title_id);
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(MAX_LIMIT, Math.max(1, Number(req.query.limit) || DEFAULT_LIMIT));
+  const skip = (page - 1) * limit;
+
+  try {
+    const [reviews, total] = await Promise.all([
+      prisma.review.findMany({
+        where: { title_id },
+        include: {
+          author: {
+            select: {
+              id: true,
+              display_name: true,
+              username: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.review.count({
+        where: { title_id },
+      }),
+    ]);
+
+    res.status(200).json({
+      data: reviews,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (_error) {
+    res.status(500).json({ error: 'Failed to retrieve reviews for this movie' });
+  }
+};
+
 export const getAllReviews = async (request: Request, response: Response): Promise<void> => {
   const page = Math.max(1, Number(request.query.page) || 1);
   const limit = Math.min(MAX_LIMIT, Math.max(1, Number(request.query.limit) || DEFAULT_LIMIT));
@@ -116,7 +159,7 @@ export const updateReview = async (req: Request, res: Response): Promise<void> =
     });
 
     res.status(200).json(updatedReview);
-  } catch (err: unknown) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to update review' });
   }
 };
@@ -146,7 +189,7 @@ export const deleteReview = async (req: Request, res: Response): Promise<void> =
     });
 
     res.status(200).json(deletedReview);
-  } catch (err: unknown) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to delete review' });
   }
 };
@@ -222,7 +265,7 @@ export const removeUpvoteReview = async (req: Request, res: Response): Promise<v
       },
     });
     res.status(200).json(updatedReview);
-  } catch (err: unknown) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to remove upvote' });
   }
 };

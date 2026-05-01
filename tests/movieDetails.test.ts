@@ -61,7 +61,7 @@ describe('Movie Details Route', () => {
 
   it('GET /v1/movie/ - should return 400 or 404 if id is missing', async () => {
     // Note: With path params, /v1/movie/ might not match the route /v1/movie/:id
-    // and could return 404. If we want to test the controller's !id check, 
+    // and could return 404. If we want to test the controller's !id check,
     // we'd need to hit it in a way that 'id' is undefined/empty.
     const response = await request(app).get('/v1/movie/');
 
