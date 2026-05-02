@@ -1,0 +1,24 @@
+import { Request, Response } from 'express';
+import { prisma } from '../../lib/prisma';
+
+/**
+ * Create a new bug report (issue).
+ */
+export const createIssue = async (request: Request, response: Response): Promise<void> => {
+  try {
+    const { content } = request.body;
+    const authorId = Number(request.user?.sub);
+
+    const issue = await prisma.issue.create({
+      data: {
+        content,
+        authorId,
+      },
+    });
+
+    response.status(201).json(issue);
+  } catch (error) {
+    console.error('Error creating issue:', error);
+    response.status(500).json({ error: 'Internal server error' });
+  }
+};

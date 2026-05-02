@@ -11,12 +11,15 @@ datasource db {
 
 model User {
   id           Int       @id @default(autoincrement())
+  subjectId    String    @unique
   username     String    @unique
   email        String    @unique
   display_name String?
   role         Int       @default(2)
   reviews      Review[]
   ratings      Rating[]
+  issues       Issue[]
+
 
   @@map("users")
 }
@@ -45,4 +48,13 @@ model Rating {
 
   @@unique([authorId, title_id])
   @@map("ratings")
+}
+
+model Issue {
+  id        Int      @id @default(autoincrement())
+  authorId  Int?    
+  author    User?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  content   String
+  createdAt DateTime @default(now())
+  @@map("issues")
 }
