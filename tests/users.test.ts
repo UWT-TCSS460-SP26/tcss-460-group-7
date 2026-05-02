@@ -247,7 +247,9 @@ describe('DELETE /v1/users/:id', () => {
   it('allows a user to delete their own account', async () => {
     (prisma.user.delete as jest.Mock).mockResolvedValue(mockUser);
 
-    const res = await request(app).delete('/v1/users/1').set('Authorization', `Bearer ${userToken}`);
+    const res = await request(app)
+      .delete('/v1/users/1')
+      .set('Authorization', `Bearer ${userToken}`);
 
     expect(res.status).toBe(200);
   });
@@ -255,7 +257,9 @@ describe('DELETE /v1/users/:id', () => {
   it('allows admin to delete any account', async () => {
     (prisma.user.delete as jest.Mock).mockResolvedValue(mockUser);
 
-    const res = await request(app).delete('/v1/users/1').set('Authorization', `Bearer ${adminToken}`);
+    const res = await request(app)
+      .delete('/v1/users/1')
+      .set('Authorization', `Bearer ${adminToken}`);
 
     expect(res.status).toBe(200);
   });
@@ -266,7 +270,9 @@ describe('DELETE /v1/users/:id', () => {
   });
 
   it('returns 403 when deleting another user as non-admin', async () => {
-    const res = await request(app).delete('/v1/users/2').set('Authorization', `Bearer ${userToken}`);
+    const res = await request(app)
+      .delete('/v1/users/2')
+      .set('Authorization', `Bearer ${userToken}`);
 
     expect(res.status).toBe(403);
   });
@@ -274,13 +280,17 @@ describe('DELETE /v1/users/:id', () => {
   it('returns 404 when user does not exist', async () => {
     (prisma.user.delete as jest.Mock).mockRejectedValue({ code: 'P2025' });
 
-    const res = await request(app).delete('/v1/users/1').set('Authorization', `Bearer ${userToken}`);
+    const res = await request(app)
+      .delete('/v1/users/1')
+      .set('Authorization', `Bearer ${userToken}`);
 
     expect(res.status).toBe(404);
   });
 
   it('returns 400 when id is not a number', async () => {
-    const res = await request(app).delete('/v1/users/abc').set('Authorization', `Bearer ${userToken}`);
+    const res = await request(app)
+      .delete('/v1/users/abc')
+      .set('Authorization', `Bearer ${userToken}`);
 
     expect(res.status).toBe(400);
   });
