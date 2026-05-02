@@ -17,6 +17,32 @@ jest.mock('../src/lib/prisma', () => ({
   },
 }));
 
+jest.mock('../src/prisma', () => ({
+  prisma: {
+    rating: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
+    },
+  },
+}));
+
+jest.mock('@/prisma', () => ({
+  prisma: {
+    rating: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
+    },
+  },
+}));
+
 const TEST_SECRET = 'test-secret';
 
 beforeAll(() => {
