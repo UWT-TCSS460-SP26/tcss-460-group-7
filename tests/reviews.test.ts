@@ -38,7 +38,7 @@ describe('Reviews API Endpoints', () => {
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 2, role: 2 });
   });
 
-  describe('POST /reviews', () => {
+  describe('POST /v1/reviews', () => {
     it('should create a new review successfully', async () => {
       const mockReview = {
         id: 1,
@@ -50,7 +50,7 @@ describe('Reviews API Endpoints', () => {
       (prisma.review.create as jest.Mock).mockResolvedValue(mockReview);
 
       const response = await request(app)
-        .post('/reviews')
+        .post('/v1/reviews')
         .set('Authorization', `Bearer ${userToken}`)
         .send({ title_id: 246, content: 'Great show', header: 'Awesome' });
 
@@ -63,7 +63,7 @@ describe('Reviews API Endpoints', () => {
 
     it('should return 400 Bad Request if validation fails (missing title_id)', async () => {
       const response = await request(app)
-        .post('/reviews')
+        .post('/v1/reviews')
         .set('Authorization', `Bearer ${userToken}`)
         .send({ content: 'Great show', header: 'Awesome' });
 
@@ -72,7 +72,7 @@ describe('Reviews API Endpoints', () => {
     });
   });
 
-  describe('GET /reviews (Admin)', () => {
+  describe('GET /v1/reviews (Admin)', () => {
     it('should fetch all reviews if the user is an admin', async () => {
       const mockReviews = [
         { id: 1, content: 'Review 1' },
@@ -82,7 +82,7 @@ describe('Reviews API Endpoints', () => {
       (prisma.review.count as jest.Mock).mockResolvedValue(2);
 
       const response = await request(app)
-        .get('/reviews')
+        .get('/v1/reviews')
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
@@ -91,7 +91,7 @@ describe('Reviews API Endpoints', () => {
     });
   });
 
-  describe('GET /reviews/title/:title_id', () => {
+  describe('GET /v1/reviews/title/:title_id', () => {
     it('should return a paginated list of reviews for a movie title', async () => {
       const mockReviews = [
         {
@@ -114,7 +114,7 @@ describe('Reviews API Endpoints', () => {
       (prisma.review.findMany as jest.Mock).mockResolvedValue(mockReviews);
       (prisma.review.count as jest.Mock).mockResolvedValue(1);
 
-      const response = await request(app).get('/reviews/title/246?page=2&limit=5');
+      const response = await request(app).get('/v1/reviews/title/246?page=2&limit=5');
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({
@@ -147,26 +147,26 @@ describe('Reviews API Endpoints', () => {
     });
 
     it('should return 400 if title_id is invalid', async () => {
-      const response = await request(app).get('/reviews/title/0');
+      const response = await request(app).get('/v1/reviews/title/0');
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('Invalid title ID');
     });
 
     it('should return 400 if pagination query is invalid', async () => {
-      const response = await request(app).get('/reviews/title/246?page=0');
+      const response = await request(app).get('/v1/reviews/title/246?page=0');
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('Invalid pagination query');
     });
   });
 
-  describe('GET /reviews/:id', () => {
+  describe('GET /v1/reviews/:id', () => {
     it('should return a specific review by its ID', async () => {
       const mockReview = { id: 1, content: 'Found Review' };
       (prisma.review.findUnique as jest.Mock).mockResolvedValue(mockReview);
 
-      const response = await request(app).get('/reviews/1');
+      const response = await request(app).get('/v1/reviews/1');
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(mockReview);
@@ -175,13 +175,13 @@ describe('Reviews API Endpoints', () => {
     it('should return 404 if the review does not exist', async () => {
       (prisma.review.findUnique as jest.Mock).mockResolvedValue(null);
 
-      const response = await request(app).get('/reviews/999');
+      const response = await request(app).get('/v1/reviews/999');
 
       expect(response.status).toBe(404);
     });
   });
 
-  describe('PUT /reviews/:id', () => {
+  describe('PUT /v1/reviews/:id', () => {
     it('should update the review if the logged-in user is the author', async () => {
       const mockExisting = { id: 1, authorId: 2, content: 'Old Content' };
       const mockUpdated = { id: 1, authorId: 2, content: 'New Content' };
@@ -190,7 +190,7 @@ describe('Reviews API Endpoints', () => {
       (prisma.review.update as jest.Mock).mockResolvedValue(mockUpdated);
 
       const response = await request(app)
-        .put('/reviews/1')
+        .put('/v1/reviews/1')
         .set('Authorization', `Bearer ${userToken}`)
         .send({ content: 'New Content' });
 
@@ -203,7 +203,7 @@ describe('Reviews API Endpoints', () => {
       (prisma.review.findUnique as jest.Mock).mockResolvedValue(mockExisting);
 
       const response = await request(app)
-        .put('/reviews/1')
+        .put('/v1/reviews/1')
         .set('Authorization', `Bearer ${userToken}`)
         .send({ content: 'Hacking attempt' });
 
@@ -212,14 +212,14 @@ describe('Reviews API Endpoints', () => {
     });
   });
 
-  describe('DELETE /reviews/:id', () => {
+  describe('DELETE /v1/reviews/:id', () => {
     it('should allow the author to delete their own review', async () => {
       const mockExisting = { id: 1, authorId: 2 };
       (prisma.review.findUnique as jest.Mock).mockResolvedValue(mockExisting);
       (prisma.review.delete as jest.Mock).mockResolvedValue(mockExisting);
 
       const response = await request(app)
-        .delete('/reviews/1')
+        .delete('/v1/reviews/1')
         .set('Authorization', `Bearer ${userToken}`);
 
       expect(response.status).toBe(200);
@@ -231,7 +231,7 @@ describe('Reviews API Endpoints', () => {
       (prisma.review.delete as jest.Mock).mockResolvedValue(mockExisting);
 
       const response = await request(app)
-        .delete('/reviews/1')
+        .delete('/v1/reviews/1')
         .set('Authorization', `Bearer ${adminToken}`); // Used Admin token
 
       expect(response.status).toBe(200);
@@ -244,7 +244,7 @@ describe('Reviews API Endpoints', () => {
       (prisma.review.update as jest.Mock).mockResolvedValue(mockUpdated);
 
       const response = await request(app)
-        .post('/reviews/1/upvote')
+        .post('/v1/reviews/1/upvote')
         .set('Authorization', `Bearer ${userToken}`);
 
       expect(response.status).toBe(200);
@@ -259,7 +259,7 @@ describe('Reviews API Endpoints', () => {
       (prisma.review.findUnique as jest.Mock).mockResolvedValue(mockExisting);
 
       const response = await request(app)
-        .post('/reviews/1/remove-upvote')
+        .post('/v1/reviews/1/remove-upvote')
         .set('Authorization', `Bearer ${userToken}`);
 
       expect(response.status).toBe(400);

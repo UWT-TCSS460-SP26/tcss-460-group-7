@@ -18,7 +18,8 @@ const getErrorCode = (error: unknown): string | undefined => {
 
 // POST /users — create a new user. display_name is optional and stored as null if not provided.
 export const createUser = async (req: Request, res: Response): Promise<void> => {
-  const { username, email, display_name } = req.body as {
+  const { subjectId, username, email, display_name } = req.body as {
+    subjectId: string;
     username: string;
     email: string;
     display_name?: string;
@@ -27,6 +28,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
   try {
     const user = await prisma.user.create({
       data: {
+        subjectId,
         username,
         email,
         display_name: display_name ?? null,
