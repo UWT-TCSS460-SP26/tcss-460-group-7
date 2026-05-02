@@ -2029,11 +2029,11 @@ components:
           example: 7
         content:
           type: string
-          example: "The search bar is overlapping with the header on mobile."
+          example: 'The search bar is overlapping with the header on mobile.'
         createdAt:
           type: string
           format: date-time
-          example: "2026-05-01T12:00:00.000Z"
+          example: '2026-05-01T12:00:00.000Z'
 
     CreateIssueRequest:
       type: object
@@ -2041,4 +2041,4 @@ components:
       properties:
         content:
           type: string
-          example: "The search bar is overlapping with the header on mobile."
+          example: 'The search bar is overlapping with the header on mobile.'

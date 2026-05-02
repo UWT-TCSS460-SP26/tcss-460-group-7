@@ -17,10 +17,10 @@ npm run dev
 # Run service test for Heartbeat
 npm run health
 ```
+
 # Audience Name
 
 Audience name: group-7-api
-
 
 The server starts at [http://localhost:3000](http://localhost:3000).
 
