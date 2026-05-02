@@ -18,14 +18,14 @@ export const validateCreateUser = (req: Request, res: Response, next: NextFuncti
     email?: string;
     display_name?: string;
   };
-//------------------------------TEMPORARY, CHANGE LATER---------------------------------------------------
+  //------------------------------TEMPORARY, CHANGE LATER---------------------------------------------------
 
   if (!subjectId || typeof subjectId !== 'string' || subjectId.trim() === '') {
     res.status(400).json({ error: 'subjectId is required and must be a non-empty string' });
     return;
   }
 
-//--------------------------------------------------------------------------------------------------
+  //--------------------------------------------------------------------------------------------------
 
   if (!username || typeof username !== 'string' || username.trim() === '') {
     res.status(400).json({ error: 'username is required and must be a non-empty string' });
