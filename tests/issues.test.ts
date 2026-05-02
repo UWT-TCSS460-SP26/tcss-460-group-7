@@ -57,22 +57,22 @@ describe('Issues API Endpoints', () => {
     });
 
     it('should create a new issue successfully for an admin (since role 1 <= 2)', async () => {
-        const mockIssue = {
-          id: 2,
-          authorId: 1,
-          content: 'Admin reporting a bug.',
-          createdAt: new Date().toISOString(),
-        };
-        (prisma.issue.create as jest.Mock).mockResolvedValue(mockIssue);
-  
-        const response = await request(app)
-          .post('/v1/issues')
-          .set('Authorization', `Bearer ${adminToken}`)
-          .send({ content: 'Admin reporting a bug.' });
-  
-        expect(response.status).toBe(201);
-        expect(response.body).toEqual(mockIssue);
-      });
+      const mockIssue = {
+        id: 2,
+        authorId: 1,
+        content: 'Admin reporting a bug.',
+        createdAt: new Date().toISOString(),
+      };
+      (prisma.issue.create as jest.Mock).mockResolvedValue(mockIssue);
+
+      const response = await request(app)
+        .post('/v1/issues')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ content: 'Admin reporting a bug.' });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual(mockIssue);
+    });
 
     it('should return 400 Bad Request if content is missing', async () => {
       const response = await request(app)
@@ -85,19 +85,17 @@ describe('Issues API Endpoints', () => {
     });
 
     it('should return 400 Bad Request if content is empty string', async () => {
-        const response = await request(app)
-          .post('/v1/issues')
-          .set('Authorization', `Bearer ${userToken}`)
-          .send({ content: '   ' });
-  
-        expect(response.status).toBe(400);
-        expect(response.body.error).toBe('Invalid request body please check format');
-      });
-
-    it('should return 401 Unauthorized if token is missing', async () => {
       const response = await request(app)
         .post('/v1/issues')
-        .send({ content: 'Some bug' });
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ content: '   ' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Invalid request body please check format');
+    });
+
+    it('should return 401 Unauthorized if token is missing', async () => {
+      const response = await request(app).post('/v1/issues').send({ content: 'Some bug' });
 
       expect(response.status).toBe(401);
     });
