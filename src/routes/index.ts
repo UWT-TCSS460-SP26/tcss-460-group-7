@@ -32,6 +32,6 @@ routes.use('/v1/ratings', ratingsRouter);
 routes.use('/v1/issues', issuesRouter);
 
 // Media Reviews routes
-routes.use('/v1/media-reviews', mediaReviewDataRouter)
+routes.use('/v1/media-reviews', mediaReviewDataRouter);
 
 export { routes };

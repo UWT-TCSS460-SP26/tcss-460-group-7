@@ -17,8 +17,8 @@ export const createIssue = async (request: Request, response: Response): Promise
     });
 
     response.status(201).json(issue);
-  } catch (error) {
-    console.error('Error creating issue:', error);
+  } catch (_error) {
+    // console.error('Error creating issue:', error);
     response.status(500).json({ error: 'Internal server error' });
   }
 };

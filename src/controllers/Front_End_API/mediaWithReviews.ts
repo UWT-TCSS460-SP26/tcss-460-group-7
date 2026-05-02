@@ -119,7 +119,10 @@ const formatMetadata = (
   };
 };
 
-const buildCommunityAggregate = (ratings: { rating: number }[],reviewCount: number): CommunityAggregate => {
+const buildCommunityAggregate = (
+  ratings: { rating: number }[],
+  reviewCount: number
+): CommunityAggregate => {
   const ratingCount = ratings.length;
 
   if (ratingCount === 0) {

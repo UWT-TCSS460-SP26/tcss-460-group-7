@@ -237,7 +237,9 @@ async function seedRatings(usersByUsername: Map<string, { id: number }>) {
         create: ratingSeed,
       });
 
-      console.log(`Seeded rating ${rating.rating} for title_id: ${titleId} by authorId: ${user.id}`);
+      console.log(
+        `Seeded rating ${rating.rating} for title_id: ${titleId} by authorId: ${user.id}`
+      );
     }
   }
 }
