@@ -8,7 +8,10 @@ import { logger } from './middleware/logger';
 const app = express();
 
 // Application-level middleware
-const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? '').split(',').map((o) => o.trim()).filter(Boolean);
+const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
 app.use(cors({ origin: allowedOrigins.length ? allowedOrigins : false }));
 app.use(express.json());
 app.use(logger);

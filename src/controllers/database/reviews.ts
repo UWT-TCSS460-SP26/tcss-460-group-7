@@ -5,7 +5,7 @@ import { prisma } from '../../lib/prisma';
 
 // POST /reviews — create a new review. Requires auth.
 export const createReview = async (req: Request, res: Response): Promise<void> => {
-  const authorId = Number(req.user!.sub);
+  const authorId = req.user!.id;
   const { content, header, title_id } = req.body as {
     content: string;
     header?: string;
@@ -145,7 +145,7 @@ export const updateReview = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    if (existingReview.authorId !== Number(req.user!.sub)) {
+    if (existingReview.authorId !== req.user!.id) {
       res.status(403).json({ error: 'You can only update your own reviews' });
       return;
     }
@@ -179,7 +179,7 @@ export const deleteReview = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    if (existingReview.authorId !== Number(req.user!.sub) && !isAdmin) {
+    if (existingReview.authorId !== req.user!.id && !isAdmin) {
       res.status(403).json({ error: 'You can only delete your own reviews' });
       return;
     }

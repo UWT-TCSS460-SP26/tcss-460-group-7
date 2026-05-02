@@ -8,7 +8,7 @@ import { Prisma } from '@prisma/client';
  * Requires authorId, TitleId and rating integer
  */
 export const createRating = async (request: Request, response: Response) => {
-  const authorId = Number(request.user!.sub);
+  const authorId = request.user!.id;
   const title_id = Number(request.params.title_id);
   const { rating } = request.body;
 
@@ -115,7 +115,7 @@ export const getRatingByUserIdMovieId = async (request: Request, response: Respo
  * Requires authorId, titleId, new Rating
  */
 export const updateUsersRating = async (request: Request, response: Response) => {
-  const authorId = Number(request.user!.sub);
+  const authorId = request.user!.id;
   const title_id = Number(request.params.title_id);
   const { rating } = request.body;
 
@@ -202,7 +202,7 @@ export const getAllUserRating = async (request: Request, response: Response) => 
  */
 export const deleteRating = async (request: Request, response: Response) => {
   const title_id = Number(request.params.title_id);
-  const { sub: authorId } = request.user!;
+  const authorId = request.user!.id;
 
   if (!Number.isInteger(title_id) || title_id <= 0) {
     response.status(400).json({ error: 'A valid title_id is required' });

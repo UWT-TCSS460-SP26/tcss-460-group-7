@@ -5,6 +5,7 @@ import { prisma } from '../lib/prisma';
 
 export interface AuthenticatedUser {
   sub: string;
+  id: number;
   role: number;
 }
 
@@ -35,13 +36,46 @@ export const requireAuth = (request: Request, response: Response, next: NextFunc
       response.status(401).json({ error: 'Invalid or expired token' });
       return;
     }
+    const authHeader = request.headers.authorization as string;
     const auth = (request as unknown as { auth: { sub: string } }).auth;
-    const dbUser = await prisma.user.findUnique({ where: { id: Number(auth.sub) } });
+
+    let dbUser = await prisma.user.findUnique({ where: { subjectId: auth.sub } });
+
     if (!dbUser) {
-      response.status(401).json({ error: 'User not found' });
-      return;
+      try {
+        const userinfoRes = await fetch(`${process.env.AUTH_ISSUER}/v2/oauth/userinfo`, {
+          headers: { Authorization: authHeader },
+        });
+        if (!userinfoRes.ok) {
+          response.status(401).json({ error: 'Failed to fetch user info' });
+          return;
+        }
+        const userinfo = (await userinfoRes.json()) as {
+          nickname?: string;
+          name?: string;
+          email?: string;
+        };
+        const username = userinfo.nickname ?? userinfo.email?.split('@')[0] ?? `user_${auth.sub}`;
+        const email = userinfo.email ?? `${auth.sub}@auth2.local`;
+
+        dbUser = await prisma.user.upsert({
+          where: { subjectId: auth.sub },
+          update: {},
+          create: {
+            subjectId: auth.sub,
+            username,
+            email,
+            display_name: userinfo.name ?? null,
+            role: 2,
+          },
+        });
+      } catch {
+        response.status(500).json({ error: 'Failed to resolve user' });
+        return;
+      }
     }
-    request.user = { sub: auth.sub, role: dbUser.role };
+
+    request.user = { sub: auth.sub, id: dbUser.id, role: dbUser.role };
     next();
   });
 };
