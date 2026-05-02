@@ -2,6 +2,9 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', { diagnostics: { ignoreCodes: [151002] } }],
+  },
   roots: ['<rootDir>/tests'],
   testMatch: ['**/*.test.ts'],
   setupFiles: ['<rootDir>/tests/setup.ts'],
