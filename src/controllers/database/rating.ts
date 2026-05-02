@@ -8,7 +8,7 @@ import { Prisma } from '@prisma/client';
  * Requires authorId, TitleId and rating integer
  */
 export const createRating = async (request: Request, response: Response) => {
-  const authorId = request.user!.sub;
+  const authorId = Number(request.user!.sub);
   const title_id = Number(request.params.title_id);
   const { rating } = request.body;
 
@@ -115,7 +115,7 @@ export const getRatingByUserIdMovieId = async (request: Request, response: Respo
  * Requires authorId, titleId, new Rating
  */
 export const updateUsersRating = async (request: Request, response: Response) => {
-  const authorId = request.user!.sub;
+  const authorId = Number(request.user!.sub);
   const title_id = Number(request.params.title_id);
   const { rating } = request.body;
 
