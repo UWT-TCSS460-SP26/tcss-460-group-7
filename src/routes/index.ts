@@ -5,6 +5,7 @@ import { proxyRoutes } from './proxy';
 import { usersRouter } from './database/users';
 import { reviewsRouter } from './database/reviews';
 import { ratingsRouter } from './database/ratings';
+import { issuesRouter } from './database/issues';
 
 const routes = Router();
 
@@ -18,12 +19,15 @@ routes.use(protectedRoutes);
 routes.use(proxyRoutes);
 
 // User routes
-routes.use('/users', usersRouter);
+routes.use('/v1/users', usersRouter);
 
 // Review routes
-routes.use('/reviews', reviewsRouter);
+routes.use('/v1/reviews', reviewsRouter);
 
 // Rating routes
 routes.use('/v1/ratings', ratingsRouter);
+
+// Issue routes
+routes.use('/v1/issues', issuesRouter);
 
 export { routes };

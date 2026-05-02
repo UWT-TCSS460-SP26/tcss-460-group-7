@@ -19,26 +19,36 @@ const seedUsers = [
 // Auth² users — subjectId must match the JWT sub claim from tcss-460-iam.onrender.com
 const seedAuth2Users = [
   {
+    id: 0,
     subjectId: '36',
     username: 'skyze',
     email: 'skyzen888@gmail.com',
     display_name: 'Skyler',
     role: 1,
   },
+  {
+    id: 1,
+    subjectId: '26',
+    username: 'duyhung',
+    email: 'duyhung@gmail.com',
+    display_name: 'Le',
+    role: 1,
+  },
 ];
 
 async function main() {
   const createdUsers = [];
-
-  for (const u of seedUsers) {
-    const user = await prisma.user.upsert({
-      where: { username: u.username },
-      update: { role: u.role, display_name: u.display_name },
-      create: u,
-    });
-    createdUsers.push(user);
-    console.log(`Seeded user: ${user.username} (role: ${user.role})`);
-  }
+  /*
+    for (const u of seedUsers) {
+      const user = await prisma.user.upsert({
+        where: { username: u.username },
+        update: { role: u.role, display_name: u.display_name },
+        create: u,
+      });
+      createdUsers.push(user);
+      console.log(`Seeded user: ${user.username} (role: ${user.role})`);
+    }
+  */
 
   for (const u of seedAuth2Users) {
     const user = await prisma.user.upsert({
@@ -48,7 +58,7 @@ async function main() {
     });
     console.log(`Seeded Auth² user: ${user.username} (id: ${user.id})`);
   }
-
+  /*
   const seedReviews = [
     {
       authorId: createdUsers[0].id,
@@ -126,6 +136,7 @@ async function main() {
       } else throw err;
     }
   }
+  */
 }
 
 main()
