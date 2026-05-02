@@ -7,7 +7,7 @@ import { prisma } from '../../lib/prisma';
 export const createIssue = async (request: Request, response: Response): Promise<void> => {
   try {
     const { content } = request.body;
-    const authorId = Number(request.user?.sub);
+    const authorId = request.user?.id;
 
     const issue = await prisma.issue.create({
       data: {

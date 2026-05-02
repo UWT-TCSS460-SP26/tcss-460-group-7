@@ -53,8 +53,24 @@ paths:
                   message:
                     type: string
                     example: 'Status: OK'
+  /status:
+    get:
+      tags: [General]
+      summary: Check status
+      description: Checks the status of the server to ensure nothing was broken
+      responses:
+        '200':
+          description: Checks the client status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Status: OK'
 
-  /users:
+  /v1/users:
     post:
       tags: [Users]
       summary: Create a user
@@ -141,7 +157,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /users/{id}:
+  /v1/users/{id}:
     get:
       tags: [Users]
       summary: Get a user by id
@@ -804,7 +820,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /reviews:
+  /v1/reviews:
     post:
       tags: [Reviews]
       summary: Create a review
@@ -904,7 +920,7 @@ paths:
         '404':
           description: Rating was not found
 
-  /reviews/title/{title_id}:
+  /v1/reviews/title/{title_id}:
     get:
       tags: [Reviews]
       summary: Get all reviews for a title
@@ -952,7 +968,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /reviews/{id}:
+  /v1/reviews/{id}:
     get:
       tags: [Reviews]
       summary: Get a review by id
@@ -1088,6 +1104,8 @@ paths:
     get:
       tags: [Ratings]
       summary: Get all ratings for a title
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: title_id
@@ -1121,6 +1139,8 @@ paths:
     get:
       tags: [Ratings]
       summary: Get one user's rating for one title
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: authorId
@@ -1150,7 +1170,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /reviews/{id}/upvote:
+  /v1/reviews/{id}/upvote:
     post:
       tags: [Reviews]
       summary: Upvote a review
@@ -1180,7 +1200,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /reviews/{id}/downvote:
+  /v1/reviews/{id}/downvote:
     post:
       tags: [Reviews]
       summary: Downvote a review
@@ -1214,7 +1234,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /reviews/{id}/remove-upvote:
+  /v1/reviews/{id}/remove-upvote:
     post:
       tags: [Reviews]
       summary: Remove an upvote
@@ -1254,6 +1274,8 @@ paths:
     get:
       tags: [Ratings]
       summary: Get a paginated list of ratings by user
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: authorId
@@ -1319,7 +1341,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /reviews/{id}/remove-downvote:
+  /v1/reviews/{id}/remove-downvote:
     post:
       tags: [Reviews]
       summary: Remove a downvote
