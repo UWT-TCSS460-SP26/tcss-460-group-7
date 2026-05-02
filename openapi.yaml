@@ -6,6 +6,10 @@ info:
     **Deployed URL:** https://tcss-460-group-7.onrender.com
 
     A RESTful API for the TCSS 460 group project.
+
+    **Authentication:** Tokens are issued by the shared Auth² service (`https://tcss-460-iam.onrender.com`).
+    Obtain a token from the TCSS 460 Token Playground and pass it as `Authorization: Bearer <token>`.
+    The audience for this API is `group-7-api`.
   version: 0.1.0
 
 servers:
@@ -33,6 +37,8 @@ tags:
     description: Authenticated user rating routes
   - name: Reviews
     description: Review management routes
+  - name: Front End API
+    description: Combined enriched media routes for frontend consumption
 
 paths:
   /health:
@@ -52,7 +58,7 @@ paths:
                     type: string
                     example: 'Status: OK'
 
-  /users:
+  /v1/users:
     post:
       tags: [Users]
       summary: Create a user
@@ -139,7 +145,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /users/{id}:
+  /v1/users/{id}:
     get:
       tags: [Users]
       summary: Get a user by id
@@ -1326,6 +1332,12 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: |
+        Auth² RS256 access token.
+        - Issuer: https://tcss-460-iam.onrender.com
+        - Audience: group-7-api
+        Obtain a token from the TCSS 460 Token Playground, then pass it as:
+        `Authorization: Bearer <token>`
 
   schemas:
     User:
@@ -1334,6 +1346,11 @@ components:
         id:
           type: integer
           example: 1
+        subjectId:
+          type: string
+          nullable: true
+          example: '36'
+          description: Auth² subject claim — stable identifier across deployments
         username:
           type: string
           example: stardust42
