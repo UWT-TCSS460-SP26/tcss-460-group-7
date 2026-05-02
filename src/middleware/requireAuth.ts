@@ -1,9 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { expressjwt, GetVerificationKey } from 'express-jwt';
+import { expressJwtSecret } from 'jwks-rsa';
+import { prisma } from '../lib/prisma';
 
 export interface AuthenticatedUser {
-  sub: number;
-  email: string;
+  sub: string;
+  id: number;
   role: number;
 }
 
@@ -16,39 +18,72 @@ declare global {
   }
 }
 
-/**
- * Verifies the Authorization: Bearer <token> header using JWT_SECRET and
- * attaches the decoded payload to request.user. Responds 401 when the
- * header is missing, malformed, or the token is invalid/expired.
- */
+const jwtCheck = expressjwt({
+  secret: expressJwtSecret({
+    cache: true,
+    rateLimit: true,
+    jwksRequestsPerMinute: 5,
+    jwksUri: `${process.env.AUTH_ISSUER}/.well-known/jwks.json`,
+  }) as GetVerificationKey,
+  audience: process.env.API_AUDIENCE,
+  issuer: process.env.AUTH_ISSUER,
+  algorithms: ['RS256'],
+});
+
 export const requireAuth = (request: Request, response: Response, next: NextFunction): void => {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    response.status(500).json({ error: 'JWT_SECRET is not configured' });
-    return;
-  }
+  void jwtCheck(request, response, async (err) => {
+    if (err) {
+      response.status(401).json({ error: 'Invalid or expired token' });
+      return;
+    }
+    const authHeader = request.headers.authorization as string;
+    const auth = (request as unknown as { auth: { sub: string } }).auth;
 
-  const header = request.headers.authorization;
-  if (!header || !header.startsWith('Bearer ')) {
-    response.status(401).json({ error: 'Missing or malformed Authorization header' });
-    return;
-  }
+    let dbUser = await prisma.user.findUnique({ where: { subjectId: auth.sub } });
 
-  const token = header.slice('Bearer '.length).trim();
+    if (!dbUser) {
+      try {
+        const userinfoRes = await fetch(`${process.env.AUTH_ISSUER}/v2/oauth/userinfo`, {
+          headers: { Authorization: authHeader },
+        });
+        if (!userinfoRes.ok) {
+          response.status(401).json({ error: 'Failed to fetch user info' });
+          return;
+        }
+        const userinfo = (await userinfoRes.json()) as {
+          nickname?: string;
+          name?: string;
+          email?: string;
+        };
+        const username = userinfo.nickname ?? userinfo.email?.split('@')[0] ?? `user_${auth.sub}`;
+        const email = userinfo.email ?? `${auth.sub}@auth2.local`;
 
-  try {
-    const payload = jwt.verify(token, secret) as unknown as AuthenticatedUser;
-    request.user = payload;
+        dbUser = await prisma.user.upsert({
+          where: { subjectId: auth.sub },
+          update: {},
+          create: {
+            subjectId: auth.sub,
+            username,
+            email,
+            display_name: userinfo.name ?? null,
+            role: 2,
+          },
+        });
+      } catch {
+        response.status(500).json({ error: 'Failed to resolve user' });
+        return;
+      }
+    }
+
+    request.user = { sub: auth.sub, id: dbUser.id, role: dbUser.role };
     next();
-  } catch {
-    response.status(401).json({ error: 'Invalid or expired token' });
-  }
+  });
 };
 
 /**
  * Role gate. Use after requireAuth:
  *
- *   router.delete('/reviews/:id', requireAuth, requireRole('admin'), handler);
+ *   router.delete('/reviews/:id', requireAuth, requireRole(1), handler);
  */
 export const requireRole = (role: number) => {
   return (request: Request, response: Response, next: NextFunction): void => {

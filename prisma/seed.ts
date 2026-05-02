@@ -8,12 +8,23 @@ const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
 const seedUsers = [
-  { username: 'admin', email: 'admin@dev.local', display_name: 'Administrator', role: 1 },
+  { username: 'admin', email: 'admin@dev.local', display_name: 'Administrator', role: 2 },
   { username: 'stardust42', email: 'stardust42@dev.local', display_name: 'Stardust', role: 2 },
   { username: 'noodle_cat', email: 'noodle_cat@dev.local', display_name: null, role: 2 },
   { username: 'grizwald', email: 'grizwald@dev.local', display_name: 'Grizwald', role: 2 },
   { username: 'pixel_fox', email: 'pixel_fox@dev.local', display_name: 'Pixel Fox', role: 2 },
   { username: 'thunderbean', email: 'thunderbean@dev.local', display_name: null, role: 2 },
+];
+
+// Auth² users — subjectId must match the JWT sub claim from tcss-460-iam.onrender.com
+const seedAuth2Users = [
+  {
+    subjectId: '36',
+    username: 'skyze',
+    email: 'skyzen888@gmail.com',
+    display_name: 'Skyler',
+    role: 1,
+  },
 ];
 
 async function main() {
@@ -25,8 +36,17 @@ async function main() {
       update: { role: u.role, display_name: u.display_name },
       create: u,
     });
-    createdUsers.push(user); //adds user info for reviews
+    createdUsers.push(user);
     console.log(`Seeded user: ${user.username} (role: ${user.role})`);
+  }
+
+  for (const u of seedAuth2Users) {
+    const user = await prisma.user.upsert({
+      where: { subjectId: u.subjectId },
+      update: { role: u.role, display_name: u.display_name },
+      create: u,
+    });
+    console.log(`Seeded Auth² user: ${user.username} (id: ${user.id})`);
   }
 
   const seedReviews = [

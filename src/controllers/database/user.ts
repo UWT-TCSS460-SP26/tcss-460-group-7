@@ -91,7 +91,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
   const id = Number(req.params.id);
   const { display_name } = req.body as { display_name?: string };
 
-  if (req.user!.sub !== id) {
+  if (req.user!.id !== id) {
     res.status(403).json({ error: 'You can only update your own account' });
     return;
   }
@@ -116,7 +116,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {
   const id = Number(req.params.id);
   const isAdmin = req.user!.role === 1;
-  const isSelf = req.user!.sub === id;
+  const isSelf = req.user!.id === id;
 
   if (!isAdmin && !isSelf) {
     res.status(403).json({ error: 'You can only delete your own account' });
