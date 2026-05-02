@@ -18,7 +18,7 @@ routes.use(protectedRoutes);
 routes.use(proxyRoutes);
 
 // User routes
-routes.use('/users', usersRouter);
+routes.use('/v1/users', usersRouter);
 
 // Review routes
 routes.use('/reviews', reviewsRouter);
