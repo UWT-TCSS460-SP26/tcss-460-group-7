@@ -33,6 +33,8 @@ tags:
     description: Authenticated user rating routes
   - name: Reviews
     description: Review management routes
+  - name: Issues
+    description: Bug reporting and issue tracking
 
 paths:
   /health:
@@ -1278,6 +1280,45 @@ paths:
         '500':
           description: Server error while fetching user ratings
 
+  /v1/issues:
+    post:
+      tags: [Issues]
+      summary: Submit a bug report
+      description: Allows authenticated users to submit a bug report. Requires role 2 (User) or higher.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIssueRequest'
+      responses:
+        '201':
+          description: Bug report submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /reviews/{id}/remove-downvote:
     post:
       tags: [Reviews]
@@ -1953,3 +1994,29 @@ components:
         rating:
           type: integer
           example: 4
+
+    Issue:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        authorId:
+          type: integer
+          nullable: true
+          example: 7
+        content:
+          type: string
+          example: "The search bar is overlapping with the header on mobile."
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-05-01T12:00:00.000Z"
+
+    CreateIssueRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          example: "The search bar is overlapping with the header on mobile."

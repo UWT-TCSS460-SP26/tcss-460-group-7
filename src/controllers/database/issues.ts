@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../../lib/prisma';
 
 /**
- * Create a new bug report (issue).
+ * POST issues to report
  */
 export const createIssue = async (request: Request, response: Response): Promise<void> => {
   try {
