@@ -119,10 +119,7 @@ const formatMetadata = (
   };
 };
 
-const buildCommunityAggregate = (
-  ratings: { rating: number }[],
-  reviewCount: number
-): CommunityAggregate => {
+const buildCommunityAggregate = (ratings: { rating: number }[],reviewCount: number): CommunityAggregate => {
   const ratingCount = ratings.length;
 
   if (ratingCount === 0) {
@@ -147,6 +144,9 @@ type MediaWithReviewsParams = {
   id: string;
 };
 
+/**
+ * Requires media type, and media ID
+ */
 export const getMediaWithReviews = async (req: Request<MediaWithReviewsParams>, res: Response) => {
   const mediaType = req.params.mediaType;
   const id = Number(req.params.id);
