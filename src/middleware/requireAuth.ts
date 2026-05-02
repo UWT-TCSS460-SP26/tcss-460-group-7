@@ -31,7 +31,7 @@ const jwtCheck = expressjwt({
 });
 
 export const requireAuth = (request: Request, response: Response, next: NextFunction): void => {
-  jwtCheck(request, response, async (err) => {
+  void jwtCheck(request, response, async (err) => {
     if (err) {
       response.status(401).json({ error: 'Invalid or expired token' });
       return;

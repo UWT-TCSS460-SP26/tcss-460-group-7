@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { Buffer } from 'buffer';
 
 // This mock implementation of requireAuth is used in tests to bypass actual authentication logic.
 // It simulates a successful authentication by attaching a mock user to the request object.
