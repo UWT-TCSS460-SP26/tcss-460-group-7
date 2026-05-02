@@ -1,6 +1,7 @@
 -- CreateTable
 CREATE TABLE "users" (
     "id" SERIAL NOT NULL,
+    "subjectId" TEXT,
     "username" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "display_name" TEXT,
@@ -32,6 +33,9 @@ CREATE TABLE "ratings" (
 
     CONSTRAINT "ratings_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_subjectId_key" ON "users"("subjectId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_username_key" ON "users"("username");

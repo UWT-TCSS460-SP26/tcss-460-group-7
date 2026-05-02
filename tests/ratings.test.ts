@@ -17,6 +17,12 @@ const mockPrisma = {
 jest.mock('../src/prisma', () => ({ prisma: mockPrisma }));
 jest.mock('@/prisma', () => ({ prisma: mockPrisma }));
 
+const TEST_SECRET = 'test-secret';
+
+beforeAll(() => {
+  process.env.JWT_SECRET = TEST_SECRET;
+});
+
 import {
   createRating,
   deleteRating,
@@ -44,7 +50,7 @@ const makeRequest = (overrides: Partial<Request> = {}): Request =>
     body: {},
     params: {},
     query: {},
-    user: { sub: 7, email: 'tester@example.com', role: 'user' },
+    user: { sub: '7', id: 7, role: 2 },
     ...overrides,
   }) as Request;
 
@@ -60,15 +66,15 @@ const ratingRecord = (overrides = {}) => ({
   ...overrides,
 });
 
-const makeToken = (overrides: Partial<{ sub: number; email: string; role: string }> = {}) =>
+const makeToken = (overrides: Partial<{ sub: number; email: string; role: number }> = {}) =>
   jwt.sign(
     {
       sub: 7,
       email: 'tester@example.com',
-      role: 'user',
+      role: 2,
       ...overrides,
     },
-    process.env.JWT_SECRET as string
+    TEST_SECRET
   );
 
 describe('Rating Controller', () => {

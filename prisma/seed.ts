@@ -16,7 +16,7 @@ const seedUsers = [
   { username: 'thunderbean', email: 'thunderbean@dev.local', display_name: null, role: 2 },
 ];
 
-// Auth² users — id must match the JWT sub claim from tcss-460-iam.onrender.com
+// Auth² users — subjectId must match the JWT sub claim from tcss-460-iam.onrender.com
 const seedAuth2Users = [
   { id: 0, subjectId: '36', username: 'skyze', email: 'skyzen888@gmail.com', display_name: 'Skyler', role: 1 },
   { id: 1, subjectId: '26', username: 'duyhung', email: 'duyhung@gmail.com', display_name: 'Le', role: 1 },
@@ -38,7 +38,7 @@ async function main() {
 
   for (const u of seedAuth2Users) {
     const user = await prisma.user.upsert({
-      where: { username: u.username },
+      where: { subjectId: u.subjectId },
       update: { role: u.role, display_name: u.display_name },
       create: u,
     });
