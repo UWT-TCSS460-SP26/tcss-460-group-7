@@ -147,6 +147,9 @@ type MediaWithReviewsParams = {
   id: string;
 };
 
+/**
+ * Requires media type, and media ID
+ */
 export const getMediaWithReviews = async (req: Request<MediaWithReviewsParams>, res: Response) => {
   const mediaType = req.params.mediaType;
   const id = Number(req.params.id);

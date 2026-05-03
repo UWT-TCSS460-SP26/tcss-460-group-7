@@ -24,13 +24,14 @@ const adminToken = mintToken(99, 1);
 
 const mockUser = {
   id: 1,
+  subjectId: 'auth0|123',
   username: 'stardust42',
   email: 'stardust42@dev.local',
   display_name: null,
   role: 2,
 };
 
-// ─── POST /users ────────────────────────────────────────────────────────────
+// ─── POST /v1/users ────────────────────────────────────────────────────────────
 
 describe('POST /v1/users', () => {
   it('creates a user and returns 201', async () => {
@@ -57,6 +58,14 @@ describe('POST /v1/users', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.display_name).toBe('Stardust');
+  });
+
+  it('returns 400 when subjectId is missing', async () => {
+    const res = await request(app).post('/v1/users').send({
+      username: 'stardust42',
+      email: 'test@dev.local',
+    });
+    expect(res.status).toBe(400);
   });
 
   it('returns 400 when username is missing', async () => {
@@ -98,7 +107,7 @@ describe('POST /v1/users', () => {
   });
 });
 
-// ─── GET /users ─────────────────────────────────────────────────────────────
+// ─── GET /v1/users ─────────────────────────────────────────────────────────────
 
 describe('GET /v1/users', () => {
   it('returns paginated users for admin', async () => {
@@ -143,7 +152,7 @@ describe('GET /v1/users', () => {
   });
 });
 
-// ─── GET /users/:id ──────────────────────────────────────────────────────────
+// ─── GET /v1/users/:id ──────────────────────────────────────────────────────────
 
 describe('GET /v1/users/:id', () => {
   it('returns a user by id', async () => {
@@ -169,7 +178,7 @@ describe('GET /v1/users/:id', () => {
   });
 });
 
-// ─── PUT /users/:id ──────────────────────────────────────────────────────────
+// ─── PUT /v1/users/:id ──────────────────────────────────────────────────────────
 
 describe('PUT /v1/users/:id', () => {
   it('updates display_name and returns 200', async () => {
@@ -229,7 +238,7 @@ describe('PUT /v1/users/:id', () => {
   });
 });
 
-// ─── DELETE /users/:id ───────────────────────────────────────────────────────
+// ─── DELETE /v1/users/:id ───────────────────────────────────────────────────────
 
 describe('DELETE /v1/users/:id', () => {
   it('allows a user to delete their own account', async () => {

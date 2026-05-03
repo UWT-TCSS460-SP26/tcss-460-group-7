@@ -33,9 +33,27 @@ tags:
     description: Authenticated user rating routes
   - name: Reviews
     description: Review management routes
+  - name: Issues
+    description: Bug reporting and issue tracking
 
 paths:
   /health:
+    get:
+      tags: [General]
+      summary: Check status
+      description: Checks the status of the server to ensure nothing was broken
+      responses:
+        '200':
+          description: Checks the client status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Status: OK'
+  /status:
     get:
       tags: [General]
       summary: Check status
@@ -802,7 +820,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /reviews:
+  /v1/reviews:
     post:
       tags: [Reviews]
       summary: Create a review
@@ -902,7 +920,7 @@ paths:
         '404':
           description: Rating was not found
 
-  /reviews/title/{title_id}:
+  /v1/reviews/title/{title_id}:
     get:
       tags: [Reviews]
       summary: Get all reviews for a title
@@ -950,7 +968,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /reviews/{id}:
+  /v1/reviews/{id}:
     get:
       tags: [Reviews]
       summary: Get a review by id
@@ -1086,6 +1104,8 @@ paths:
     get:
       tags: [Ratings]
       summary: Get all ratings for a title
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: title_id
@@ -1119,6 +1139,8 @@ paths:
     get:
       tags: [Ratings]
       summary: Get one user's rating for one title
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: authorId
@@ -1148,7 +1170,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /reviews/{id}/upvote:
+  /v1/reviews/{id}/upvote:
     post:
       tags: [Reviews]
       summary: Upvote a review
@@ -1178,7 +1200,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /reviews/{id}/downvote:
+  /v1/reviews/{id}/downvote:
     post:
       tags: [Reviews]
       summary: Downvote a review
@@ -1212,7 +1234,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /reviews/{id}/remove-upvote:
+  /v1/reviews/{id}/remove-upvote:
     post:
       tags: [Reviews]
       summary: Remove an upvote
@@ -1252,6 +1274,8 @@ paths:
     get:
       tags: [Ratings]
       summary: Get a paginated list of ratings by user
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: authorId
@@ -1278,7 +1302,46 @@ paths:
         '500':
           description: Server error while fetching user ratings
 
-  /reviews/{id}/remove-downvote:
+  /v1/issues:
+    post:
+      tags: [Issues]
+      summary: Submit a bug report
+      description: Allows authenticated users to submit a bug report. Requires role 2 (User) or higher.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIssueRequest'
+      responses:
+        '201':
+          description: Bug report submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/reviews/{id}/remove-downvote:
     post:
       tags: [Reviews]
       summary: Remove a downvote
@@ -1953,3 +2016,29 @@ components:
         rating:
           type: integer
           example: 4
+
+    Issue:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        authorId:
+          type: integer
+          nullable: true
+          example: 7
+        content:
+          type: string
+          example: 'The search bar is overlapping with the header on mobile.'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-05-01T12:00:00.000Z'
+
+    CreateIssueRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          example: 'The search bar is overlapping with the header on mobile.'
