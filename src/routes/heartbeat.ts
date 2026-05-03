@@ -8,6 +8,5 @@ const sendStatus = (_request: Request, response: Response) => {
 };
 
 statusRouter.get('/health', sendStatus);
-statusRouter.get('/status', sendStatus);
 
 export { statusRouter };

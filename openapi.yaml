@@ -53,22 +53,6 @@ paths:
                   message:
                     type: string
                     example: 'Status: OK'
-  /status:
-    get:
-      tags: [General]
-      summary: Check status
-      description: Checks the status of the server to ensure nothing was broken
-      responses:
-        '200':
-          description: Checks the client status
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: 'Status: OK'
 
   /v1/users:
     post:
@@ -683,7 +667,7 @@ paths:
     get:
       tags: [Front End API]
       summary: Get enriched media details with community sentiment
-      description: Returns TMDB metadata together with aggregate community rating stats and recent reviews for a movie or TV show.
+      description: "Use `mediaType` as `movie` or `tv` and `id` as the TMDB title ID. Get the ID from the movie or TV search results, then call this endpoint for that selected title's metadata and reviews."
       parameters:
         - in: path
           name: mediaType
@@ -691,14 +675,14 @@ paths:
           schema:
             type: string
             enum: [movie, tv]
-          description: Whether the title is a movie or TV show
+          description: "The selected title type: `movie` or `tv`"
         - in: path
           name: id
           required: true
           schema:
             type: integer
             minimum: 1
-          description: The TMDB ID of the movie or TV show
+          description: The TMDB ID from the selected search result
       responses:
         '200':
           description: Enriched media response with metadata, aggregate sentiment, and recent reviews
