@@ -20,8 +20,8 @@ jest.mock('../src/lib/prisma', () => ({
   },
 }));
 
-const { app } = require('../src/app') as typeof import('../src/app');
-const { prisma } = require('../src/lib/prisma') as typeof import('../src/lib/prisma');
+const { app } = jest.requireActual('../src/app') as typeof import('../src/app');
+const { prisma } = jest.requireMock('../src/lib/prisma') as typeof import('../src/lib/prisma');
 
 describe('Reviews API Endpoints', () => {
   let userToken: string;
