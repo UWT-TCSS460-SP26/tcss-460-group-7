@@ -1,0 +1,31 @@
+export const prisma = {
+  issue: {
+    create: jest.fn(),
+  },
+  rating: {
+    count: jest.fn(),
+    create: jest.fn(),
+    delete: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+  },
+  review: {
+    count: jest.fn(),
+    create: jest.fn(),
+    delete: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+  },
+  user: {
+    count: jest.fn(),
+    create: jest.fn(),
+    delete: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    upsert: jest.fn(),
+  },
+  $transaction: jest.fn(),
+};
