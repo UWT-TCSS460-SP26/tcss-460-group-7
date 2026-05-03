@@ -6,11 +6,21 @@ module.exports = {
   testMatch: ['**/*.test.ts'],
   setupFiles: ['<rootDir>/tests/setup.ts'],
   moduleFileExtensions: ['ts', 'js', 'json'],
+  transform: {
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        diagnostics: {
+          ignoreCodes: [151002],
+        },
+      },
+    ],
+  },
   moduleNameMapper: {
     '^@/lib/prisma$': '<rootDir>/src/lib/__mocks__/prisma.ts',
     '.*/lib/prisma$': '<rootDir>/src/lib/__mocks__/prisma.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@scalar/express-api-reference$': '<rootDir>/tests/__mocks__/scalarMock.cjs',
-    '^.*/middleware/requireAuth$': '<rootDir>/tests/__mocks__/requireAuth.ts',
+    '^.+/middleware/requireAuth(\\.[jt]s)?$': '<rootDir>/tests/__mocks__/requireAuth.ts',
   },
 };
