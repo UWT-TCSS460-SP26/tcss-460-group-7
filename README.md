@@ -18,7 +18,13 @@ npm run dev
 npm run health
 ```
 
+# Audience Name
+
+Audience name: group-7-api
+
 The server starts at [http://localhost:3000](http://localhost:3000).
+
+**API Audience:** `group-7-api`
 
 API documentation is at [http://localhost:3000/api-docs](http://localhost:3000/api-docs).
 
