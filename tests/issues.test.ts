@@ -1,7 +1,23 @@
+import express from 'express';
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
-import { app } from '../src/app';
-import { prisma } from '../src/lib/prisma';
+
+jest.mock('../src/middleware/requireAuth', () => jest.requireActual('./__mocks__/requireAuth'));
+jest.mock('../src/lib/prisma', () => jest.requireActual('./__mocks__/libPrisma'));
+
+const { issuesRouter } = jest.requireActual('../src/routes/database/issues') as typeof import(
+  '../src/routes/database/issues'
+);
+const { prisma } = jest.requireMock('../src/lib/prisma') as typeof import('../src/lib/prisma');
+
+const createApp = () => {
+  const app = express();
+  app.use(express.json());
+  app.use('/v1/issues', issuesRouter);
+  return app;
+};
+
+const app = createApp();
 
 describe('Issues API Endpoints', () => {
   let userToken: string;
