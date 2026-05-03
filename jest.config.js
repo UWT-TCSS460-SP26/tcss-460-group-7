@@ -17,6 +17,8 @@ module.exports = {
     ],
   },
   moduleNameMapper: {
+    '^@/lib/prisma$': '<rootDir>/tests/__mocks__/libPrisma.ts',
+    '^.+/lib/prisma(\\.[jt]s)?$': '<rootDir>/tests/__mocks__/libPrisma.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@/generated/prisma/client$': '<rootDir>/tests/__mocks__/generatedPrismaClient.ts',
     '^../generated/prisma/client$': '<rootDir>/tests/__mocks__/generatedPrismaClient.ts',

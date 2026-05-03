@@ -1,27 +1,7 @@
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
-
-jest.mock('../src/middleware/requireAuth', () => jest.requireActual('./__mocks__/requireAuth'));
-
-// 1. Mock the Prisma Client so we don't hit a real database
-jest.mock('../src/lib/prisma', () => ({
-  prisma: {
-    review: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      count: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-    },
-    user: {
-      findUnique: jest.fn(), // In case your requireAuth middleware looks up the user
-    },
-  },
-}));
-
-const { app } = jest.requireActual('../src/app') as typeof import('../src/app');
-const { prisma } = jest.requireMock('../src/lib/prisma') as typeof import('../src/lib/prisma');
+import { app } from '../src/app';
+import { prisma } from '../src/lib/prisma';
 
 describe('Reviews API Endpoints', () => {
   let userToken: string;

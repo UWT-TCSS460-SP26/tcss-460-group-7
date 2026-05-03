@@ -1,24 +1,7 @@
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
-
-jest.mock('../src/middleware/requireAuth', () => jest.requireActual('./__mocks__/requireAuth'));
-
-jest.mock('../src/lib/prisma', () => ({
-  prisma: {
-    user: {
-      create: jest.fn(),
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      count: jest.fn(),
-    },
-    $transaction: jest.fn(),
-  },
-}));
-
-const { app } = jest.requireActual('../src/app') as typeof import('../src/app');
-const { prisma } = jest.requireMock('../src/lib/prisma') as typeof import('../src/lib/prisma');
+import { app } from '../src/app';
+import { prisma } from '../src/lib/prisma';
 
 const TEST_SECRET = 'test-secret';
 

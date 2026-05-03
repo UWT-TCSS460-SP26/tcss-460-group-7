@@ -9,6 +9,10 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    env:
+      AUTH_ISSUER: https://tcss-460-iam.onrender.com
+      API_AUDIENCE: group-7-api
+      DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
 
     steps:
       - uses: actions/checkout@v5
@@ -22,8 +26,6 @@ jobs:
 
       - name: Generate Prisma Client
         run: npx prisma generate
-        env:
-          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
 
       - name: Format Check
         run: npm run format:check
@@ -35,4 +37,4 @@ jobs:
         run: npm run build
 
       - name: Test
-        run: npm test
+        run: npm run test:ci

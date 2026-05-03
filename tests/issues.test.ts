@@ -1,22 +1,7 @@
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
-
-jest.mock('../src/middleware/requireAuth', () => jest.requireActual('./__mocks__/requireAuth'));
-
-// Mock the Prisma Client
-jest.mock('../src/lib/prisma', () => ({
-  prisma: {
-    issue: {
-      create: jest.fn(),
-    },
-    user: {
-      findUnique: jest.fn(),
-    },
-  },
-}));
-
-const { app } = jest.requireActual('../src/app') as typeof import('../src/app');
-const { prisma } = jest.requireMock('../src/lib/prisma') as typeof import('../src/lib/prisma');
+import { app } from '../src/app';
+import { prisma } from '../src/lib/prisma';
 
 describe('Issues API Endpoints', () => {
   let userToken: string;
