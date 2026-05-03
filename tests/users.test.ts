@@ -38,6 +38,7 @@ describe('POST /v1/users', () => {
     (prisma.user.create as jest.Mock).mockResolvedValue(mockUser);
 
     const res = await request(app).post('/v1/users').send({
+      subjectId: 'auth0|123',
       username: 'stardust42',
       email: 'stardust42@dev.local',
     });
@@ -51,6 +52,7 @@ describe('POST /v1/users', () => {
     (prisma.user.create as jest.Mock).mockResolvedValue(userWithDisplay);
 
     const res = await request(app).post('/v1/users').send({
+      subjectId: 'auth0|123',
       username: 'stardust42',
       email: 'stardust42@dev.local',
       display_name: 'Stardust',
@@ -99,6 +101,7 @@ describe('POST /v1/users', () => {
     (prisma.user.create as jest.Mock).mockRejectedValue({ code: 'P2002' });
 
     const res = await request(app).post('/v1/users').send({
+      subjectId: 'auth0|123',
       username: 'stardust42',
       email: 'stardust42@dev.local',
     });

@@ -1,19 +1,9 @@
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import { app } from '../src/app';
-import { prisma } from '../src/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
-// Mock the Prisma Client
-jest.mock('../src/lib/prisma', () => ({
-  prisma: {
-    issue: {
-      create: jest.fn(),
-    },
-    user: {
-      findUnique: jest.fn(),
-    },
-  },
-}));
+jest.mock('@/lib/prisma');
 
 describe('Issues API Endpoints', () => {
   let userToken: string;
