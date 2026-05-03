@@ -5,9 +5,6 @@ import { prisma } from '@/lib/prisma';
 
 jest.mock('@/lib/prisma');
 
-const { app } = jest.requireActual('../src/app') as typeof import('../src/app');
-const { prisma } = jest.requireMock('../src/lib/prisma') as typeof import('../src/lib/prisma');
-
 const TEST_SECRET = 'test-secret';
 
 beforeAll(() => {
