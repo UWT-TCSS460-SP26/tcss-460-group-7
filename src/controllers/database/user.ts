@@ -16,18 +16,28 @@ const getErrorCode = (error: unknown): string | undefined => {
   return undefined;
 };
 
-// POST /users — create a new user. display_name is optional and stored as null if not provided.
+// POST /users — create or sync the authenticated user's profile.
 export const createUser = async (req: Request, res: Response): Promise<void> => {
-  const { subjectId, username, email, display_name } = req.body as {
-    subjectId: string;
+  const { username, email, display_name } = req.body as {
     username: string;
     email: string;
     display_name?: string;
   };
+  const subjectId = req.user!.sub;
 
   try {
-    const user = await prisma.user.create({
-      data: {
+    const existingUser = await prisma.user.findUnique({
+      where: { subjectId },
+    });
+
+    const user = await prisma.user.upsert({
+      where: { subjectId },
+      update: {
+        username,
+        email,
+        display_name: display_name ?? null,
+      },
+      create: {
         subjectId,
         username,
         email,
@@ -35,7 +45,8 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
         role: 2,
       },
     });
-    res.status(201).json(user);
+
+    res.status(existingUser ? 200 : 201).json(user);
   } catch (error) {
     if (getErrorCode(error) === 'P2002') {
       res.status(409).json({ error: 'username or email already exists' });

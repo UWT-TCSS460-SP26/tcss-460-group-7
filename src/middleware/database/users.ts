@@ -10,22 +10,13 @@ export const validateUserId = (req: Request, res: Response, next: NextFunction):
   next();
 };
 
-// Validates body for POST /users — subjectId, username and email required, display_name optional.
+// Validates body for POST /users — username and email required, display_name optional.
 export const validateCreateUser = (req: Request, res: Response, next: NextFunction): void => {
-  const { subjectId, username, email, display_name } = (req.body ?? {}) as {
-    subjectId?: string;
+  const { username, email, display_name } = (req.body ?? {}) as {
     username?: string;
     email?: string;
     display_name?: string;
   };
-  //------------------------------TEMPORARY, CHANGE LATER---------------------------------------------------
-
-  if (!subjectId || typeof subjectId !== 'string' || subjectId.trim() === '') {
-    res.status(400).json({ error: 'subjectId is required and must be a non-empty string' });
-    return;
-  }
-
-  //--------------------------------------------------------------------------------------------------
 
   if (!username || typeof username !== 'string' || username.trim() === '') {
     res.status(400).json({ error: 'username is required and must be a non-empty string' });

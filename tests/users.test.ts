@@ -48,85 +48,118 @@ const mockUser = {
 // ─── POST /v1/users ────────────────────────────────────────────────────────────
 
 describe('POST /v1/users', () => {
-  it('creates a user and returns 201', async () => {
-    (prisma.user.create as jest.Mock).mockResolvedValue(mockUser);
+  it('creates a user profile from the authenticated subject and returns 201', async () => {
+    const createdUser = { ...mockUser, subjectId: '1' };
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+    (prisma.user.upsert as jest.Mock).mockResolvedValue(createdUser);
 
-    const res = await request(app).post('/v1/users').send({
-      subjectId: 'auth0|123',
-      username: 'stardust42',
-      email: 'stardust42@dev.local',
-    });
+    const res = await request(app)
+      .post('/v1/users')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        username: 'stardust42',
+        email: 'stardust42@dev.local',
+      });
 
     expect(res.status).toBe(201);
     expect(res.body).toMatchObject({ username: 'stardust42' });
+    expect(prisma.user.upsert).toHaveBeenCalledWith({
+      where: { subjectId: '1' },
+      update: {
+        username: 'stardust42',
+        email: 'stardust42@dev.local',
+        display_name: null,
+      },
+      create: {
+        subjectId: '1',
+        username: 'stardust42',
+        email: 'stardust42@dev.local',
+        display_name: null,
+        role: 2,
+      },
+    });
   });
 
-  it('stores display_name when provided', async () => {
+  it('updates the existing authenticated user profile and returns 200', async () => {
     const userWithDisplay = { ...mockUser, display_name: 'Stardust' };
-    (prisma.user.create as jest.Mock).mockResolvedValue(userWithDisplay);
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue({ ...mockUser, subjectId: '1' });
+    (prisma.user.upsert as jest.Mock).mockResolvedValue({ ...userWithDisplay, subjectId: '1' });
 
-    const res = await request(app).post('/v1/users').send({
-      subjectId: 'auth0|123',
-      username: 'stardust42',
-      email: 'stardust42@dev.local',
-      display_name: 'Stardust',
-    });
+    const res = await request(app)
+      .post('/v1/users')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        username: 'stardust42',
+        email: 'stardust42@dev.local',
+        display_name: 'Stardust',
+      });
 
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(200);
     expect(res.body.display_name).toBe('Stardust');
   });
 
-  it('returns 400 when subjectId is missing', async () => {
+  it('returns 401 when no token is provided', async () => {
     const res = await request(app).post('/v1/users').send({
       username: 'stardust42',
       email: 'test@dev.local',
     });
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(401);
   });
 
   it('returns 400 when username is missing', async () => {
-    const res = await request(app).post('/v1/users').send({
-      subjectId: 'auth0|123',
-      email: 'test@dev.local',
-    });
+    const res = await request(app)
+      .post('/v1/users')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        email: 'test@dev.local',
+      });
     expect(res.status).toBe(400);
   });
 
   it('returns 400 when email is missing', async () => {
-    const res = await request(app).post('/v1/users').send({
-      subjectId: 'auth0|123',
-      username: 'stardust42',
-    });
+    const res = await request(app)
+      .post('/v1/users')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        username: 'stardust42',
+      });
     expect(res.status).toBe(400);
   });
 
   it('returns 400 when email is invalid', async () => {
-    const res = await request(app).post('/v1/users').send({
-      subjectId: 'auth0|123',
-      username: 'stardust42',
-      email: 'notanemail',
-    });
+    const res = await request(app)
+      .post('/v1/users')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        username: 'stardust42',
+        email: 'notanemail',
+      });
     expect(res.status).toBe(400);
   });
 
   it('returns 400 when display_name is an empty string', async () => {
-    const res = await request(app).post('/v1/users').send({
-      subjectId: 'auth0|123',
-      username: 'stardust42',
-      email: 'stardust42@dev.local',
-      display_name: '   ',
-    });
+    const res = await request(app)
+      .post('/v1/users')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        username: 'stardust42',
+        email: 'stardust42@dev.local',
+        display_name: '   ',
+      });
     expect(res.status).toBe(400);
   });
 
   it('returns 409 when username or email already exists', async () => {
-    (prisma.user.create as jest.Mock).mockRejectedValue({ code: 'P2002' });
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+    (prisma.user.upsert as jest.Mock).mockRejectedValue({ code: 'P2002' });
 
-    const res = await request(app).post('/v1/users').send({
-      subjectId: 'auth0|123',
-      username: 'stardust42',
-      email: 'stardust42@dev.local',
-    });
+    const res = await request(app)
+      .post('/v1/users')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        username: 'stardust42',
+        email: 'stardust42@dev.local',
+      });
 
     expect(res.status).toBe(409);
   });
