@@ -1,23 +1,25 @@
-import type { Request, Response } from 'express';
-import { Prisma } from '@prisma/client';
+import express from 'express';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
+import { Prisma } from '@prisma/client';
 
 jest.mock('../src/middleware/requireAuth', () => jest.requireActual('./__mocks__/requireAuth'));
+jest.mock('../src/lib/prisma', () => jest.requireActual('./__mocks__/libPrisma'));
+jest.mock('../src/prisma', () => jest.requireMock('../src/lib/prisma'));
 
-const mockPrisma = {
-  rating: {
-    count: jest.fn(),
-    create: jest.fn(),
-    delete: jest.fn(),
-    findMany: jest.fn(),
-    findUnique: jest.fn(),
-    update: jest.fn(),
-  },
+const { ratingsRouter } = jest.requireActual(
+  '../src/routes/database/ratings'
+) as typeof import('../src/routes/database/ratings');
+const { prisma } = jest.requireMock('../src/lib/prisma') as typeof import('../src/lib/prisma');
+
+const createApp = () => {
+  const app = express();
+  app.use(express.json());
+  app.use('/v1/ratings', ratingsRouter);
+  return app;
 };
 
-jest.mock('../src/prisma', () => ({ prisma: mockPrisma }));
-jest.mock('@/prisma', () => ({ prisma: mockPrisma }));
+const app = createApp();
 
 const TEST_SECRET = 'test-secret';
 
@@ -25,36 +27,15 @@ beforeAll(() => {
   process.env.JWT_SECRET = TEST_SECRET;
 });
 
-import {
-  createRating,
-  deleteRating,
-  getAllUserRating,
-  getRatingByUserIdMovieId,
-  getRatingsBTitleId,
-  updateUsersRating,
-} from '../src/controllers/database/rating';
-import { app } from '../src/app';
+afterEach(() => {
+  jest.clearAllMocks();
+  (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 7, role: 2 });
+});
 
-type MockResponse = Response & {
-  status: jest.Mock;
-  json: jest.Mock;
-};
+const mintToken = (sub: number, role: number) =>
+  jwt.sign({ sub, email: 'test@dev.local', role }, TEST_SECRET);
 
-const makeResponse = (): MockResponse => {
-  const response = {} as MockResponse;
-  response.status = jest.fn().mockReturnValue(response);
-  response.json = jest.fn().mockReturnValue(response);
-  return response;
-};
-
-const makeRequest = (overrides: Partial<Request> = {}): Request =>
-  ({
-    body: {},
-    params: {},
-    query: {},
-    user: { sub: '7', id: 7, role: 2 },
-    ...overrides,
-  }) as Request;
+const userToken = mintToken(7, 2);
 
 const ratingRecord = (overrides = {}) => ({
   id: 1,
@@ -68,501 +49,191 @@ const ratingRecord = (overrides = {}) => ({
   ...overrides,
 });
 
-const makeToken = (overrides: Partial<{ sub: number; email: string; role: number }> = {}) =>
-  jwt.sign(
-    {
-      sub: 7,
-      email: 'tester@example.com',
-      role: 2,
-      ...overrides,
-    },
-    TEST_SECRET
-  );
+describe('POST /v1/ratings/:title_id', () => {
+  it('creates a rating', async () => {
+    (prisma.rating.create as jest.Mock).mockResolvedValue(ratingRecord());
 
-describe('Rating Controller', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+    const res = await request(app)
+      .post('/v1/ratings/99')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ rating: 4 });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({ data: ratingRecord() });
   });
 
-  describe('createRating', () => {
-    it('creates a rating', async () => {
-      const request = makeRequest({
-        params: { title_id: '99' },
-        body: { rating: 4 },
-      });
-      const response = makeResponse();
+  it('updates an existing rating when a duplicate already exists', async () => {
+    (prisma.rating.create as jest.Mock).mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('duplicate', {
+        code: 'P2002',
+        clientVersion: 'test',
+      })
+    );
+    (prisma.rating.update as jest.Mock).mockResolvedValue(ratingRecord({ rating: 5 }));
 
-      mockPrisma.rating.create.mockResolvedValue(ratingRecord());
+    const res = await request(app)
+      .post('/v1/ratings/99')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ rating: 5 });
 
-      await createRating(request, response);
-
-      expect(mockPrisma.rating.create).toHaveBeenCalledWith({
-        data: { authorId: 7, title_id: 99, rating: 4 },
-        include: { author: { select: { id: true, display_name: true } } },
-      });
-      expect(response.status).toHaveBeenCalledWith(201);
-      expect(response.json).toHaveBeenCalledWith({ data: ratingRecord() });
-    });
-
-    it('updates when a duplicate rating already exists', async () => {
-      const request = makeRequest({
-        params: { title_id: '99' },
-        body: { rating: 5 },
-      });
-      const response = makeResponse();
-
-      mockPrisma.rating.create.mockRejectedValue(
-        new Prisma.PrismaClientKnownRequestError('duplicate', {
-          code: 'P2002',
-          clientVersion: 'test',
-        })
-      );
-      mockPrisma.rating.update.mockResolvedValue(ratingRecord({ rating: 5 }));
-
-      await createRating(request, response);
-
-      expect(mockPrisma.rating.update).toHaveBeenCalledWith({
-        where: {
-          authorId_title_id: {
-            authorId: 7,
-            title_id: 99,
-          },
-        },
-        data: { rating: 5 },
-        include: { author: { select: { id: true, display_name: true } } },
-      });
-      expect(response.json).toHaveBeenCalledWith({ data: ratingRecord({ rating: 5 }) });
-    });
-
-    it('returns 400 when duplicate recovery update fails', async () => {
-      const request = makeRequest({
-        params: { title_id: '99' },
-        body: { rating: 5 },
-      });
-      const response = makeResponse();
-
-      mockPrisma.rating.create.mockRejectedValue(
-        new Prisma.PrismaClientKnownRequestError('duplicate', {
-          code: 'P2002',
-          clientVersion: 'test',
-        })
-      );
-      mockPrisma.rating.update.mockRejectedValue(new Error('update failed'));
-
-      await createRating(request, response);
-
-      expect(response.status).toHaveBeenCalledWith(400);
-      expect(response.json).toHaveBeenCalledWith({ error: 'Failed to update rating' });
-    });
-
-    it('returns 500 for unexpected create failures', async () => {
-      const request = makeRequest({
-        params: { title_id: '99' },
-        body: { rating: 4 },
-      });
-      const response = makeResponse();
-
-      mockPrisma.rating.create.mockRejectedValue(new Error('db down'));
-
-      await createRating(request, response);
-
-      expect(response.status).toHaveBeenCalledWith(500);
-      expect(response.json).toHaveBeenCalledWith({
-        error: "Something happened and could'nt reach the server to update",
-      });
-    });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ data: ratingRecord({ rating: 5 }) });
   });
 
-  describe('getRatingsBTitleId', () => {
-    it('returns all ratings for a title', async () => {
-      const request = makeRequest({ params: { title_id: '99' } });
-      const response = makeResponse();
+  it('returns 401 without auth', async () => {
+    const res = await request(app).post('/v1/ratings/99').send({ rating: 4 });
 
-      mockPrisma.rating.findMany.mockResolvedValue([ratingRecord(), ratingRecord({ id: 2 })]);
-
-      await getRatingsBTitleId(request, response);
-
-      expect(mockPrisma.rating.findMany).toHaveBeenCalledWith({
-        where: { title_id: 99 },
-        include: { author: { select: { id: true, display_name: true } } },
-      });
-      expect(response.json).toHaveBeenCalledWith({
-        data: [ratingRecord(), ratingRecord({ id: 2 })],
-      });
-    });
-
-    it('returns 404 when a title has no ratings', async () => {
-      const request = makeRequest({ params: { title_id: '99' } });
-      const response = makeResponse();
-
-      mockPrisma.rating.findMany.mockResolvedValue([]);
-
-      await getRatingsBTitleId(request, response);
-
-      expect(response.status).toHaveBeenCalledWith(404);
-      expect(response.json).toHaveBeenCalledWith({ error: 'The movie has no ratings.' });
-    });
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({ error: 'Missing or malformed Authorization header' });
   });
 
-  describe('getRatingByUserIdMovieId', () => {
-    it('returns a single user rating for a title', async () => {
-      const request = makeRequest({ params: { authorId: '7', title_id: '99' } });
-      const response = makeResponse();
+  it('returns 400 for invalid rating input', async () => {
+    const res = await request(app)
+      .post('/v1/ratings/99')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ rating: 'bad' });
 
-      mockPrisma.rating.findUnique.mockResolvedValue(ratingRecord());
-
-      await getRatingByUserIdMovieId(request, response);
-
-      expect(mockPrisma.rating.findUnique).toHaveBeenCalledWith({
-        where: {
-          authorId_title_id: {
-            authorId: 7,
-            title_id: 99,
-          },
-        },
-        include: { author: { select: { id: true, display_name: true } } },
-      });
-      expect(response.status).toHaveBeenCalledWith(200);
-      expect(response.json).toHaveBeenCalledWith({ data: ratingRecord() });
-    });
-
-    it('returns 404 when the rating does not exist', async () => {
-      const request = makeRequest({ params: { authorId: '7', title_id: '99' } });
-      const response = makeResponse();
-
-      mockPrisma.rating.findUnique.mockResolvedValue(null);
-
-      await getRatingByUserIdMovieId(request, response);
-
-      expect(response.status).toHaveBeenCalledWith(404);
-      expect(response.json).toHaveBeenCalledWith({
-        error: 'The user had not made a rating for the title',
-      });
-    });
-  });
-
-  describe('updateUsersRating', () => {
-    it('updates a rating', async () => {
-      const request = makeRequest({
-        params: { title_id: '99' },
-        body: { rating: 2 },
-      });
-      const response = makeResponse();
-
-      mockPrisma.rating.update.mockResolvedValue(ratingRecord({ rating: 2 }));
-
-      await updateUsersRating(request, response);
-
-      expect(mockPrisma.rating.update).toHaveBeenCalledWith({
-        where: {
-          authorId_title_id: {
-            authorId: 7,
-            title_id: 99,
-          },
-        },
-        data: { rating: 2 },
-        include: { author: { select: { id: true, display_name: true } } },
-      });
-      expect(response.json).toHaveBeenCalledWith({ data: ratingRecord({ rating: 2 }) });
-    });
-
-    it('returns 404 when the rating cannot be found', async () => {
-      const request = makeRequest({
-        params: { title_id: '99' },
-        body: { rating: 2 },
-      });
-      const response = makeResponse();
-
-      mockPrisma.rating.update.mockRejectedValue(
-        new Prisma.PrismaClientKnownRequestError('missing', {
-          code: 'P2025',
-          clientVersion: 'test',
-        })
-      );
-
-      await updateUsersRating(request, response);
-
-      expect(response.status).toHaveBeenCalledWith(404);
-      expect(response.json).toHaveBeenCalledWith({ error: 'rating not found' });
-    });
-  });
-
-  describe('getAllUserRating', () => {
-    it('returns paginated ratings for a user', async () => {
-      const request = makeRequest({
-        params: { authorId: '7' },
-        query: { page: '2' },
-      });
-      const response = makeResponse();
-
-      mockPrisma.rating.count.mockResolvedValue(12);
-      mockPrisma.rating.findMany.mockResolvedValue([
-        ratingRecord({ id: 12 }),
-        ratingRecord({ id: 11, title_id: 98 }),
-      ]);
-
-      await getAllUserRating(request, response);
-
-      expect(mockPrisma.rating.count).toHaveBeenCalledWith({ where: { authorId: 7 } });
-      expect(mockPrisma.rating.findMany).toHaveBeenCalledWith({
-        where: { authorId: 7 },
-        include: {
-          author: { select: { id: true, display_name: true } },
-        },
-        orderBy: { id: 'desc' },
-        skip: 10,
-        take: 10,
-      });
-      expect(response.status).toHaveBeenCalledWith(200);
-      expect(response.json).toHaveBeenCalledWith({
-        data: [ratingRecord({ id: 12 }), ratingRecord({ id: 11, title_id: 98 })],
-        pagination: {
-          page: 2,
-          pageSize: 10,
-          totalRatings: 12,
-          totalPages: 2,
-        },
-      });
-    });
-
-    it('returns 400 when the author id is invalid', async () => {
-      const request = makeRequest({ params: { authorId: '0' } });
-      const response = makeResponse();
-
-      await getAllUserRating(request, response);
-
-      expect(response.status).toHaveBeenCalledWith(400);
-      expect(response.json).toHaveBeenCalledWith({ error: 'A valid authorId is required' });
-    });
-
-    it('returns 400 when the page is invalid', async () => {
-      const request = makeRequest({
-        params: { authorId: '7' },
-        query: { page: '0' },
-      });
-      const response = makeResponse();
-
-      await getAllUserRating(request, response);
-
-      expect(response.status).toHaveBeenCalledWith(400);
-      expect(response.json).toHaveBeenCalledWith({ error: 'Page must be a positive integer' });
-    });
-  });
-
-  describe('deleteRating', () => {
-    it('deletes a rating', async () => {
-      const request = makeRequest({ params: { title_id: '99' } });
-      const response = makeResponse();
-
-      mockPrisma.rating.delete.mockResolvedValue(ratingRecord());
-
-      await deleteRating(request, response);
-
-      expect(mockPrisma.rating.delete).toHaveBeenCalledWith({
-        where: {
-          authorId_title_id: {
-            authorId: 7,
-            title_id: 99,
-          },
-        },
-        include: { author: { select: { id: true, display_name: true } } },
-      });
-      expect(response.status).toHaveBeenCalledWith(200);
-      expect(response.json).toHaveBeenCalledWith({ data: ratingRecord() });
-    });
-
-    it('returns 400 when the title id is invalid', async () => {
-      const request = makeRequest({ params: { title_id: '0' } });
-      const response = makeResponse();
-
-      await deleteRating(request, response);
-
-      expect(response.status).toHaveBeenCalledWith(400);
-      expect(response.json).toHaveBeenCalledWith({ error: 'A valid title_id is required' });
-    });
-
-    it('returns 404 when the rating cannot be found', async () => {
-      const request = makeRequest({ params: { title_id: '99' } });
-      const response = makeResponse();
-
-      mockPrisma.rating.delete.mockRejectedValue(
-        new Prisma.PrismaClientKnownRequestError('missing', {
-          code: 'P2025',
-          clientVersion: 'test',
-        })
-      );
-
-      await deleteRating(request, response);
-
-      expect(response.status).toHaveBeenCalledWith(404);
-      expect(response.json).toHaveBeenCalledWith({ error: 'Rating not found' });
-    });
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: 'rating must be an integer' });
   });
 });
 
-describe('Rating Routes', () => {
-  const authHeader = () => ({ Authorization: `Bearer ${makeToken()}` });
+describe('GET /v1/ratings/title/:title_id', () => {
+  it('returns title ratings', async () => {
+    (prisma.rating.findMany as jest.Mock).mockResolvedValue([ratingRecord()]);
 
-  beforeEach(() => {
-    jest.clearAllMocks();
+    const res = await request(app)
+      .get('/v1/ratings/title/99')
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ data: [ratingRecord()] });
   });
 
-  describe('POST /v1/ratings/:title_id', () => {
-    it('creates a rating', async () => {
-      mockPrisma.rating.create.mockResolvedValue(ratingRecord());
+  it('returns 400 for invalid title_id', async () => {
+    const res = await request(app)
+      .get('/v1/ratings/title/0')
+      .set('Authorization', `Bearer ${userToken}`);
 
-      const response = await request(app)
-        .post('/v1/ratings/99')
-        .set(authHeader())
-        .send({ rating: 4 });
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: 'title_id must be a positive integer' });
+  });
+});
 
-      expect(response.status).toBe(201);
-      expect(response.body).toEqual({ data: ratingRecord() });
-    });
+describe('GET /v1/ratings/user/:authorId/title/:title_id', () => {
+  it('returns one user rating for one title', async () => {
+    (prisma.rating.findUnique as jest.Mock).mockResolvedValue(ratingRecord());
 
-    it('returns 401 without auth', async () => {
-      const response = await request(app).post('/v1/ratings/99').send({ rating: 4 });
+    const res = await request(app)
+      .get('/v1/ratings/user/7/title/99')
+      .set('Authorization', `Bearer ${userToken}`);
 
-      expect(response.status).toBe(401);
-      expect(response.body).toEqual({ error: 'Missing or malformed Authorization header' });
-    });
-
-    it('returns 400 for invalid rating input', async () => {
-      const response = await request(app)
-        .post('/v1/ratings/99')
-        .set(authHeader())
-        .send({ rating: 'bad' });
-
-      expect(response.status).toBe(400);
-      expect(response.body).toEqual({ error: 'rating must be an integer' });
-    });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ data: ratingRecord() });
   });
 
-  describe('GET /v1/ratings/title/:title_id', () => {
-    it('returns title ratings', async () => {
-      mockPrisma.rating.findMany.mockResolvedValue([ratingRecord()]);
+  it('returns 400 for invalid authorId', async () => {
+    const res = await request(app)
+      .get('/v1/ratings/user/0/title/99')
+      .set('Authorization', `Bearer ${userToken}`);
 
-      const response = await request(app).get('/v1/ratings/title/99').set(authHeader());
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: 'authorId must be a positive integer' });
+  });
+});
 
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({ data: [ratingRecord()] });
-    });
+describe('PATCH /v1/ratings/:title_id', () => {
+  it('updates a rating', async () => {
+    (prisma.rating.update as jest.Mock).mockResolvedValue(ratingRecord({ rating: 2 }));
 
-    it('returns 400 for invalid title_id', async () => {
-      const response = await request(app).get('/v1/ratings/title/0').set(authHeader());
+    const res = await request(app)
+      .patch('/v1/ratings/99')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ rating: 2 });
 
-      expect(response.status).toBe(400);
-      expect(response.body).toEqual({ error: 'title_id must be a positive integer' });
-    });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ data: ratingRecord({ rating: 2 }) });
   });
 
-  describe('GET /v1/ratings/user/:authorId/title/:title_id', () => {
-    it('returns one user rating for one title', async () => {
-      mockPrisma.rating.findUnique.mockResolvedValue(ratingRecord());
+  it('returns 404 when the rating is missing', async () => {
+    (prisma.rating.update as jest.Mock).mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('missing', {
+        code: 'P2025',
+        clientVersion: 'test',
+      })
+    );
 
-      const response = await request(app).get('/v1/ratings/user/7/title/99').set(authHeader());
+    const res = await request(app)
+      .patch('/v1/ratings/99')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ rating: 2 });
 
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({ data: ratingRecord() });
-    });
-
-    it('returns 400 for invalid authorId', async () => {
-      const response = await request(app).get('/v1/ratings/user/0/title/99').set(authHeader());
-
-      expect(response.status).toBe(400);
-      expect(response.body).toEqual({ error: 'authorId must be a positive integer' });
-    });
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ error: 'rating not found' });
   });
+});
 
-  describe('PATCH /v1/ratings/:title_id', () => {
-    it('updates a rating', async () => {
-      mockPrisma.rating.update.mockResolvedValue(ratingRecord({ rating: 2 }));
+describe('GET /v1/ratings/user/:authorId', () => {
+  it('returns paginated ratings', async () => {
+    (prisma.rating.count as jest.Mock).mockResolvedValue(12);
+    (prisma.rating.findMany as jest.Mock).mockResolvedValue([
+      ratingRecord({ id: 12 }),
+      ratingRecord({ id: 11, title_id: 98 }),
+    ]);
 
-      const response = await request(app)
-        .patch('/v1/ratings/99')
-        .set(authHeader())
-        .send({ rating: 2 });
+    const res = await request(app)
+      .get('/v1/ratings/user/7')
+      .query({ page: 2 })
+      .set('Authorization', `Bearer ${userToken}`);
 
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({ data: ratingRecord({ rating: 2 }) });
-    });
-
-    it('returns 404 when the rating is missing', async () => {
-      mockPrisma.rating.update.mockRejectedValue(
-        new Prisma.PrismaClientKnownRequestError('missing', {
-          code: 'P2025',
-          clientVersion: 'test',
-        })
-      );
-
-      const response = await request(app)
-        .patch('/v1/ratings/99')
-        .set(authHeader())
-        .send({ rating: 2 });
-
-      expect(response.status).toBe(404);
-      expect(response.body).toEqual({ error: 'rating not found' });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      data: [ratingRecord({ id: 12 }), ratingRecord({ id: 11, title_id: 98 })],
+      pagination: {
+        page: 2,
+        pageSize: 10,
+        totalRatings: 12,
+        totalPages: 2,
+      },
     });
   });
 
-  describe('GET /v1/ratings/user/:authorId', () => {
-    it('returns paginated ratings', async () => {
-      mockPrisma.rating.count.mockResolvedValue(12);
-      mockPrisma.rating.findMany.mockResolvedValue([
-        ratingRecord({ id: 12 }),
-        ratingRecord({ id: 11, title_id: 98 }),
-      ]);
+  it('returns 400 for invalid page', async () => {
+    const res = await request(app)
+      .get('/v1/ratings/user/7')
+      .query({ page: 0 })
+      .set('Authorization', `Bearer ${userToken}`);
 
-      const response = await request(app)
-        .get('/v1/ratings/user/7')
-        .query({ page: 2 })
-        .set(authHeader());
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: 'page must be a positive integer' });
+  });
+});
 
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({
-        data: [ratingRecord({ id: 12 }), ratingRecord({ id: 11, title_id: 98 })],
-        pagination: {
-          page: 2,
-          pageSize: 10,
-          totalRatings: 12,
-          totalPages: 2,
-        },
-      });
-    });
+describe('DELETE /v1/ratings/:title_id', () => {
+  it('deletes a rating', async () => {
+    (prisma.rating.delete as jest.Mock).mockResolvedValue(ratingRecord());
 
-    it('returns 400 for invalid page', async () => {
-      const response = await request(app)
-        .get('/v1/ratings/user/7')
-        .query({ page: 0 })
-        .set(authHeader());
+    const res = await request(app)
+      .delete('/v1/ratings/99')
+      .set('Authorization', `Bearer ${userToken}`);
 
-      expect(response.status).toBe(400);
-      expect(response.body).toEqual({ error: 'page must be a positive integer' });
-    });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ data: ratingRecord() });
   });
 
-  describe('DELETE /v1/ratings/:title_id', () => {
-    it('deletes a rating', async () => {
-      mockPrisma.rating.delete.mockResolvedValue(ratingRecord());
+  it('returns 404 when the rating does not exist', async () => {
+    (prisma.rating.delete as jest.Mock).mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('missing', {
+        code: 'P2025',
+        clientVersion: 'test',
+      })
+    );
 
-      const response = await request(app).delete('/v1/ratings/99').set(authHeader());
+    const res = await request(app)
+      .delete('/v1/ratings/99')
+      .set('Authorization', `Bearer ${userToken}`);
 
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({ data: ratingRecord() });
-    });
-
-    it('returns 404 when the rating does not exist', async () => {
-      mockPrisma.rating.delete.mockRejectedValue(
-        new Prisma.PrismaClientKnownRequestError('missing', {
-          code: 'P2025',
-          clientVersion: 'test',
-        })
-      );
-
-      const response = await request(app).delete('/v1/ratings/99').set(authHeader());
-
-      expect(response.status).toBe(404);
-      expect(response.body).toEqual({ error: 'Rating not found' });
-    });
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ error: 'Rating not found' });
   });
 });
