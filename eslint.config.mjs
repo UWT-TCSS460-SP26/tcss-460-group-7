@@ -4,7 +4,10 @@ import tsParser from '@typescript-eslint/parser';
 import prettierConfig from 'eslint-config-prettier';
 
 export default [
-  js.configs.recommended,
+  {
+    ...js.configs.recommended,
+    files: ['src/**/*.ts'],
+  },
   {
     files: ['src/**/*.ts'],
     languageOptions: {
