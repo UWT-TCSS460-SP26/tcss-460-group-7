@@ -35,6 +35,8 @@ tags:
     description: Review management routes
   - name: Issues
     description: Bug reporting and issue tracking
+  - name: Front End API
+    description: Aggregated frontend-facing media routes
 
 paths:
   /health:
@@ -80,6 +82,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
           description: Username or email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while creating the user
           content:
             application/json:
               schema:
@@ -140,6 +148,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while fetching users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/users/{id}:
     get:
@@ -168,6 +182,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while fetching the user
           content:
             application/json:
               schema:
@@ -223,6 +243,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while updating the user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
     delete:
       tags: [Users]
@@ -272,6 +298,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while deleting the user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/tv/search/title:
     get:
@@ -295,6 +327,12 @@ paths:
                 $ref: '#/components/schemas/TVSearchResponse'
         '400':
           description: Missing or invalid query parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumericErrorResponse'
+        default:
+          description: Upstream TMDB request failed
           content:
             application/json:
               schema:
@@ -334,6 +372,12 @@ paths:
                 $ref: '#/components/schemas/NumericErrorResponse'
         '401':
           description: TMDB request failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumericErrorResponse'
+        default:
+          description: Upstream TMDB request failed
           content:
             application/json:
               schema:
@@ -381,6 +425,12 @@ paths:
                 $ref: '#/components/schemas/NumericErrorResponse'
         '404':
           description: Genre was not found in the local TV genre map
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumericErrorResponse'
+        default:
+          description: Upstream TMDB request failed
           content:
             application/json:
               schema:
@@ -439,6 +489,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+        default:
+          description: Upstream TMDB request failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumericErrorResponse'
         '500':
           description: TMDB API token is not configured
           content:
@@ -482,6 +538,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PopularTVResponse'
+        default:
+          description: Upstream TMDB request failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumericErrorResponse'
         '500':
           description: TMDB API token is not configured
           content:
@@ -525,6 +587,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PopularMoviesResponse'
+        default:
+          description: Upstream TMDB request failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumericErrorResponse'
         '500':
           description: TMDB API token is not configured
           content:
@@ -581,6 +649,12 @@ paths:
                   status_message:
                     type: string
                     example: 'The resource you requested could not be found.'
+                $ref: '#/components/schemas/TMDBErrorResponse'
+        default:
+          description: Upstream TMDB request failed
+          content:
+            application/json:
+              schema:
                 $ref: '#/components/schemas/TMDBErrorResponse'
         '502':
           description: Failed to reach TMDB
@@ -651,6 +725,12 @@ paths:
                     type: string
                     example: 'The resource you requested could not be found.'
                 $ref: '#/components/schemas/TMDBErrorResponse'
+        default:
+          description: Upstream TMDB request failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TMDBErrorResponse'
         '502':
           description: Failed to reach TMDB
           content:
@@ -702,6 +782,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TMDBErrorResponse'
+        default:
+          description: Upstream TMDB request failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TMDBErrorResponse'
         '502':
           description: Failed to build the enriched response or reach TMDB
           content:
@@ -749,6 +835,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     patch:
       tags: [Ratings]
       summary: Update the authenticated user's rating for a title
@@ -776,6 +868,24 @@ paths:
                 $ref: '#/components/schemas/RatingResponse'
         '400':
           description: Invalid path or body input
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Rating not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while updating the rating
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     delete:
       tags: [Ratings]
       summary: Delete the authenticated user's rating for a title
@@ -797,6 +907,18 @@ paths:
                 $ref: '#/components/schemas/RatingResponse'
         '400':
           description: Invalid path input
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Rating not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: Server error while deleting the rating
           content:
@@ -901,8 +1023,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Rating was not found
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/reviews/title/{title_id}:
     get:
@@ -978,7 +1104,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '500':
-          description: Server error while updating the rating
+          description: Server error while fetching the review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Review not found
           content:
@@ -1112,6 +1242,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: Server error while fetching title ratings
           content:
@@ -1153,6 +1289,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while fetching the rating
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/reviews/{id}/upvote:
     post:
@@ -1175,10 +1323,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid review ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while upvoting the review
           content:
             application/json:
               schema:
@@ -1205,6 +1369,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid review ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Missing or invalid bearer token
           content:
@@ -1213,6 +1383,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while downvoting the review
           content:
             application/json:
               schema:
@@ -1240,7 +1416,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Review'
         '400':
-          description: Upvotes cannot be negative
+          description: Invalid review ID or upvotes cannot be negative
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid bearer token
           content:
             application/json:
               schema:
@@ -1252,7 +1434,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '500':
-          description: Server error while fetching the rating
+          description: Server error while removing the upvote
 
   /v1/ratings/user/{authorId}:
     get:
@@ -1283,6 +1465,12 @@ paths:
                 $ref: '#/components/schemas/PaginatedRatingListResponse'
         '400':
           description: Invalid path or query input
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: Server error while fetching user ratings
 
@@ -1290,7 +1478,7 @@ paths:
     post:
       tags: [Issues]
       summary: Submit a bug report
-      description: Allows authenticated users to submit a bug report. Requires role 2 (User) or higher.
+      description: Allows authenticated users to submit a bug report.
       security:
         - bearerAuth: []
       requestBody:
@@ -1347,7 +1535,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Review'
         '400':
-          description: Downvotes cannot be negative
+          description: Invalid review ID or downvotes cannot be negative
           content:
             application/json:
               schema:
@@ -1365,7 +1553,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '500':
-          description: Server error
+          description: Server error while removing the downvote
 
 components:
   securitySchemes:
@@ -1373,6 +1561,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: "Access token issued by the configured OAuth2/Auth0 issuer and sent as `Authorization: Bearer <token>`."
 
   schemas:
     User:
@@ -1381,6 +1570,9 @@ components:
         id:
           type: integer
           example: 1
+        subjectId:
+          type: string
+          example: auth0|123
         username:
           type: string
           example: stardust42
@@ -1398,8 +1590,11 @@ components:
 
     CreateUserRequest:
       type: object
-      required: [username, email]
+      required: [subjectId, username, email]
       properties:
+        subjectId:
+          type: string
+          example: auth0|123
         username:
           type: string
           example: stardust42
@@ -1904,6 +2099,8 @@ components:
           type: string
           format: date-time
           example: '2026-04-26T12:00:00.000Z'
+        author:
+          $ref: '#/components/schemas/ReviewAuthorPreview'
 
     RatingResponse:
       type: object
@@ -1947,7 +2144,7 @@ components:
 
     CreateReviewRequest:
       type: object
-      required: [title_id, content, header]
+      required: [title_id, content]
       properties:
         title_id:
           type: integer

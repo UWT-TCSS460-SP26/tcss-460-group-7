@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { statusRouter } from './heartbeat';
-import { protectedRoutes } from './protected';
 import { proxyRoutes } from './proxy';
 import { usersRouter } from './database/users';
 import { reviewsRouter } from './database/reviews';
@@ -12,9 +11,6 @@ const routes = Router();
 
 // Heartbeat router
 routes.use(statusRouter);
-
-// Protected router (authentication routes)
-routes.use(protectedRoutes);
 
 // Search query routes
 routes.use(proxyRoutes);
@@ -32,6 +28,6 @@ routes.use('/v1/ratings', ratingsRouter);
 routes.use('/v1/issues', issuesRouter);
 
 // Media Reviews routes
-routes.use('/v1/media-reviews', mediaReviewDataRouter);
+routes.use('/v1/media', mediaReviewDataRouter);
 
 export { routes };
