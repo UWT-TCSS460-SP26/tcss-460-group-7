@@ -14,9 +14,14 @@ const mockPrisma = {
     findUnique: jest.fn(),
     update: jest.fn(),
   },
+  user: {
+    findUnique: jest.fn(),
+    upsert: jest.fn(),
+  },
 };
 
 jest.mock('../src/prisma', () => ({ prisma: mockPrisma }));
+jest.mock('../src/lib/prisma', () => ({ prisma: mockPrisma }));
 
 const TEST_SECRET = 'test-secret';
 
@@ -24,15 +29,15 @@ beforeAll(() => {
   process.env.JWT_SECRET = TEST_SECRET;
 });
 
-import {
+const {
   createRating,
   deleteRating,
   getAllUserRating,
   getRatingByUserIdMovieId,
   getRatingsBTitleId,
   updateUsersRating,
-} from '../src/controllers/database/rating';
-import { app } from '../src/app';
+} = require('../src/controllers/database/rating');
+const { app } = require('../src/app');
 
 type MockResponse = Response & {
   status: jest.Mock;
@@ -81,6 +86,7 @@ const makeToken = (overrides: Partial<{ sub: number; email: string; role: number
 describe('Rating Controller', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPrisma.user.findUnique.mockResolvedValue({ id: 7, role: 2 });
   });
 
   describe('createRating', () => {
@@ -404,6 +410,7 @@ describe('Rating Routes', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPrisma.user.findUnique.mockResolvedValue({ id: 7, role: 2 });
   });
 
   describe('POST /v1/ratings/:title_id', () => {
