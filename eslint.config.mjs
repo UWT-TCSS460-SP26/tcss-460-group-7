@@ -41,7 +41,7 @@ export default [
     },
   },
   {
-    files: ['tests/**/*.ts'],
+    files: ['tests/**/*.ts', 'src/**/__mocks__/**/*.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
