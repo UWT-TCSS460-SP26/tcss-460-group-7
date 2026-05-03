@@ -3,6 +3,8 @@ import { Prisma } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 
+jest.mock('../src/middleware/requireAuth', () => jest.requireActual('./__mocks__/requireAuth'));
+
 const mockPrisma = {
   rating: {
     count: jest.fn(),

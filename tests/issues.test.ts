@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import { app } from '../src/app';
 import { prisma } from '../src/lib/prisma';
 
+jest.mock('../src/middleware/requireAuth', () => jest.requireActual('./__mocks__/requireAuth'));
+
 // Mock the Prisma Client
 jest.mock('../src/lib/prisma', () => ({
   prisma: {
