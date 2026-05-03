@@ -5,9 +5,9 @@ import jwt from 'jsonwebtoken';
 jest.mock('../src/middleware/requireAuth', () => jest.requireActual('./__mocks__/requireAuth'));
 jest.mock('../src/lib/prisma', () => jest.requireActual('./__mocks__/libPrisma'));
 
-const { reviewsRouter } = jest.requireActual('../src/routes/database/reviews') as typeof import(
+const { reviewsRouter } = jest.requireActual(
   '../src/routes/database/reviews'
-);
+) as typeof import('../src/routes/database/reviews');
 const { prisma } = jest.requireMock('../src/lib/prisma') as typeof import('../src/lib/prisma');
 
 const createApp = () => {
