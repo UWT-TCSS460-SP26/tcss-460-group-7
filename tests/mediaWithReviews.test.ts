@@ -1,9 +1,9 @@
 import express from 'express';
 import request from 'supertest';
 import { getMediaWithReviews } from '../src/controllers/Front_End_API/mediaWithReviews';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '../src/lib/prisma';
 
-jest.mock('@/lib/prisma', () => ({
+jest.mock('../src/lib/prisma', () => ({
   prisma: {
     rating: {
       findMany: jest.fn(),

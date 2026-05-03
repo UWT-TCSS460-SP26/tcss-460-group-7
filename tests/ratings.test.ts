@@ -17,7 +17,6 @@ const mockPrisma = {
 };
 
 jest.mock('../src/prisma', () => ({ prisma: mockPrisma }));
-jest.mock('@/prisma', () => ({ prisma: mockPrisma }));
 
 const TEST_SECRET = 'test-secret';
 
