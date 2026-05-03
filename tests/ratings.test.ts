@@ -2,6 +2,8 @@ import type { Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
+import type * as RatingController from '../src/controllers/database/rating';
+import type { app as ExpressApp } from '../src/app';
 
 jest.mock('../src/middleware/requireAuth', () => jest.requireActual('./__mocks__/requireAuth'));
 
@@ -25,19 +27,28 @@ jest.mock('../src/lib/prisma', () => ({ prisma: mockPrisma }));
 
 const TEST_SECRET = 'test-secret';
 
+let createRating: typeof RatingController.createRating;
+let deleteRating: typeof RatingController.deleteRating;
+let getAllUserRating: typeof RatingController.getAllUserRating;
+let getRatingByUserIdMovieId: typeof RatingController.getRatingByUserIdMovieId;
+let getRatingsBTitleId: typeof RatingController.getRatingsBTitleId;
+let updateUsersRating: typeof RatingController.updateUsersRating;
+let app: typeof ExpressApp;
+
 beforeAll(() => {
   process.env.JWT_SECRET = TEST_SECRET;
+  return Promise.all([import('../src/controllers/database/rating'), import('../src/app')]).then(
+    ([ratingController, appModule]) => {
+      createRating = ratingController.createRating;
+      deleteRating = ratingController.deleteRating;
+      getAllUserRating = ratingController.getAllUserRating;
+      getRatingByUserIdMovieId = ratingController.getRatingByUserIdMovieId;
+      getRatingsBTitleId = ratingController.getRatingsBTitleId;
+      updateUsersRating = ratingController.updateUsersRating;
+      app = appModule.app;
+    }
+  );
 });
-
-const {
-  createRating,
-  deleteRating,
-  getAllUserRating,
-  getRatingByUserIdMovieId,
-  getRatingsBTitleId,
-  updateUsersRating,
-} = require('../src/controllers/database/rating');
-const { app } = require('../src/app');
 
 type MockResponse = Response & {
   status: jest.Mock;
