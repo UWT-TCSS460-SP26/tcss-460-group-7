@@ -1,7 +1,5 @@
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
-import { app } from '../src/app';
-import { prisma } from '../src/lib/prisma';
 
 jest.mock('../src/middleware/requireAuth', () => jest.requireActual('./__mocks__/requireAuth'));
 
@@ -21,6 +19,9 @@ jest.mock('../src/lib/prisma', () => ({
     },
   },
 }));
+
+const { app } = require('../src/app') as typeof import('../src/app');
+const { prisma } = require('../src/lib/prisma') as typeof import('../src/lib/prisma');
 
 describe('Reviews API Endpoints', () => {
   let userToken: string;
