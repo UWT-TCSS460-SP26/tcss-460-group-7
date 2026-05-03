@@ -1,11 +1,8 @@
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
 import process from 'process';
 
-const connectionString = process.env.DATABASE_URL!;
-const adapter = new PrismaPg({ connectionString });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 const seedUsers = [
   {
@@ -73,6 +70,13 @@ const seedAuth2Users = [
     username: 'duyhung',
     email: 'duyhung@gmail.com',
     display_name: 'Le',
+    role: 1,
+  },
+  {
+    subjectId: '27',
+    username: 'KassIsHere',
+    email: 'KassIsHere@gmail.com',
+    display_name: 'KassIsHere',
     role: 1,
   },
 ];

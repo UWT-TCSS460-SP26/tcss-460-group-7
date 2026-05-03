@@ -9,10 +9,10 @@ info:
   version: 0.1.0
 
 servers:
+  - url: https://tcss-460-group-7.onrender.com
+    description: Render deployment
   - url: http://localhost:3500
     description: Local development
-  - url: https://tcss-460-group-7.onrender.com
-    description: cloud development
 
 tags:
   - name: General
@@ -769,7 +769,7 @@ paths:
           schema:
             type: string
             enum: [movie, tv]
-          description: "The selected title type: `movie` or `tv`"
+          description: 'The selected title type: `movie` or `tv`'
         - in: path
           name: id
           required: true
@@ -1575,7 +1575,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: "Access token issued by the configured OAuth2/Auth0 issuer and sent as `Authorization: Bearer <token>`."
+      description: 'Access token issued by the configured OAuth2/Auth0 issuer and sent as `Authorization: Bearer <token>`.'
 
   schemas:
     User:
