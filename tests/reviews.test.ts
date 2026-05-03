@@ -1,24 +1,9 @@
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import { app } from '../src/app';
-import { prisma } from '../src/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
-// 1. Mock the Prisma Client so we don't hit a real database
-jest.mock('../src/lib/prisma', () => ({
-  prisma: {
-    review: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      count: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-    },
-    user: {
-      findUnique: jest.fn(), // In case your requireAuth middleware looks up the user
-    },
-  },
-}));
+jest.mock('@/lib/prisma');
 
 describe('Reviews API Endpoints', () => {
   let userToken: string;

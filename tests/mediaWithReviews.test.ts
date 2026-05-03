@@ -3,17 +3,7 @@ import request from 'supertest';
 import { getMediaWithReviews } from '../src/controllers/Front_End_API/mediaWithReviews';
 import { prisma } from '@/lib/prisma';
 
-jest.mock('@/lib/prisma', () => ({
-  prisma: {
-    rating: {
-      findMany: jest.fn(),
-    },
-    review: {
-      findMany: jest.fn(),
-      count: jest.fn(),
-    },
-  },
-}));
+jest.mock('@/lib/prisma');
 
 type MockFetchResponse = {
   ok: boolean;

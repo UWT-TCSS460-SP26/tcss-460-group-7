@@ -1,21 +1,9 @@
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import { app } from '../src/app';
-import { prisma } from '../src/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
-jest.mock('../src/lib/prisma', () => ({
-  prisma: {
-    user: {
-      create: jest.fn(),
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      count: jest.fn(),
-    },
-    $transaction: jest.fn(),
-  },
-}));
+jest.mock('@/lib/prisma');
 
 const TEST_SECRET = 'test-secret';
 
