@@ -41,11 +41,9 @@ export const createRating = async (request: Request, response: Response) => {
           });
         }
       } else {
-        response
-          .status(500)
-          .json({
-            error: 'The server could not create the rating because of an unexpected error.',
-          });
+        response.status(500).json({
+          error: 'The server could not create the rating because of an unexpected error.',
+        });
       }
       return;
     }
