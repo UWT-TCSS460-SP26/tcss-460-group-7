@@ -108,7 +108,7 @@ export const getSearchedTVTitle = async (request: Request, response: Response) =
   if (typeof title !== 'string' || title === null || title.trim() === '') {
     return response.status(400).json({
       error: 400,
-      message: 'Missing required query parameter',
+      message: 'The required query parameter "q" must be a non-empty TV show title.',
     });
   }
 
@@ -125,7 +125,7 @@ export const getSearchedTVTitle = async (request: Request, response: Response) =
   if (!result.ok) {
     return response.status(result.status).json({
       error: result.status,
-      message: 'TMDB search request had failed',
+      message: 'TMDB could not complete the TV title search request.',
     });
   }
 
@@ -151,14 +151,14 @@ export const getSearchedTVGenre = async (request: Request, response: Response) =
   if (typeof genre !== 'string' || genre === null || genre.trim() === '') {
     return response.status(400).json({
       error: 400,
-      message: 'invalid genre format',
+      message: 'The required query parameter "q" must be a non-empty TV genre name.',
     });
   }
 
   if (page <= 0 || !Number.isInteger(page)) {
     return response.status(400).json({
       error: 400,
-      message: 'invalid page number',
+      message: 'The query parameter "page" must be a positive integer.',
     });
   }
 
@@ -167,7 +167,7 @@ export const getSearchedTVGenre = async (request: Request, response: Response) =
   if (!genreCode) {
     return response.status(404).json({
       error: 404,
-      message: 'Genre not found',
+      message: 'The provided TV genre could not be matched to a supported genre.',
     });
   }
 
@@ -184,7 +184,7 @@ export const getSearchedTVGenre = async (request: Request, response: Response) =
   if (!result.ok) {
     return response.status(result.status).json({
       error: result.status,
-      message: 'TMDB search request had failed',
+      message: 'TMDB could not complete the TV genre search request.',
     });
   }
 
@@ -214,14 +214,14 @@ export const getSearchedTVCast = async (request: Request, response: Response) =>
   if (page <= 0 || !Number.isInteger(page)) {
     return response.status(400).json({
       error: 400,
-      message: 'invalid page number',
+      message: 'The query parameter "page" must be a positive integer.',
     });
   }
 
   if (typeof genre !== 'string') {
     return response.status(400).json({
       error: 400,
-      message: 'invalid genre format',
+      message: 'The optional query parameter "genre" must be a string.',
     });
   }
 
@@ -232,7 +232,7 @@ export const getSearchedTVCast = async (request: Request, response: Response) =>
     if (!genreCode) {
       return response.status(404).json({
         error: 404,
-        message: 'Genre not found',
+        message: 'The provided TV genre could not be matched to a supported genre.',
       });
     }
   }
@@ -240,7 +240,7 @@ export const getSearchedTVCast = async (request: Request, response: Response) =>
   if (typeof cast !== 'string' || cast.trim() === '' || cast === null) {
     return response.status(400).json({
       error: 400,
-      message: 'invalid cast format',
+      message: 'The required query parameter "q" must be a non-empty cast member name.',
     });
   }
 
@@ -257,7 +257,7 @@ export const getSearchedTVCast = async (request: Request, response: Response) =>
   if (!castIdResult.ok) {
     return response.status(castIdResult.status).json({
       error: castIdResult.status,
-      message: 'TMDB search request had failed',
+      message: 'TMDB could not complete the cast member lookup request.',
     });
   }
 
@@ -268,7 +268,7 @@ export const getSearchedTVCast = async (request: Request, response: Response) =>
   if (castData.results.length === 0) {
     return response.status(404).json({
       error: 404,
-      message: 'Cast member not found',
+      message: 'No cast member was found for the provided search term.',
     });
   }
 
@@ -284,7 +284,7 @@ export const getSearchedTVCast = async (request: Request, response: Response) =>
   if (!castTVResult.ok) {
     return response.status(castTVResult.status).json({
       error: castTVResult.status,
-      message: 'TMDB failed to search for casts TV show',
+      message: 'TMDB could not retrieve TV credits for the requested cast member.',
     });
   }
 

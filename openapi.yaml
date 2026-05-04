@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: TCSS 460 Group Project API
+  title: Group 7's API
   description: |
     **Team:** Group 7
     **Deployed URL:** https://tcss-460-group-7.onrender.com
@@ -15,20 +15,14 @@ servers:
     description: Local development
 
 tags:
-  - name: General
-    description: General-purpose routes
+  - name: Health
+    description: Service health and status route
   - name: Users
     description: User management routes
-  - name: TV Search
-    description: TMDB TV search proxy routes
-  - name: Movie Search
-    description: TMDB movie search proxy routes
-  - name: Popular
-    description: Popular movies and TV shows
-  - name: Movies Details
-    description: Movie related routes
-  - name: TV Shows Details
-    description: TV Show related routes
+  - name: TV
+    description: TV discovery, search, popularity, and detail routes
+  - name: Movies
+    description: Movie discovery, search, popularity, and detail routes
   - name: Ratings
     description: Authenticated user rating routes
   - name: Reviews
@@ -41,9 +35,9 @@ tags:
 paths:
   /health:
     get:
-      tags: [General]
+      tags: [Health]
       summary: Check status
-      description: Checks the status of the server to ensure nothing was broken
+      description: Returns a simple health response to confirm the API is running. Use this for uptime checks, deployment verification, or quick connectivity tests.
       responses:
         '200':
           description: Checks the client status
@@ -60,7 +54,7 @@ paths:
     post:
       tags: [Users]
       summary: Create or sync the authenticated user
-      description: Creates a user profile for the authenticated token subject, or updates the existing profile for that subject. `subjectId` is derived from the bearer token.
+      description: Creates the signed-in user's profile if it does not exist, or syncs profile fields if it already does. Use this right after authentication so your app has a local user record tied to the bearer token.
       security:
         - bearerAuth: []
       requestBody:
@@ -83,34 +77,42 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
         '400':
-          description: Missing or invalid fields
+          description: The request body is missing required user fields or contains invalid values.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The request body must include a non-empty string for "username".'
         '401':
-          description: Missing or invalid bearer token
+          description: The request did not include a valid bearer token, so the user could not be identified.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '409':
-          description: Username or email already exists
+          description: The requested username or email is already in use by another account.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The requested username or email is already associated with another user.'
         '500':
-          description: Server error while creating the user
+          description: The server could not create or sync the user profile because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not create or sync the user profile.'
 
     get:
       tags: [Users]
       summary: Get all users (admin only)
-      description: Returns a paginated, filterable list of all users. Requires admin role.
+      description: Returns a paginated list of users with optional filters. Use this for admin dashboards, moderation tools, or user management workflows.
       security:
         - bearerAuth: []
       parameters:
@@ -151,29 +153,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedUsersResponse'
         '401':
-          description: Missing or invalid token
+          description: The request did not include a valid bearer token for an authenticated admin user.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '403':
-          description: Insufficient permissions
+          description: The authenticated user is not allowed to view the full user list.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The authenticated user does not have permission to access this resource.'
         '500':
-          description: Server error while fetching users
+          description: The server could not retrieve the user list because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server encountered an unexpected error while processing the request.'
 
   /v1/users/{id}:
     get:
       tags: [Users]
       summary: Get a user by id
-      description: Returns a single user by their id. Public, no auth required.
+      description: Returns one user's public profile data by ID. Use this when you need to display author or account details tied to another resource.
       parameters:
         - in: path
           name: id
@@ -189,28 +197,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
         '400':
-          description: Invalid id
+          description: The supplied user ID is invalid or is not a positive integer.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The user ID in the path must be a positive integer.'
         '404':
-          description: User not found
+          description: No user record exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No user was found for the provided ID.'
         '500':
-          description: Server error while fetching the user
+          description: The server could not retrieve the user because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server encountered an unexpected error while processing the request.'
 
     put:
       tags: [Users]
       summary: Update display_name
-      description: Updates a user's display_name. Users can only update their own account.
+      description: Updates the display name for a user account. Use this from profile settings when a signed-in user wants to change how their name appears in the app.
       security:
         - bearerAuth: []
       parameters:
@@ -234,40 +248,50 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
         '400':
-          description: Invalid id or missing display_name
+          description: The supplied user ID is invalid, or the request body is missing a valid `display_name`.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The request body must include a non-empty string for "display_name".'
         '401':
-          description: Missing or invalid token
+          description: The request did not include a valid bearer token for the user being updated.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '403':
-          description: Cannot update another user's account
+          description: The authenticated user is not allowed to update this account.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'You are only allowed to update your own user account.'
         '404':
-          description: User not found
+          description: No user record exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No user was found for the provided ID.'
         '500':
-          description: Server error while updating the user
+          description: The server could not update the user because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not update the user profile.'
 
     delete:
       tags: [Users]
       summary: Delete a user
-      description: Deletes a user. Users can delete their own account; admins can delete anyone.
+      description: Deletes a user account. Use this for self-service account removal or admin account cleanup.
       security:
         - bearerAuth: []
       parameters:
@@ -289,41 +313,51 @@ paths:
                     type: string
                     example: User deleted
         '400':
-          description: Invalid id
+          description: The supplied user ID is invalid or is not a positive integer.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The user ID in the path must be a positive integer.'
         '401':
-          description: Missing or invalid token
+          description: The request did not include a valid bearer token for the user being deleted.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '403':
-          description: Cannot delete another user's account
+          description: The authenticated user is not allowed to delete this account.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'You are only allowed to delete your own user account unless you are an admin.'
         '404':
-          description: User not found
+          description: No user record exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No user was found for the provided ID.'
         '500':
-          description: Server error while deleting the user
+          description: The server could not delete the user because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not delete the user account.'
 
   /v1/tv/search/title:
     get:
-      tags: [TV Search]
+      tags: [TV]
       summary: Search TV shows by title
-      description: Searches TMDB for TV shows by title and returns key metadata with poster and backdrop image URLs.
+      description: Searches TV shows by title through TMDB and returns app-friendly result data. Use this when a user types a show name into search.
       parameters:
         - in: query
           name: q
@@ -340,29 +374,37 @@ paths:
               schema:
                 $ref: '#/components/schemas/TVSearchResponse'
         '400':
-          description: Missing or invalid query parameter
+          description: The required `q` query parameter is missing, empty, or invalid for a TV title search.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 400
+                message: 'The required query parameter "q" must be a non-empty TV show title.'
         default:
-          description: Upstream TMDB request failed
+          description: TMDB returned an unexpected error while processing the TV title search request.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 503
+                message: 'TMDB could not complete the TV title search request.'
         '500':
-          description: TMDB API token is not configured
+          description: The server is missing the TMDB API token needed to perform TV title searches.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server is missing required configuration for TMDB_API_TOKEN.'
 
   /v1/movie/search/title:
     get:
-      tags: [Movie Search]
+      tags: [Movies]
       summary: Search movies by title
-      description: Searches TMDB for movies by title and returns key metadata with poster and backdrop image URLs.
+      description: Searches movies by title through TMDB and returns app-friendly result data. Use this when a user types a movie name into search.
       parameters:
         - in: query
           name: q
@@ -379,35 +421,46 @@ paths:
               schema:
                 $ref: '#/components/schemas/MovieSearchResponse'
         '400':
-          description: Missing or invalid query parameter
+          description: The required `q` query parameter is missing, empty, or invalid for a movie title search.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 400
+                message: 'The required query parameter "q" must be a non-empty movie title.'
         '401':
-          description: TMDB request failed
+          description: TMDB rejected the upstream movie search request, usually because the upstream credentials were invalid.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 401
+                message: 'TMDB could not complete the movie title search request.'
         default:
-          description: Upstream TMDB request failed
+          description: TMDB returned an unexpected error while processing the movie title search request.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 503
+                message: 'TMDB could not complete the movie title search request.'
         '500':
-          description: TMDB API token is not configured
+          description: The server is missing the TMDB API token needed to perform movie title searches.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server is missing required configuration for TMDB_API_TOKEN.'
 
   /v1/tv/search/genre:
     get:
-      tags: [TV Search]
+      tags: [TV]
       summary: Search TV shows by genre
-      description: Discovers TMDB TV shows by genre and returns key metadata with poster and backdrop image URLs.
+      description: Finds TV shows that match a genre and returns browseable result data. Use this for category pages, filters, or genre-based discovery.
       parameters:
         - in: query
           name: q
@@ -432,35 +485,46 @@ paths:
               schema:
                 $ref: '#/components/schemas/TVSearchResponse'
         '400':
-          description: Invalid genre or page parameter
+          description: The genre name, page number, or another query value is invalid for a TV genre search.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 400
+                message: 'The query parameter "page" must be a positive integer.'
         '404':
-          description: Genre was not found in the local TV genre map
+          description: The provided TV genre name does not match any supported genre in the local genre map.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 404
+                message: 'The provided TV genre could not be matched to a supported genre.'
         default:
-          description: Upstream TMDB request failed
+          description: TMDB returned an unexpected error while processing the TV genre search request.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 503
+                message: 'TMDB could not complete the TV genre search request.'
         '500':
-          description: TMDB API token is not configured
+          description: The server is missing the TMDB API token needed to perform TV genre searches.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server is missing required configuration for TMDB_API_TOKEN.'
 
   /v1/tv/search/cast:
     get:
-      tags: [TV Search]
+      tags: [TV]
       summary: Search TV shows by cast member
-      description: Searches TMDB for a person, retrieves that person's TV credits, and optionally filters the credits by TV genre.
+      description: Finds TV shows associated with a cast member and can narrow them by genre. Use this for actor-based discovery or “more from this cast member” features.
       parameters:
         - in: query
           name: q
@@ -492,35 +556,46 @@ paths:
               schema:
                 $ref: '#/components/schemas/TVSearchResponse'
         '400':
-          description: Invalid cast, genre, or page parameter
+          description: The cast name, optional genre, or page number is invalid for a TV cast search.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 400
+                message: 'The required query parameter "q" must be a non-empty cast member name.'
         '404':
-          description: Cast member or genre was not found
+          description: The requested cast member could not be found, or the provided genre filter was not recognized.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 404
+                message: 'No cast member was found for the provided search term.'
         default:
-          description: Upstream TMDB request failed
+          description: TMDB returned an unexpected error while processing the TV cast search request.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 503
+                message: 'TMDB could not retrieve TV credits for the requested cast member.'
         '500':
-          description: TMDB API token is not configured
+          description: The server is missing the TMDB API token needed to perform TV cast searches.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server is missing required configuration for TMDB_API_TOKEN.'
 
   /v1/tv/popular:
     get:
-      tags: [Popular]
+      tags: [TV]
       summary: Get popular TV shows
-      description: Returns a paginated list of currently popular TV shows from TMDB with key metadata and poster URLs.
+      description: Returns a paginated list of trending TV shows from TMDB. Use this for home pages, featured carousels, or default browse screens.
       parameters:
         - in: query
           name: language
@@ -553,23 +628,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/PopularTVResponse'
         default:
-          description: Upstream TMDB request failed
+          description: TMDB returned an unexpected error while fetching the list of popular TV shows.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 503
+                message: 'TMDB could not retrieve the list of popular TV shows.'
         '500':
-          description: TMDB API token is not configured
+          description: The server is missing the TMDB API token needed to fetch popular TV shows.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server is missing required configuration for TMDB_API_TOKEN.'
 
   /v1/movies/popular:
     get:
-      tags: [Popular]
+      tags: [Movies]
       summary: Get popular movies
-      description: Returns a paginated list of currently popular movies from TMDB with key metadata and poster URLs.
+      description: Returns a paginated list of trending movies from TMDB. Use this for home pages, featured carousels, or default browse screens.
       parameters:
         - in: query
           name: language
@@ -602,22 +682,27 @@ paths:
               schema:
                 $ref: '#/components/schemas/PopularMoviesResponse'
         default:
-          description: Upstream TMDB request failed
+          description: TMDB returned an unexpected error while fetching the list of popular movies.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 503
+                message: 'TMDB could not retrieve the list of popular movies.'
         '500':
-          description: TMDB API token is not configured
+          description: The server is missing the TMDB API token needed to fetch popular movies.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server is missing required configuration for TMDB_API_TOKEN.'
   /v1/movie/{id}:
     get:
-      tags: [Movies Details]
+      tags: [Movies]
       summary: Get movie details
-      description: Fetches and transforms movie details from TMDB using a movie ID.
+      description: Returns detailed information for one movie by TMDB ID. Use this after a user selects a movie from search or browsing results.
       parameters:
         - in: path
           name: id
@@ -653,8 +738,16 @@ paths:
                     nullable: true
                     example: 'https://image.tmdb.org/t/p/w500/pB8BM79JsS0Zv9Uv00pYI0mhaZ5.jpg'
                 $ref: '#/components/schemas/MovieDetailsResponse'
+        '400':
+          description: The path parameter `id` is missing or does not contain a valid TMDB movie ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The path parameter "id" is required and must contain a TMDB movie ID.'
         '404':
-          description: Movie not found on TMDB
+          description: TMDB could not find a movie with the requested ID.
           content:
             application/json:
               schema:
@@ -665,13 +758,13 @@ paths:
                     example: 'The resource you requested could not be found.'
                 $ref: '#/components/schemas/TMDBErrorResponse'
         default:
-          description: Upstream TMDB request failed
+          description: TMDB returned an unexpected error while fetching movie details.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TMDBErrorResponse'
         '502':
-          description: Failed to reach TMDB
+          description: The API could not reach TMDB or could not translate the upstream response into the expected movie detail format.
           content:
             application/json:
               schema:
@@ -679,14 +772,14 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: 'Failed to reach TMDB'
+                    example: 'The API could not reach TMDB while fetching movie details.'
                 $ref: '#/components/schemas/ErrorResponse'
 
   /v1/tv/{id}:
     get:
-      tags: [TV Shows Details]
+      tags: [TV]
       summary: Get TV show details
-      description: Fetches and transforms TV show details from TMDB using a TV show ID.
+      description: Returns detailed information for one TV show by TMDB ID. Use this after a user selects a show from search or browsing results.
       parameters:
         - in: path
           name: id
@@ -728,8 +821,16 @@ paths:
                     nullable: true
                     example: 'https://image.tmdb.org/t/p/w500/cZ0d3rtvX5s1bUu3Wej2p3m2g2Y.jpg'
                 $ref: '#/components/schemas/TVDetailsResponse'
+        '400':
+          description: The path parameter `id` is missing or does not contain a valid TMDB TV show ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The path parameter "id" is required and must contain a TMDB TV show ID.'
         '404':
-          description: TV show not found on TMDB
+          description: TMDB could not find a TV show with the requested ID.
           content:
             application/json:
               schema:
@@ -740,13 +841,13 @@ paths:
                     example: 'The resource you requested could not be found.'
                 $ref: '#/components/schemas/TMDBErrorResponse'
         default:
-          description: Upstream TMDB request failed
+          description: TMDB returned an unexpected error while fetching TV show details.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TMDBErrorResponse'
         '502':
-          description: Failed to reach TMDB
+          description: The API could not reach TMDB or could not translate the upstream response into the expected TV detail format.
           content:
             application/json:
               schema:
@@ -754,14 +855,14 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: 'Failed to reach TMDB'
+                    example: 'The API could not reach TMDB while fetching TV show details.'
                 $ref: '#/components/schemas/ErrorResponse'
 
   /v1/media/{mediaType}/{id}:
     get:
       tags: [Front End API]
       summary: Get enriched media details with community sentiment
-      description: "Use `mediaType` as `movie` or `tv` and `id` as the TMDB title ID. Get the ID from the movie or TV search results, then call this endpoint for that selected title's metadata and reviews."
+      description: 'Returns a combined frontend-ready payload with TMDB metadata, aggregate sentiment, and recent community reviews. Use this for a detail page when you want both title data and app review context in one request.'
       parameters:
         - in: path
           name: mediaType
@@ -785,34 +886,39 @@ paths:
               schema:
                 $ref: '#/components/schemas/EnrichedMediaResponse'
         '400':
-          description: Invalid media type or title ID
+          description: The `mediaType` must be `movie` or `tv`, and the title ID must be a valid positive integer.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The media type must be either "movie" or "tv".'
         '404':
-          description: Title not found on TMDB
+          description: TMDB could not find a title matching the provided media type and ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TMDBErrorResponse'
         default:
-          description: Upstream TMDB request failed
+          description: TMDB returned an unexpected error while building the enriched media response.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TMDBErrorResponse'
         '502':
-          description: Failed to build the enriched response or reach TMDB
+          description: The API could not assemble the enriched media payload because an internal dependency or TMDB request failed.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The API could not build the enriched media response because an upstream or database dependency failed.'
 
   /v1/ratings/{title_id}:
     post:
       tags: [Ratings]
       summary: Create or replace the authenticated user's rating for a title
+      description: Creates a rating for the signed-in user, or replaces their existing rating for the same title. Use this when a user submits a star score from a detail page or rating control.
       security:
         - bearerAuth: []
       parameters:
@@ -842,22 +948,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/RatingResponse'
         '400':
-          description: Invalid path or body input
+          description: The title ID or rating payload is invalid, missing required fields, or outside the accepted value range.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The request body field "rating" must be an integer.'
         '500':
-          description: Server error while creating or updating the rating
+          description: The server could not save the rating because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not create the rating because of an unexpected error.'
         '401':
-          description: Missing or invalid bearer token
+          description: The request did not include a valid bearer token for the user submitting the rating.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
     patch:
       tags: [Ratings]
       summary: Update the authenticated user's rating for a title
+      description: Updates an existing rating for the signed-in user and title. Use this when a user changes a score they have already submitted.
       security:
         - bearerAuth: []
       parameters:
@@ -881,28 +998,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/RatingResponse'
         '400':
-          description: Invalid path or body input
+          description: The title ID or updated rating payload is invalid, missing required fields, or outside the accepted value range.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The request body field "rating" must be an integer.'
         '401':
-          description: Missing or invalid bearer token
+          description: The request did not include a valid bearer token for the user updating the rating.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '404':
-          description: Rating not found
+          description: No existing rating was found for the authenticated user and requested title.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No existing rating was found for the authenticated user and requested title.'
         '500':
-          description: Server error while updating the rating
+          description: The server could not update the rating because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not update the rating.'
     delete:
       tags: [Ratings]
       summary: Delete the authenticated user's rating for a title
+      description: Removes the signed-in user's rating for a title. Use this when a user clears or undoes a previously submitted rating.
       security:
         - bearerAuth: []
       parameters:
@@ -920,31 +1050,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/RatingResponse'
         '400':
-          description: Invalid path input
+          description: The supplied title ID is invalid or is not a positive integer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The path parameter "title_id" must be a positive integer.'
         '401':
-          description: Missing or invalid bearer token
+          description: The request did not include a valid bearer token for the user deleting the rating.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '404':
-          description: Rating not found
+          description: No existing rating was found for the authenticated user and requested title.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No existing rating was found for the authenticated user and requested title.'
         '500':
-          description: Server error while deleting the rating
+          description: The server could not delete the rating because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not delete the rating.'
 
   /v1/reviews:
     post:
       tags: [Reviews]
       summary: Create a review
-      description: Creates a new review for a title. Requires authentication.
+      description: Creates a written review for a movie or TV title. Use this when a signed-in user posts their opinion and commentary for others to read.
       security:
         - bearerAuth: []
       requestBody:
@@ -961,29 +1103,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/Review'
         '400':
-          description: Invalid request body
+          description: The review payload is missing required fields or contains invalid values.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The review payload is missing required fields or contains invalid values.'
         '401':
-          description: Missing or invalid bearer token
+          description: The request did not include a valid bearer token for the user creating the review.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '409':
-          description: User has already reviewed this title
+          description: The authenticated user already has a review for this title and cannot create a duplicate.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'You have already created a review for this title.'
         '500':
-          description: Internal server error
+          description: The server could not create the review because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not create the review.'
     get:
       tags: [Reviews]
       summary: Get all reviews (admin only)
-      description: Returns a paginated list of all reviews. Requires admin role.
+      description: Returns a paginated list of all reviews across the platform. Use this for admin moderation, audits, or review management tools.
       security:
         - bearerAuth: []
       parameters:
@@ -1026,29 +1180,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedReviewsResponse'
         '500':
-          description: Internal server error
+          description: The server could not retrieve the review list because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not retrieve the review list.'
         '401':
-          description: Missing or invalid bearer token
+          description: The request did not include a valid bearer token for an authenticated admin user.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '403':
-          description: Insufficient permissions
+          description: The authenticated user is not allowed to access the full review list.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The authenticated user does not have permission to access this resource.'
 
   /v1/reviews/title/{title_id}:
     get:
       tags: [Reviews]
       summary: Get all reviews for a title
-      description: Returns a paginated list of reviews for a specific movie or TV title. Public, no auth required.
+      description: Returns paginated reviews for one movie or TV title. Use this to populate a title's review feed or community section.
       parameters:
         - in: path
           name: title_id
@@ -1080,23 +1240,27 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedReviewsResponse'
         '400':
-          description: Invalid title ID or pagination query
+          description: The title ID, page number, or limit value is invalid for this review query.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'One or more pagination query parameters are invalid.'
         '500':
-          description: Server error while fetching title reviews
+          description: The server could not retrieve reviews for the requested title because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not retrieve reviews for the requested title.'
 
   /v1/reviews/{id}:
     get:
       tags: [Reviews]
       summary: Get a review by id
-      description: Returns a single review by its id. Public, no auth required.
+      description: Returns one review by ID. Use this for review detail pages, deep links, or moderation lookups.
       parameters:
         - in: path
           name: id
@@ -1112,27 +1276,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/Review'
         '400':
-          description: Invalid review ID
+          description: The supplied review ID is invalid or is not a positive integer.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The review ID in the path must be a positive integer.'
         '500':
-          description: Server error while fetching the review
+          description: The server could not retrieve the review because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server encountered an unexpected error while processing the request.'
         '404':
-          description: Review not found
+          description: No review exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No review was found for the provided ID.'
     put:
       tags: [Reviews]
       summary: Update a review
-      description: Updates a review's content or header. Users can only update their own reviews.
+      description: Updates the title or body of an existing review. Use this when a user edits a review they have already posted.
       security:
         - bearerAuth: []
       parameters:
@@ -1156,35 +1326,49 @@ paths:
               schema:
                 $ref: '#/components/schemas/Review'
         '400':
-          description: Invalid request body or ID
+          description: The review ID is invalid, or the update payload is missing required fields or contains invalid values.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The review update payload contains invalid values.'
         '401':
-          description: Missing or invalid bearer token
+          description: The request did not include a valid bearer token for the user updating the review.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '403':
-          description: Cannot update another user's review
+          description: The authenticated user is not allowed to update this review.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'You are only allowed to update reviews that you created.'
         '404':
-          description: Review not found
+          description: No review exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No review was found for the provided ID.'
         '500':
-          description: Server error
+          description: The server could not update the review because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not update the review.'
     delete:
       tags: [Reviews]
       summary: Delete a review
-      description: Deletes a review. Users can delete their own review; admins can delete any review.
+      description: Deletes an existing review. Use this for user-initiated removal or admin moderation actions.
       security:
         - bearerAuth: []
       parameters:
@@ -1202,36 +1386,51 @@ paths:
               schema:
                 $ref: '#/components/schemas/Review'
         '400':
-          description: Invalid review ID
+          description: The supplied review ID is invalid or is not a positive integer.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The review ID in the path must be a positive integer.'
         '401':
-          description: Missing or invalid bearer token
+          description: The request did not include a valid bearer token for the user deleting the review.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '403':
-          description: Cannot delete another user's review
+          description: The authenticated user is not allowed to delete this review.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'You are only allowed to delete reviews that you created unless you are an admin.'
         '404':
-          description: Review not found
+          description: No review exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No review was found for the provided ID.'
         '500':
-          description: Server error
+          description: The server could not delete the review because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not delete the review.'
 
   /v1/ratings/title/{title_id}:
     get:
       tags: [Ratings]
       summary: Get all ratings for a title
+      description: Returns the rating records associated with one title. Use this when you need title-level rating data for analytics, moderation, or aggregate score calculations.
       security:
         - bearerAuth: []
       parameters:
@@ -1249,30 +1448,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/RatingListResponse'
         '400':
-          description: Invalid path input
+          description: The supplied title ID is invalid or is not a positive integer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The path parameter "title_id" must be a positive integer.'
         '404':
-          description: No ratings were found for the title
+          description: No ratings currently exist for the requested title.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No ratings were found for the requested title.'
         '401':
-          description: Missing or invalid bearer token
+          description: The request did not include a valid bearer token for this ratings lookup.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '500':
-          description: Server error while fetching title ratings
+          description: The server could not retrieve ratings for the requested title because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not retrieve ratings for the requested title.'
 
   /v1/ratings/user/{authorId}/title/{title_id}:
     get:
       tags: [Ratings]
       summary: Get one user's rating for one title
+      description: Returns a specific user's rating for one title. Use this to prefill a user's saved score on a detail page or confirm whether they have already rated it.
       security:
         - bearerAuth: []
       parameters:
@@ -1296,31 +1508,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/RatingResponse'
         '400':
-          description: Invalid path input
+          description: The supplied author ID or title ID is invalid or is not a positive integer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The path parameter "authorId" must be a positive integer.'
         '404':
-          description: Rating not found
+          description: No rating exists for the requested user and title combination.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No rating was found for the requested user and title combination.'
         '401':
-          description: Missing or invalid bearer token
+          description: The request did not include a valid bearer token for this ratings lookup.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '500':
-          description: Server error while fetching the rating
+          description: The server could not retrieve the requested rating because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not retrieve the requested rating.'
 
   /v1/reviews/{id}/upvote:
     post:
       tags: [Reviews]
       summary: Upvote a review
-      description: Increments the upvote count of a review. Requires auth.
+      description: Adds a positive vote to a review. Use this when a signed-in user wants to mark a review as helpful.
       security:
         - bearerAuth: []
       parameters:
@@ -1338,35 +1562,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/Review'
         '400':
-          description: Invalid review ID
+          description: The supplied review ID is invalid or is not a positive integer.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The review ID in the path must be a positive integer.'
         '401':
-          description: Missing or invalid bearer token
+          description: The request did not include a valid bearer token for the user upvoting the review.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '404':
-          description: Review not found
+          description: No review exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No review was found for the provided ID.'
         '500':
-          description: Server error while upvoting the review
+          description: The server could not register the upvote because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not register the upvote.'
 
   /v1/reviews/{id}/downvote:
     post:
       tags: [Reviews]
       summary: Downvote a review
-      description: Increments the downvote count of a review. Requires auth.
+      description: Adds a negative vote to a review. Use this when a signed-in user wants to signal that a review was not helpful.
       security:
         - bearerAuth: []
       parameters:
@@ -1384,35 +1616,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/Review'
         '400':
-          description: Invalid review ID
+          description: The supplied review ID is invalid or is not a positive integer.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The review ID in the path must be a positive integer.'
         '401':
-          description: Missing or invalid bearer token
+          description: The request did not include a valid bearer token for the user downvoting the review.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '404':
-          description: Review not found
+          description: No review exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No review was found for the provided ID.'
         '500':
-          description: Server error while downvoting the review
+          description: The server could not register the downvote because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not register the downvote.'
 
   /v1/reviews/{id}/remove-upvote:
     post:
       tags: [Reviews]
       summary: Remove an upvote
-      description: Decrements the upvote count of a review. Will not go below zero. Requires auth.
+      description: Removes a previously counted upvote from a review. Use this when a signed-in user undoes a helpful vote.
       security:
         - bearerAuth: []
       parameters:
@@ -1430,30 +1670,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/Review'
         '400':
-          description: Invalid review ID or upvotes cannot be negative
+          description: The review ID is invalid, or the upvote count cannot be reduced below zero.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The upvote count is already zero, so there is no upvote to remove.'
         '401':
-          description: Missing or invalid bearer token
+          description: The request did not include a valid bearer token for the user removing the upvote.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '404':
-          description: Review not found
+          description: No review exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No review was found for the provided ID.'
         '500':
-          description: Server error while removing the upvote
+          description: The server could not remove the upvote because of an unexpected internal error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not remove the upvote.'
 
   /v1/ratings/user/{authorId}:
     get:
       tags: [Ratings]
       summary: Get a paginated list of ratings by user
+      description: Returns a paginated list of ratings created by one user. Use this for profile pages, history views, or account activity screens.
       security:
         - bearerAuth: []
       parameters:
@@ -1478,21 +1731,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedRatingListResponse'
         '400':
-          description: Invalid path or query input
-        '401':
-          description: Missing or invalid bearer token
+          description: The supplied author ID or page number is invalid for this ratings query.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The query parameter "page" must be a positive integer.'
+        '401':
+          description: The request did not include a valid bearer token for this ratings lookup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '500':
-          description: Server error while fetching user ratings
+          description: The server could not retrieve the user's ratings because of an unexpected internal error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not retrieve ratings for the requested user.'
 
   /v1/issues:
     post:
       tags: [Issues]
       summary: Submit a bug report
-      description: Allows authenticated users to submit a bug report.
+      description: Creates a bug report from an authenticated user. Use this when the frontend needs to send support issues, broken behavior reports, or feedback for follow-up.
       security:
         - bearerAuth: []
       requestBody:
@@ -1509,29 +1776,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/Issue'
         '400':
-          description: Invalid request body
+          description: The bug report payload is missing required fields or contains invalid values.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bug report payload is missing required fields or contains invalid values.'
         '401':
-          description: Missing or invalid token
+          description: The request did not include a valid bearer token for the user submitting the bug report.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '500':
-          description: Server error
+          description: The server could not submit the bug report because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not submit the bug report.'
 
   /v1/reviews/{id}/remove-downvote:
     post:
       tags: [Reviews]
       summary: Remove a downvote
-      description: Decrements the downvote count of a review. Will not go below zero. Requires auth.
+      description: Removes a previously counted downvote from a review. Use this when a signed-in user undoes a not-helpful vote.
       security:
         - bearerAuth: []
       parameters:
@@ -1549,25 +1822,37 @@ paths:
               schema:
                 $ref: '#/components/schemas/Review'
         '400':
-          description: Invalid review ID or downvotes cannot be negative
+          description: The review ID is invalid, or the downvote count cannot be reduced below zero.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The downvote count is already zero, so there is no downvote to remove.'
         '401':
-          description: Missing or invalid bearer token
+          description: The request did not include a valid bearer token for the user removing the downvote.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '404':
-          description: Review not found
+          description: No review exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No review was found for the provided ID.'
         '500':
-          description: Server error while removing the downvote
+          description: The server could not remove the downvote because of an unexpected internal error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not remove the downvote.'
 
 components:
   securitySchemes:
@@ -1805,9 +2090,11 @@ components:
 
     TMDBErrorResponse:
       type: object
+      description: Error returned when TMDB rejects or cannot fulfill an upstream media request.
       properties:
         status_message:
           type: string
+          description: Human-readable message returned by TMDB.
           example: 'The resource you requested could not be found.'
 
     TVSearchResponse:
@@ -1950,20 +2237,25 @@ components:
 
     NumericErrorResponse:
       type: object
+      description: Error payload used by some proxy routes that return a numeric status code plus a short message.
       properties:
         error:
           type: integer
+          description: HTTP-style status code associated with the failure.
           example: 400
         message:
           type: string
-          example: Missing required query parameter
+          description: Human-readable explanation of what went wrong with the request.
+          example: 'The required query parameter "q" must be a non-empty movie title.'
 
     ErrorResponse:
       type: object
+      description: Standard error payload for application-level failures returned by this API.
       properties:
         error:
           type: string
-          example: 'Failed to reach TMDB service'
+          description: Human-readable explanation of the failure.
+          example: 'The server encountered an unexpected error while processing the request.'
 
     PopularTVResponse:
       type: object

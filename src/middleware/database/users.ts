@@ -4,7 +4,7 @@ import { Request, Response, NextFunction } from 'express';
 export const validateUserId = (req: Request, res: Response, next: NextFunction): void => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id <= 0) {
-    res.status(400).json({ error: 'id must be a positive integer' });
+    res.status(400).json({ error: 'The user ID in the path must be a positive integer.' });
     return;
   }
   next();
@@ -19,13 +19,15 @@ export const validateCreateUser = (req: Request, res: Response, next: NextFuncti
   };
 
   if (!username || typeof username !== 'string' || username.trim() === '') {
-    res.status(400).json({ error: 'username is required and must be a non-empty string' });
+    res
+      .status(400)
+      .json({ error: 'The request body must include a non-empty string for "username".' });
     return;
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
-    res.status(400).json({ error: 'a valid email is required' });
+    res.status(400).json({ error: 'The request body must include a valid email address.' });
     return;
   }
 
@@ -33,7 +35,7 @@ export const validateCreateUser = (req: Request, res: Response, next: NextFuncti
     display_name !== undefined &&
     (typeof display_name !== 'string' || display_name.trim() === '')
   ) {
-    res.status(400).json({ error: 'display_name must be a non-empty string' });
+    res.status(400).json({ error: 'If provided, "display_name" must be a non-empty string.' });
     return;
   }
 
@@ -45,7 +47,9 @@ export const validateUpdateUser = (req: Request, res: Response, next: NextFuncti
   const { display_name } = (req.body ?? {}) as { display_name?: string };
 
   if (!display_name || typeof display_name !== 'string' || display_name.trim() === '') {
-    res.status(400).json({ error: 'display_name is required and must be a non-empty string' });
+    res
+      .status(400)
+      .json({ error: 'The request body must include a non-empty string for "display_name".' });
     return;
   }
 

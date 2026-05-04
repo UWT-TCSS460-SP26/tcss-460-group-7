@@ -94,7 +94,7 @@ describe('POST /v1/ratings/:title_id', () => {
       .send({ rating: 'bad' });
 
     expect(res.status).toBe(400);
-    expect(res.body).toEqual({ error: 'rating must be an integer' });
+    expect(res.body).toEqual({ error: 'The request body field "rating" must be an integer.' });
   });
 });
 
@@ -116,7 +116,9 @@ describe('GET /v1/ratings/title/:title_id', () => {
       .set('Authorization', `Bearer ${userToken}`);
 
     expect(res.status).toBe(400);
-    expect(res.body).toEqual({ error: 'title_id must be a positive integer' });
+    expect(res.body).toEqual({
+      error: 'The path parameter "title_id" must be a positive integer.',
+    });
   });
 });
 
@@ -138,7 +140,9 @@ describe('GET /v1/ratings/user/:authorId/title/:title_id', () => {
       .set('Authorization', `Bearer ${userToken}`);
 
     expect(res.status).toBe(400);
-    expect(res.body).toEqual({ error: 'authorId must be a positive integer' });
+    expect(res.body).toEqual({
+      error: 'The path parameter "authorId" must be a positive integer.',
+    });
   });
 });
 
@@ -169,7 +173,9 @@ describe('PATCH /v1/ratings/:title_id', () => {
       .send({ rating: 2 });
 
     expect(res.status).toBe(404);
-    expect(res.body).toEqual({ error: 'rating not found' });
+    expect(res.body).toEqual({
+      error: 'No existing rating was found for the authenticated user and requested title.',
+    });
   });
 });
 
@@ -205,7 +211,9 @@ describe('GET /v1/ratings/user/:authorId', () => {
       .set('Authorization', `Bearer ${userToken}`);
 
     expect(res.status).toBe(400);
-    expect(res.body).toEqual({ error: 'page must be a positive integer' });
+    expect(res.body).toEqual({
+      error: 'The query parameter "page" must be a positive integer.',
+    });
   });
 });
 
@@ -234,6 +242,8 @@ describe('DELETE /v1/ratings/:title_id', () => {
       .set('Authorization', `Bearer ${userToken}`);
 
     expect(res.status).toBe(404);
-    expect(res.body).toEqual({ error: 'Rating not found' });
+    expect(res.body).toEqual({
+      error: 'No existing rating was found for the authenticated user and requested title.',
+    });
   });
 });

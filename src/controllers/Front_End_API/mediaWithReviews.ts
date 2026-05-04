@@ -156,11 +156,15 @@ export const getMediaWithReviews = async (req: Request<MediaWithReviewsParams>, 
   const recentReviewLimit = 5;
 
   if (!isValidMediaType(mediaType)) {
-    return res.status(400).json({ error: 'mediaType must be movie or tv' });
+    return res.status(400).json({
+      error: 'The media type must be either "movie" or "tv".',
+    });
   }
 
   if (!Number.isInteger(id) || id <= 0) {
-    return res.status(400).json({ error: 'id must be a positive integer' });
+    return res.status(400).json({
+      error: 'The media ID must be a positive integer.',
+    });
   }
 
   try {
@@ -203,6 +207,9 @@ export const getMediaWithReviews = async (req: Request<MediaWithReviewsParams>, 
 
     return res.status(200).json(responseBody);
   } catch (_error) {
-    return res.status(502).json({ error: 'Failed to build enriched media response' });
+    return res.status(502).json({
+      error:
+        'The API could not build the enriched media response because an upstream or database dependency failed.',
+    });
   }
 };

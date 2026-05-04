@@ -25,11 +25,13 @@ export const createReview = async (req: Request, res: Response): Promise<void> =
   } catch (err: unknown) {
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
       if (err.code === 'P2002') {
-        res.status(409).json({ error: 'You have already reviewed this title' });
+        res.status(409).json({
+          error: 'You have already created a review for this title.',
+        });
         return;
       }
     }
-    res.status(500).json({ error: 'Failed to create review' });
+    res.status(500).json({ error: 'The server could not create the review.' });
   }
 };
 
@@ -78,7 +80,9 @@ export const getReviewsByTitleId = async (req: Request, res: Response): Promise<
       },
     });
   } catch (_error) {
-    res.status(500).json({ error: 'Failed to retrieve reviews for this movie' });
+    res.status(500).json({
+      error: 'The server could not retrieve reviews for the requested title.',
+    });
   }
 };
 
@@ -111,7 +115,9 @@ export const getAllReviews = async (request: Request, response: Response): Promi
       pagination: { page, limit, total, totalPages },
     });
   } catch (_error) {
-    response.status(500).json({ error: 'Failed to retrieve reviews' });
+    response.status(500).json({
+      error: 'The server could not retrieve the review list.',
+    });
   }
 };
 
@@ -120,7 +126,7 @@ export const getReviewById = async (req: Request, res: Response): Promise<void> 
   const id = Number(req.params.id);
   const review = await prisma.review.findUnique({ where: { id } });
   if (!review) {
-    res.status(404).json({ error: 'Review not found' });
+    res.status(404).json({ error: 'No review was found for the provided ID.' });
     return;
   }
   res.status(200).json(review);
@@ -141,12 +147,14 @@ export const updateReview = async (req: Request, res: Response): Promise<void> =
     });
 
     if (!existingReview) {
-      res.status(404).json({ error: 'Review not found' });
+      res.status(404).json({ error: 'No review was found for the provided ID.' });
       return;
     }
 
     if (existingReview.authorId !== req.user!.id) {
-      res.status(403).json({ error: 'You can only update your own reviews' });
+      res.status(403).json({
+        error: 'You are only allowed to update reviews that you created.',
+      });
       return;
     }
 
@@ -160,7 +168,7 @@ export const updateReview = async (req: Request, res: Response): Promise<void> =
 
     res.status(200).json(updatedReview);
   } catch (_error) {
-    res.status(500).json({ error: 'Failed to update review' });
+    res.status(500).json({ error: 'The server could not update the review.' });
   }
 };
 
@@ -175,12 +183,14 @@ export const deleteReview = async (req: Request, res: Response): Promise<void> =
     });
 
     if (!existingReview) {
-      res.status(404).json({ error: 'Review not found' });
+      res.status(404).json({ error: 'No review was found for the provided ID.' });
       return;
     }
 
     if (existingReview.authorId !== req.user!.id && !isAdmin) {
-      res.status(403).json({ error: 'You can only delete your own reviews' });
+      res.status(403).json({
+        error: 'You are only allowed to delete reviews that you created unless you are an admin.',
+      });
       return;
     }
 
@@ -190,7 +200,7 @@ export const deleteReview = async (req: Request, res: Response): Promise<void> =
 
     res.status(200).json(deletedReview);
   } catch (_error) {
-    res.status(500).json({ error: 'Failed to delete review' });
+    res.status(500).json({ error: 'The server could not delete the review.' });
   }
 };
 
@@ -209,11 +219,11 @@ export const upvoteReview = async (req: Request, res: Response): Promise<void> =
   } catch (err: unknown) {
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
       if (err.code === 'P2025') {
-        res.status(404).json({ error: 'Review not found' });
+        res.status(404).json({ error: 'No review was found for the provided ID.' });
         return;
       }
     }
-    res.status(500).json({ error: 'Failed to upvote review' });
+    res.status(500).json({ error: 'The server could not register the upvote.' });
   }
 };
 
@@ -232,11 +242,11 @@ export const downvoteReview = async (req: Request, res: Response): Promise<void>
   } catch (err: unknown) {
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
       if (err.code === 'P2025') {
-        res.status(404).json({ error: 'Review not found' });
+        res.status(404).json({ error: 'No review was found for the provided ID.' });
         return;
       }
     }
-    res.status(500).json({ error: 'Failed to downvote review' });
+    res.status(500).json({ error: 'The server could not register the downvote.' });
   }
 };
 
@@ -250,11 +260,13 @@ export const removeUpvoteReview = async (req: Request, res: Response): Promise<v
     });
 
     if (!existingReview) {
-      res.status(404).json({ error: 'Review not found' });
+      res.status(404).json({ error: 'No review was found for the provided ID.' });
       return;
     }
     if (existingReview.upvotes <= 0) {
-      res.status(400).json({ error: 'Upvotes cannot be negative' });
+      res.status(400).json({
+        error: 'The upvote count is already zero, so there is no upvote to remove.',
+      });
       return;
     }
 
@@ -266,7 +278,7 @@ export const removeUpvoteReview = async (req: Request, res: Response): Promise<v
     });
     res.status(200).json(updatedReview);
   } catch (_error) {
-    res.status(500).json({ error: 'Failed to remove upvote' });
+    res.status(500).json({ error: 'The server could not remove the upvote.' });
   }
 };
 
@@ -280,11 +292,13 @@ export const removeDownvoteReview = async (req: Request, res: Response): Promise
     });
 
     if (!existingReview) {
-      res.status(404).json({ error: 'Review not found' });
+      res.status(404).json({ error: 'No review was found for the provided ID.' });
       return;
     }
     if (existingReview.downvotes <= 0) {
-      res.status(400).json({ error: 'Downvotes cannot be negative' });
+      res.status(400).json({
+        error: 'The downvote count is already zero, so there is no downvote to remove.',
+      });
       return;
     }
 
@@ -298,10 +312,10 @@ export const removeDownvoteReview = async (req: Request, res: Response): Promise
   } catch (err: unknown) {
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
       if (err.code === 'P2025') {
-        res.status(404).json({ error: 'Review not found' });
+        res.status(404).json({ error: 'No review was found for the provided ID.' });
         return;
       }
     }
-    res.status(500).json({ error: 'Failed to remove downvote' });
+    res.status(500).json({ error: 'The server could not remove the downvote.' });
   }
 };

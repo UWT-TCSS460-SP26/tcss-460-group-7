@@ -94,7 +94,7 @@ describe('TV Search Proxy Routes', () => {
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
       error: 400,
-      message: 'Missing required query parameter',
+      message: 'The required query parameter "q" must be a non-empty TV show title.',
     });
   });
 
@@ -106,7 +106,7 @@ describe('TV Search Proxy Routes', () => {
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
       error: 400,
-      message: 'Missing required query parameter',
+      message: 'The required query parameter "q" must be a non-empty TV show title.',
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });
@@ -125,7 +125,7 @@ describe('TV Search Proxy Routes', () => {
     expect(response.status).toBe(401);
     expect(response.body).toEqual({
       error: 401,
-      message: 'TMDB search request had failed',
+      message: 'TMDB could not complete the TV title search request.',
     });
   });
 
@@ -173,7 +173,7 @@ describe('TV Search Proxy Routes', () => {
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
       error: 404,
-      message: 'Genre not found',
+      message: 'The provided TV genre could not be matched to a supported genre.',
     });
   });
 
@@ -185,7 +185,7 @@ describe('TV Search Proxy Routes', () => {
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
       error: 400,
-      message: 'invalid page number',
+      message: 'The query parameter "page" must be a positive integer.',
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });
@@ -251,7 +251,7 @@ describe('TV Search Proxy Routes', () => {
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
       error: 404,
-      message: 'Cast member not found',
+      message: 'No cast member was found for the provided search term.',
     });
   });
 
@@ -263,7 +263,7 @@ describe('TV Search Proxy Routes', () => {
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
       error: 400,
-      message: 'invalid cast format',
+      message: 'The required query parameter "q" must be a non-empty cast member name.',
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });
@@ -278,7 +278,7 @@ describe('TV Search Proxy Routes', () => {
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
       error: 404,
-      message: 'Genre not found',
+      message: 'The provided TV genre could not be matched to a supported genre.',
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });
