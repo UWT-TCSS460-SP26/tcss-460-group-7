@@ -82,24 +82,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The request body must include a non-empty string for "username".'
         '401':
           description: The request did not include a valid bearer token, so the user could not be identified.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '409':
           description: The requested username or email is already in use by another account.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The requested username or email is already associated with another user.'
         '500':
           description: The server could not create or sync the user profile because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not create or sync the user profile.'
 
     get:
       tags: [Users]
@@ -150,18 +158,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '403':
           description: The authenticated user is not allowed to view the full user list.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The authenticated user does not have permission to access this resource.'
         '500':
           description: The server could not retrieve the user list because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server encountered an unexpected error while processing the request.'
 
   /v1/users/{id}:
     get:
@@ -188,18 +202,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The user ID in the path must be a positive integer.'
         '404':
           description: No user record exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No user was found for the provided ID.'
         '500':
           description: The server could not retrieve the user because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server encountered an unexpected error while processing the request.'
 
     put:
       tags: [Users]
@@ -233,30 +253,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The request body must include a non-empty string for "display_name".'
         '401':
           description: The request did not include a valid bearer token for the user being updated.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '403':
           description: The authenticated user is not allowed to update this account.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'You are only allowed to update your own user account.'
         '404':
           description: No user record exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No user was found for the provided ID.'
         '500':
           description: The server could not update the user because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not update the user profile.'
 
     delete:
       tags: [Users]
@@ -288,30 +318,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The user ID in the path must be a positive integer.'
         '401':
           description: The request did not include a valid bearer token for the user being deleted.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '403':
           description: The authenticated user is not allowed to delete this account.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'You are only allowed to delete your own user account unless you are an admin.'
         '404':
           description: No user record exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No user was found for the provided ID.'
         '500':
           description: The server could not delete the user because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not delete the user account.'
 
   /v1/tv/search/title:
     get:
@@ -339,18 +379,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 400
+                message: 'The required query parameter "q" must be a non-empty TV show title.'
         default:
           description: TMDB returned an unexpected error while processing the TV title search request.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 503
+                message: 'TMDB could not complete the TV title search request.'
         '500':
           description: The server is missing the TMDB API token needed to perform TV title searches.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server is missing required configuration for TMDB_API_TOKEN.'
 
   /v1/movie/search/title:
     get:
@@ -378,24 +426,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 400
+                message: 'The required query parameter "q" must be a non-empty movie title.'
         '401':
           description: TMDB rejected the upstream movie search request, usually because the upstream credentials were invalid.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 401
+                message: 'TMDB could not complete the movie title search request.'
         default:
           description: TMDB returned an unexpected error while processing the movie title search request.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 503
+                message: 'TMDB could not complete the movie title search request.'
         '500':
           description: The server is missing the TMDB API token needed to perform movie title searches.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server is missing required configuration for TMDB_API_TOKEN.'
 
   /v1/tv/search/genre:
     get:
@@ -431,24 +490,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 400
+                message: 'The query parameter "page" must be a positive integer.'
         '404':
           description: The provided TV genre name does not match any supported genre in the local genre map.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 404
+                message: 'The provided TV genre could not be matched to a supported genre.'
         default:
           description: TMDB returned an unexpected error while processing the TV genre search request.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 503
+                message: 'TMDB could not complete the TV genre search request.'
         '500':
           description: The server is missing the TMDB API token needed to perform TV genre searches.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server is missing required configuration for TMDB_API_TOKEN.'
 
   /v1/tv/search/cast:
     get:
@@ -491,24 +561,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 400
+                message: 'The required query parameter "q" must be a non-empty cast member name.'
         '404':
           description: The requested cast member could not be found, or the provided genre filter was not recognized.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 404
+                message: 'No cast member was found for the provided search term.'
         default:
           description: TMDB returned an unexpected error while processing the TV cast search request.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 503
+                message: 'TMDB could not retrieve TV credits for the requested cast member.'
         '500':
           description: The server is missing the TMDB API token needed to perform TV cast searches.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server is missing required configuration for TMDB_API_TOKEN.'
 
   /v1/tv/popular:
     get:
@@ -552,12 +633,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 503
+                message: 'TMDB could not retrieve the list of popular TV shows.'
         '500':
           description: The server is missing the TMDB API token needed to fetch popular TV shows.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server is missing required configuration for TMDB_API_TOKEN.'
 
   /v1/movies/popular:
     get:
@@ -601,12 +687,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NumericErrorResponse'
+              example:
+                error: 503
+                message: 'TMDB could not retrieve the list of popular movies.'
         '500':
           description: The server is missing the TMDB API token needed to fetch popular movies.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server is missing required configuration for TMDB_API_TOKEN.'
   /v1/movie/{id}:
     get:
       tags: [Movies]
@@ -647,6 +738,14 @@ paths:
                     nullable: true
                     example: 'https://image.tmdb.org/t/p/w500/pB8BM79JsS0Zv9Uv00pYI0mhaZ5.jpg'
                 $ref: '#/components/schemas/MovieDetailsResponse'
+        '400':
+          description: The path parameter `id` is missing or does not contain a valid TMDB movie ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The path parameter "id" is required and must contain a TMDB movie ID.'
         '404':
           description: TMDB could not find a movie with the requested ID.
           content:
@@ -673,7 +772,7 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: 'Failed to reach TMDB'
+                    example: 'The API could not reach TMDB while fetching movie details.'
                 $ref: '#/components/schemas/ErrorResponse'
 
   /v1/tv/{id}:
@@ -722,6 +821,14 @@ paths:
                     nullable: true
                     example: 'https://image.tmdb.org/t/p/w500/cZ0d3rtvX5s1bUu3Wej2p3m2g2Y.jpg'
                 $ref: '#/components/schemas/TVDetailsResponse'
+        '400':
+          description: The path parameter `id` is missing or does not contain a valid TMDB TV show ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The path parameter "id" is required and must contain a TMDB TV show ID.'
         '404':
           description: TMDB could not find a TV show with the requested ID.
           content:
@@ -748,7 +855,7 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: 'Failed to reach TMDB'
+                    example: 'The API could not reach TMDB while fetching TV show details.'
                 $ref: '#/components/schemas/ErrorResponse'
 
   /v1/media/{mediaType}/{id}:
@@ -784,6 +891,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The media type must be either "movie" or "tv".'
         '404':
           description: TMDB could not find a title matching the provided media type and ID.
           content:
@@ -802,6 +911,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The API could not build the enriched media response because an upstream or database dependency failed.'
 
   /v1/ratings/{title_id}:
     post:
@@ -838,18 +949,28 @@ paths:
                 $ref: '#/components/schemas/RatingResponse'
         '400':
           description: The title ID or rating payload is invalid, missing required fields, or outside the accepted value range.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The request body field "rating" must be an integer.'
         '500':
           description: The server could not save the rating because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not create the rating because of an unexpected error.'
         '401':
           description: The request did not include a valid bearer token for the user submitting the rating.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
     patch:
       tags: [Ratings]
       summary: Update the authenticated user's rating for a title
@@ -878,24 +999,36 @@ paths:
                 $ref: '#/components/schemas/RatingResponse'
         '400':
           description: The title ID or updated rating payload is invalid, missing required fields, or outside the accepted value range.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The request body field "rating" must be an integer.'
         '401':
           description: The request did not include a valid bearer token for the user updating the rating.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '404':
           description: No existing rating was found for the authenticated user and requested title.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No existing rating was found for the authenticated user and requested title.'
         '500':
           description: The server could not update the rating because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not update the rating.'
     delete:
       tags: [Ratings]
       summary: Delete the authenticated user's rating for a title
@@ -918,24 +1051,36 @@ paths:
                 $ref: '#/components/schemas/RatingResponse'
         '400':
           description: The supplied title ID is invalid or is not a positive integer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The path parameter "title_id" must be a positive integer.'
         '401':
           description: The request did not include a valid bearer token for the user deleting the rating.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '404':
           description: No existing rating was found for the authenticated user and requested title.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No existing rating was found for the authenticated user and requested title.'
         '500':
           description: The server could not delete the rating because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not delete the rating.'
 
   /v1/reviews:
     post:
@@ -963,20 +1108,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The review payload is missing required fields or contains invalid values.'
         '401':
           description: The request did not include a valid bearer token for the user creating the review.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '409':
           description: The authenticated user already has a review for this title and cannot create a duplicate.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'You have already created a review for this title.'
         '500':
           description: The server could not create the review because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not create the review.'
     get:
       tags: [Reviews]
       summary: Get all reviews (admin only)
@@ -1028,18 +1185,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not retrieve the review list.'
         '401':
           description: The request did not include a valid bearer token for an authenticated admin user.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '403':
           description: The authenticated user is not allowed to access the full review list.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The authenticated user does not have permission to access this resource.'
 
   /v1/reviews/title/{title_id}:
     get:
@@ -1082,12 +1245,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'One or more pagination query parameters are invalid.'
         '500':
           description: The server could not retrieve reviews for the requested title because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not retrieve reviews for the requested title.'
 
   /v1/reviews/{id}:
     get:
@@ -1114,18 +1281,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The review ID in the path must be a positive integer.'
         '500':
           description: The server could not retrieve the review because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server encountered an unexpected error while processing the request.'
         '404':
           description: No review exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No review was found for the provided ID.'
     put:
       tags: [Reviews]
       summary: Update a review
@@ -1158,26 +1331,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The review update payload contains invalid values.'
         '401':
           description: The request did not include a valid bearer token for the user updating the review.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '403':
           description: The authenticated user is not allowed to update this review.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'You are only allowed to update reviews that you created.'
         '404':
           description: No review exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No review was found for the provided ID.'
         '500':
           description: The server could not update the review because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not update the review.'
     delete:
       tags: [Reviews]
       summary: Delete a review
@@ -1204,26 +1391,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The review ID in the path must be a positive integer.'
         '401':
           description: The request did not include a valid bearer token for the user deleting the review.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '403':
           description: The authenticated user is not allowed to delete this review.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'You are only allowed to delete reviews that you created unless you are an admin.'
         '404':
           description: No review exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No review was found for the provided ID.'
         '500':
           description: The server could not delete the review because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not delete the review.'
 
   /v1/ratings/title/{title_id}:
     get:
@@ -1248,24 +1449,36 @@ paths:
                 $ref: '#/components/schemas/RatingListResponse'
         '400':
           description: The supplied title ID is invalid or is not a positive integer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The path parameter "title_id" must be a positive integer.'
         '404':
           description: No ratings currently exist for the requested title.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No ratings were found for the requested title.'
         '401':
           description: The request did not include a valid bearer token for this ratings lookup.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '500':
           description: The server could not retrieve ratings for the requested title because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not retrieve ratings for the requested title.'
 
   /v1/ratings/user/{authorId}/title/{title_id}:
     get:
@@ -1296,24 +1509,36 @@ paths:
                 $ref: '#/components/schemas/RatingResponse'
         '400':
           description: The supplied author ID or title ID is invalid or is not a positive integer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The path parameter "authorId" must be a positive integer.'
         '404':
           description: No rating exists for the requested user and title combination.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No rating was found for the requested user and title combination.'
         '401':
           description: The request did not include a valid bearer token for this ratings lookup.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '500':
           description: The server could not retrieve the requested rating because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not retrieve the requested rating.'
 
   /v1/reviews/{id}/upvote:
     post:
@@ -1342,24 +1567,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The review ID in the path must be a positive integer.'
         '401':
           description: The request did not include a valid bearer token for the user upvoting the review.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '404':
           description: No review exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No review was found for the provided ID.'
         '500':
           description: The server could not register the upvote because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not register the upvote.'
 
   /v1/reviews/{id}/downvote:
     post:
@@ -1388,24 +1621,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The review ID in the path must be a positive integer.'
         '401':
           description: The request did not include a valid bearer token for the user downvoting the review.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '404':
           description: No review exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No review was found for the provided ID.'
         '500':
           description: The server could not register the downvote because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not register the downvote.'
 
   /v1/reviews/{id}/remove-upvote:
     post:
@@ -1434,20 +1675,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The upvote count is already zero, so there is no upvote to remove.'
         '401':
           description: The request did not include a valid bearer token for the user removing the upvote.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '404':
           description: No review exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No review was found for the provided ID.'
         '500':
           description: The server could not remove the upvote because of an unexpected internal error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not remove the upvote.'
 
   /v1/ratings/user/{authorId}:
     get:
@@ -1479,14 +1732,28 @@ paths:
                 $ref: '#/components/schemas/PaginatedRatingListResponse'
         '400':
           description: The supplied author ID or page number is invalid for this ratings query.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The query parameter "page" must be a positive integer.'
         '401':
           description: The request did not include a valid bearer token for this ratings lookup.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '500':
           description: The server could not retrieve the user's ratings because of an unexpected internal error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not retrieve ratings for the requested user.'
 
   /v1/issues:
     post:
@@ -1514,18 +1781,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bug report payload is missing required fields or contains invalid values.'
         '401':
           description: The request did not include a valid bearer token for the user submitting the bug report.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '500':
           description: The server could not submit the bug report because of an unexpected internal error.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not submit the bug report.'
 
   /v1/reviews/{id}/remove-downvote:
     post:
@@ -1554,20 +1827,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The downvote count is already zero, so there is no downvote to remove.'
         '401':
           description: The request did not include a valid bearer token for the user removing the downvote.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '404':
           description: No review exists for the requested ID.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No review was found for the provided ID.'
         '500':
           description: The server could not remove the downvote because of an unexpected internal error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not remove the downvote.'
 
 components:
   securitySchemes:
@@ -1961,7 +2246,7 @@ components:
         message:
           type: string
           description: Human-readable explanation of what went wrong with the request.
-          example: 'Missing required query parameter `q` for title search.'
+          example: 'The required query parameter "q" must be a non-empty movie title.'
 
     ErrorResponse:
       type: object
@@ -1970,7 +2255,7 @@ components:
         error:
           type: string
           description: Human-readable explanation of the failure.
-          example: 'Unable to complete the request because the upstream TMDB service could not be reached.'
+          example: 'The server encountered an unexpected error while processing the request.'
 
     PopularTVResponse:
       type: object
