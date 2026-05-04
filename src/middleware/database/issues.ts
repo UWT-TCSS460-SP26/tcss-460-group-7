@@ -8,9 +8,10 @@ const createIssueSchema = z.object({
 export const validateCreateIssue = (req: Request, res: Response, next: NextFunction): void => {
   const result = createIssueSchema.safeParse(req.body);
   if (!result.success) {
-    res
-      .status(400)
-      .json({ error: 'Invalid request body please check format', details: result.error.format() });
+    res.status(400).json({
+      error: 'The bug report payload is missing required fields or contains invalid values.',
+      details: result.error.format(),
+    });
     return;
   }
   next();

@@ -15,7 +15,7 @@ export const validateMediaIdSchema = (request: Request, response: Response, next
 
   if (!result.success) {
     response.status(400).json({
-      error: 'Invalid Media ID',
+      error: 'The media ID in the path must be a positive integer.',
     });
     return;
   }
@@ -32,7 +32,7 @@ export const validateMediaTypeSchema = (
 
   if (!result.success) {
     response.status(400).json({
-      error: 'mediaType must either be "movie" or "tv"',
+      error: 'The media type in the path must be either "movie" or "tv".',
     });
     return;
   }

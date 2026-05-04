@@ -105,7 +105,9 @@ describe('TV Details Route', () => {
     const response = await request(app).get('/v1/tv/246');
 
     expect(response.status).toBe(502);
-    expect(response.body).toEqual({ error: 'Failed to reach TMDB' });
+    expect(response.body).toEqual({
+      error: 'The API could not reach TMDB while fetching TV show details.',
+    });
   });
 
   it('GET /v1/tv/246 - should handle missing poster and release date', async () => {

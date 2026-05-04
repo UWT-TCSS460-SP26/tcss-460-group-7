@@ -3,7 +3,9 @@ import { Request, Response, NextFunction } from 'express';
 export const requireEnvVar = (key: string) => {
   return (_request: Request, response: Response, next: NextFunction) => {
     if (!process.env[key]) {
-      response.status(500).json({ error: `${key} is not configured` });
+      response.status(500).json({
+        error: `The server is missing required configuration for ${key}.`,
+      });
       return;
     }
     next();
@@ -30,7 +32,9 @@ const isInteger = (value: unknown): boolean => {
 export const requirePositiveIntegerParam = (key: string) => {
   return (request: Request, response: Response, next: NextFunction) => {
     if (!isPositiveInteger(request.params[key])) {
-      response.status(400).json({ error: `${key} must be a positive integer` });
+      response.status(400).json({
+        error: `The path parameter "${key}" must be a positive integer.`,
+      });
       return;
     }
 
@@ -41,7 +45,9 @@ export const requirePositiveIntegerParam = (key: string) => {
 export const requirePositiveIntegerBody = (key: string) => {
   return (request: Request, response: Response, next: NextFunction) => {
     if (!isPositiveInteger(request.body?.[key])) {
-      response.status(400).json({ error: `${key} must be a positive integer` });
+      response.status(400).json({
+        error: `The request body field "${key}" must be a positive integer.`,
+      });
       return;
     }
 
@@ -52,7 +58,9 @@ export const requirePositiveIntegerBody = (key: string) => {
 export const requireIntegerBody = (key: string) => {
   return (request: Request, response: Response, next: NextFunction) => {
     if (!isInteger(request.body?.[key])) {
-      response.status(400).json({ error: `${key} must be an integer` });
+      response.status(400).json({
+        error: `The request body field "${key}" must be an integer.`,
+      });
       return;
     }
 
@@ -70,7 +78,9 @@ export const requirePositiveIntegerQuery = (key: string) => {
     }
 
     if (!isPositiveInteger(queryValue)) {
-      response.status(400).json({ error: `${key} must be a positive integer` });
+      response.status(400).json({
+        error: `The query parameter "${key}" must be a positive integer.`,
+      });
       return;
     }
 

@@ -155,14 +155,14 @@ describe('Media With Reviews Controller', () => {
     const response = await request(app).get('/v1/media/book/550');
 
     expect(response.status).toBe(400);
-    expect(response.body).toEqual({ error: 'mediaType must be movie or tv' });
+    expect(response.body).toEqual({ error: 'The media type must be either "movie" or "tv".' });
   });
 
   it('GET /v1/media/:mediaType/:id returns 400 for invalid id', async () => {
     const response = await request(app).get('/v1/media/movie/0');
 
     expect(response.status).toBe(400);
-    expect(response.body).toEqual({ error: 'id must be a positive integer' });
+    expect(response.body).toEqual({ error: 'The media ID must be a positive integer.' });
   });
 
   it('GET /v1/media/:mediaType/:id passes TMDB errors through', async () => {
@@ -189,6 +189,9 @@ describe('Media With Reviews Controller', () => {
     const response = await request(app).get('/v1/media/movie/550');
 
     expect(response.status).toBe(502);
-    expect(response.body).toEqual({ error: 'Failed to build enriched media response' });
+    expect(response.body).toEqual({
+      error:
+        'The API could not build the enriched media response because an upstream or database dependency failed.',
+    });
   });
 });

@@ -85,7 +85,9 @@ describe('Issues API Endpoints', () => {
         .send({});
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Invalid request body please check format');
+      expect(response.body.error).toBe(
+        'The bug report payload is missing required fields or contains invalid values.'
+      );
     });
 
     it('should return 400 Bad Request if content is empty string', async () => {
@@ -95,7 +97,9 @@ describe('Issues API Endpoints', () => {
         .send({ content: '   ' });
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Invalid request body please check format');
+      expect(response.body.error).toBe(
+        'The bug report payload is missing required fields or contains invalid values.'
+      );
     });
 
     it('should return 401 Unauthorized if token is missing', async () => {

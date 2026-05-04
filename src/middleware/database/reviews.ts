@@ -29,7 +29,7 @@ const updateReviewSchema = z.object({
 export const validateReviewId = (req: Request, res: Response, next: NextFunction): void => {
   const result = reviewIdSchema.safeParse(req.params);
   if (!result.success) {
-    res.status(400).json({ error: 'Invalid review ID' });
+    res.status(400).json({ error: 'The review ID in the path must be a positive integer.' });
     return;
   }
   next();
@@ -42,15 +42,16 @@ export const validateReviewTitlePagination = (
 ): void => {
   const paramResult = reviewTitleSchema.safeParse(req.params);
   if (!paramResult.success) {
-    res.status(400).json({ error: 'Invalid title ID' });
+    res.status(400).json({ error: 'The title ID in the path must be a positive integer.' });
     return;
   }
 
   const queryResult = reviewPaginationSchema.safeParse(req.query);
   if (!queryResult.success) {
-    res
-      .status(400)
-      .json({ error: 'Invalid pagination query', details: queryResult.error.format() });
+    res.status(400).json({
+      error: 'One or more pagination query parameters are invalid.',
+      details: queryResult.error.format(),
+    });
     return;
   }
 
@@ -60,7 +61,10 @@ export const validateReviewTitlePagination = (
 export const validateCreateReview = (req: Request, res: Response, next: NextFunction): void => {
   const result = createReviewSchema.safeParse(req.body);
   if (!result.success) {
-    res.status(400).json({ error: 'Invalid request body', details: result.error.format() });
+    res.status(400).json({
+      error: 'The review payload is missing required fields or contains invalid values.',
+      details: result.error.format(),
+    });
     return;
   }
   next();
@@ -69,7 +73,10 @@ export const validateCreateReview = (req: Request, res: Response, next: NextFunc
 export const validateUpdateReview = (req: Request, res: Response, next: NextFunction): void => {
   const result = updateReviewSchema.safeParse(req.body);
   if (!result.success) {
-    res.status(400).json({ error: 'Invalid request body', details: result.error.format() });
+    res.status(400).json({
+      error: 'The review update payload contains invalid values.',
+      details: result.error.format(),
+    });
     return;
   }
   next();

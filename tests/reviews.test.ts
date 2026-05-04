@@ -149,14 +149,14 @@ describe('Reviews API Endpoints', () => {
       const response = await request(app).get('/v1/reviews/title/0');
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Invalid title ID');
+      expect(response.body.error).toBe('The title ID in the path must be a positive integer.');
     });
 
     it('should return 400 if pagination query is invalid', async () => {
       const response = await request(app).get('/v1/reviews/title/246?page=0');
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Invalid pagination query');
+      expect(response.body.error).toBe('One or more pagination query parameters are invalid.');
     });
   });
 
@@ -207,7 +207,7 @@ describe('Reviews API Endpoints', () => {
         .send({ content: 'Hacking attempt' });
 
       expect(response.status).toBe(403);
-      expect(response.body.error).toBe('You can only update your own reviews');
+      expect(response.body.error).toBe('You are only allowed to update reviews that you created.');
     });
   });
 
@@ -262,7 +262,9 @@ describe('Reviews API Endpoints', () => {
         .set('Authorization', `Bearer ${userToken}`);
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Upvotes cannot be negative');
+      expect(response.body.error).toBe(
+        'The upvote count is already zero, so there is no upvote to remove.'
+      );
     });
   });
 });
