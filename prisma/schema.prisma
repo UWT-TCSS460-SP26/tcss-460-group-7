@@ -50,11 +50,22 @@ model Rating {
   @@map("ratings")
 }
 
+enum IssueStatus {
+  UNSOLVED
+  IN_PROGRESS
+  FIXED
+}
+
 model Issue {
-  id        Int      @id @default(autoincrement())
-  authorId  Int?    
-  author    User?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  content   String
-  createdAt DateTime @default(now())
+  id              Int         @id @default(autoincrement())
+  title           String
+  description     String
+  reproSteps      String?
+  reporterContact String?
+  status          IssueStatus @default(UNSOLVED)
+  createdAt       DateTime    @default(now())
+  authorId        Int?    
+  author          User?       @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
   @@map("issues")
 }

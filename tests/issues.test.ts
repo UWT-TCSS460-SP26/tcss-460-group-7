@@ -25,7 +25,6 @@ describe('Issues API Endpoints', () => {
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';
-    // role: 2 is User, role: 1 is Admin
     userToken = jwt.sign({ sub: 2, email: 'user@dev.local', role: 2 }, process.env.JWT_SECRET);
     adminToken = jwt.sign({ sub: 1, email: 'admin@dev.local', role: 1 }, process.env.JWT_SECRET);
   });
@@ -36,72 +35,117 @@ describe('Issues API Endpoints', () => {
   });
 
   describe('POST /v1/issues', () => {
-    it('should create a new issue successfully for an authenticated user', async () => {
+    it('should create a new issue successfully without authentication', async () => {
       const mockIssue = {
         id: 1,
-        authorId: 2,
-        content: 'The search bar is overlapping with the header on mobile.',
+        title: 'Bug title',
+        description: 'Bug description',
+        reproSteps: 'Step 1...',
+        reporterContact: 'tester@example.com',
+        status: 'UNSOLVED',
         createdAt: new Date().toISOString(),
+        authorId: null,
       };
       (prisma.issue.create as jest.Mock).mockResolvedValue(mockIssue);
 
-      const response = await request(app)
-        .post('/v1/issues')
-        .set('Authorization', `Bearer ${userToken}`)
-        .send({ content: 'The search bar is overlapping with the header on mobile.' });
+      const payload = {
+        title: 'Bug title',
+        description: 'Bug description',
+        reproSteps: 'Step 1...',
+        reporterContact: 'tester@example.com',
+      };
+
+      const response = await request(app).post('/v1/issues').send(payload);
 
       expect(response.status).toBe(201);
       expect(response.body).toEqual(mockIssue);
       expect(prisma.issue.create).toHaveBeenCalledWith({
         data: {
-          authorId: 2,
-          content: 'The search bar is overlapping with the header on mobile.',
+          ...payload,
+          authorId: undefined, // undefined because no user in request
         },
       });
     });
 
-    it('should create a new issue successfully for an admin (since role 1 <= 2)', async () => {
-      const mockIssue = {
-        id: 2,
-        authorId: 1,
-        content: 'Admin reporting a bug.',
-        createdAt: new Date().toISOString(),
+    it('should return 400 Bad Request if title or description is missing', async () => {
+      const response = await request(app).post('/v1/issues').send({ title: 'Only title' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Invalid bug report format');
+      expect(response.body.details).toContainEqual(
+        expect.objectContaining({ path: ['description'] })
+      );
+    });
+
+    it('should return 400 Bad Request if title is empty string', async () => {
+      const response = await request(app)
+        .post('/v1/issues')
+        .send({ title: '   ', description: 'Some description' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Invalid bug report format');
+    });
+  });
+
+  describe('PATCH /v1/issues/:id/status', () => {
+    it('should allow an admin to update the status', async () => {
+      const mockUpdatedIssue = {
+        id: 1,
+        status: 'IN_PROGRESS',
       };
-      (prisma.issue.create as jest.Mock).mockResolvedValue(mockIssue);
+      (prisma.issue.update as jest.Mock).mockResolvedValue(mockUpdatedIssue);
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 1, role: 1 });
 
       const response = await request(app)
-        .post('/v1/issues')
+        .patch('/v1/issues/1/status')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ content: 'Admin reporting a bug.' });
+        .send({ status: 'IN_PROGRESS' });
 
-      expect(response.status).toBe(201);
-      expect(response.body).toEqual(mockIssue);
+      expect(response.status).toBe(200);
+      expect(response.body.status).toBe('IN_PROGRESS');
+      expect(prisma.issue.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { status: 'IN_PROGRESS' },
+      });
     });
 
-    it('should return 400 Bad Request if content is missing', async () => {
+    it('should return 403 Forbidden for a regular user', async () => {
       const response = await request(app)
-        .post('/v1/issues')
+        .patch('/v1/issues/1/status')
         .set('Authorization', `Bearer ${userToken}`)
-        .send({});
+        .send({ status: 'FIXED' });
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Insufficient permissions');
+    });
+
+    it('should return 400 Bad Request for an invalid status', async () => {
+      const response = await request(app)
+        .patch('/v1/issues/1/status')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ status: 'INVALID_STATUS' });
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Invalid request body please check format');
+      expect(response.body.error).toBe('Invalid status update');
     });
 
-    it('should return 400 Bad Request if content is empty string', async () => {
+    it('should return 404 Not Found if issue does not exist', async () => {
+      const { Prisma } = jest.requireActual('@prisma/client');
+      (prisma.issue.update as jest.Mock).mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError('Record to update not found', {
+          code: 'P2025',
+          clientVersion: 'x.x.x',
+        })
+      );
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 1, role: 1 });
+
       const response = await request(app)
-        .post('/v1/issues')
-        .set('Authorization', `Bearer ${userToken}`)
-        .send({ content: '   ' });
+        .patch('/v1/issues/999/status')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ status: 'FIXED' });
 
-      expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Invalid request body please check format');
-    });
-
-    it('should return 401 Unauthorized if token is missing', async () => {
-      const response = await request(app).post('/v1/issues').send({ content: 'Some bug' });
-
-      expect(response.status).toBe(401);
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Issue not found');
     });
   });
 });

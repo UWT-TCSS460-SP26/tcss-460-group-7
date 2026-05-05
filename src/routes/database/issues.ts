@@ -1,11 +1,10 @@
 import { Router } from 'express';
-import { requireAuth } from '../../middleware/requireAuth';
-import { validateCreateIssue } from '../../middleware/database/issues';
-import { createIssue } from '../../controllers/database/issues';
+import { requireAuth, requireRole } from '../../middleware/requireAuth';
+import { validateCreateIssue, validateUpdateIssueStatus } from '../../middleware/database/issues';
+import { createIssue, updateIssueStatus } from '../../controllers/database/issues';
 
 const issuesRouter = Router();
-
-// Authenticated users (role 2 or higher) can submit bug reports
-issuesRouter.post('/', requireAuth, validateCreateIssue, createIssue);
+issuesRouter.post('/', validateCreateIssue, createIssue);
+issuesRouter.patch('/:id/status', requireAuth, requireRole(1), validateUpdateIssueStatus, updateIssueStatus);
 
 export { issuesRouter };

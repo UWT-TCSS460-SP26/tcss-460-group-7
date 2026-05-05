@@ -1,6 +1,10 @@
 export const prisma = {
   issue: {
     create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
   },
   rating: {
     count: jest.fn(),
