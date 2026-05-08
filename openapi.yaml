@@ -1860,7 +1860,7 @@ paths:
     patch:
       tags: [Issues]
       summary: Update an issue
-      description: Updates an existing issue report. Use this when the issue author or an admin needs to edit report details such as content or priority.
+      description: Updates an existing issue report. Use this when the issue author or an admin needs to edit report details such as title, description, triage priority, or follow-up metadata.
       security:
         - bearerAuth: []
       parameters:
@@ -2019,15 +2019,45 @@ paths:
               schema:
                 $ref: '#/components/schemas/Issue'
         '400':
-          description: Invalid status value
+          description: The supplied issue ID is invalid, or the status payload contains invalid values.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The issue status update payload contains invalid values.'
         '401':
-          description: Missing or invalid token
+          description: The request did not include a valid bearer token for the user updating the issue status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
         '403':
-          description: Insufficient permissions (Admin only)
+          description: The authenticated user is not allowed to update issue status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The authenticated user does not have permission to access this resource.'
         '404':
-          description: Issue not found
+          description: No issue exists for the requested ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No issue was found for the provided ID.'
         '500':
-          description: Server error
+          description: The server could not update the issue status because of an unexpected internal error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not update the issue status.'
 
   /v1/reviews/{id}/remove-downvote:
     post:
@@ -2732,6 +2762,7 @@ components:
 
     Issue:
       type: object
+      required: [id, priority, title, description, status, createdAt]
       properties:
         id:
           type: integer
@@ -2806,6 +2837,14 @@ components:
         description:
           type: string
           example: 'The search bar is overlapping with the header on mobile.'
+        reproSteps:
+          type: string
+          nullable: true
+          example: '1. Open on iPhone 13. 2. Look at header.'
+        reporterContact:
+          type: string
+          nullable: true
+          example: 'tester@example.com'
         priority:
           type: integer
           minimum: 0
@@ -2815,9 +2854,20 @@ components:
     UpdateIssueRequest:
       type: object
       properties:
-        content:
+        title:
+          type: string
+          example: 'Updated Mobile Header Bug'
+        description:
           type: string
           example: 'Updated issue details for the search bar overlap.'
+        reproSteps:
+          type: string
+          nullable: true
+          example: '1. Open on iPhone 13. 2. Rotate device.'
+        reporterContact:
+          type: string
+          nullable: true
+          example: 'updated-tester@example.com'
         priority:
           type: integer
           minimum: 0

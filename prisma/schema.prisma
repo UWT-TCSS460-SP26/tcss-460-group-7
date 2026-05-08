@@ -60,7 +60,6 @@ model Issue {
   id        Int      @id @default(autoincrement())
   priority  Int       @default(2)
   author    User?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  content   String
   title           String
   description     String
   reproSteps      String?

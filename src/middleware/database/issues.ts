@@ -6,18 +6,46 @@ const issueIdSchema = z.object({
 });
 
 const createIssueSchema = z.object({
-  content: z.string().trim().min(1, 'bug must be filled out'),
+  title: z.string().trim().min(1, 'issue title must be filled out'),
+  description: z.string().trim().min(1, 'issue description must be filled out'),
+  reproSteps: z.string().trim().min(1, 'repro steps must not be empty').nullable().optional(),
+  reporterContact: z
+    .string()
+    .trim()
+    .min(1, 'reporter contact must not be empty')
+    .nullable()
+    .optional(),
   priority: z.number().int().min(0).max(2).optional(),
 });
 
 const updateIssueSchema = z
   .object({
-    content: z.string().trim().min(1, 'bug must be filled out').optional(),
+    title: z.string().trim().min(1, 'issue title must be filled out').optional(),
+    description: z.string().trim().min(1, 'issue description must be filled out').optional(),
+    reproSteps: z.string().trim().min(1, 'repro steps must not be empty').nullable().optional(),
+    reporterContact: z
+      .string()
+      .trim()
+      .min(1, 'reporter contact must not be empty')
+      .nullable()
+      .optional(),
     priority: z.number().int().min(0).max(2).optional(),
   })
-  .refine((data) => data.content !== undefined || data.priority !== undefined, {
-    message: 'At least one issue field must be provided.',
-  });
+  .refine(
+    (data) =>
+      data.title !== undefined ||
+      data.description !== undefined ||
+      data.reproSteps !== undefined ||
+      data.reporterContact !== undefined ||
+      data.priority !== undefined,
+    {
+      message: 'At least one issue field must be provided.',
+    }
+  );
+
+const updateIssueStatusSchema = z.object({
+  status: z.enum(['UNSOLVED', 'IN_PROGRESS', 'FIXED']),
+});
 
 const getIssueQuerySchema = z.object({
   priority: z.coerce.number().int().min(0).max(2).optional(),
@@ -61,6 +89,22 @@ export const validateGetIssueQuery = (req: Request, res: Response, next: NextFun
   if (!result.success) {
     res.status(400).json({
       error: 'The issue query parameters are missing required fields or contain invalid values.',
+      details: z.treeifyError(result.error),
+    });
+    return;
+  }
+  next();
+};
+
+export const validateUpdateIssueStatus = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const result = updateIssueStatusSchema.safeParse(req.body);
+  if (!result.success) {
+    res.status(400).json({
+      error: 'The issue status update payload contains invalid values.',
       details: z.treeifyError(result.error),
     });
     return;

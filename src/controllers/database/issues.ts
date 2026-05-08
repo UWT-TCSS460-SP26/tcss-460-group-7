@@ -1,18 +1,26 @@
 import { Request, Response } from 'express';
-import { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 
 /* POST issues to report */
 export const createIssue = async (request: Request, response: Response): Promise<void> => {
   try {
-    const { content, priority } = request.body;
+    const { title, description, reproSteps, reporterContact, priority } = request.body as {
+      title: string;
+      description: string;
+      reproSteps?: string | null;
+      reporterContact?: string | null;
+      priority?: number;
+    };
     const authorId = request.user?.id;
     const normalizedPriority = priority ?? 2;
 
     const issue = await prisma.issue.create({
       data: {
         priority: normalizedPriority,
-        content,
+        title,
+        description,
+        reproSteps,
+        reporterContact,
         authorId,
       },
     });
@@ -64,8 +72,11 @@ export const getIssue = async (request: Request, response: Response): Promise<vo
 export const updateIssue = async (request: Request, response: Response): Promise<void> => {
   const issueId = Number(request.params.id);
   const isAdmin = request.user!.role === 1;
-  const { content, priority } = request.body as {
-    content?: string;
+  const { title, description, reproSteps, reporterContact, priority } = request.body as {
+    title?: string;
+    description?: string;
+    reproSteps?: string | null;
+    reporterContact?: string | null;
     priority?: number;
   };
 
@@ -89,7 +100,10 @@ export const updateIssue = async (request: Request, response: Response): Promise
     const updatedIssue = await prisma.issue.update({
       where: { id: issueId },
       data: {
-        ...(content !== undefined ? { content } : {}),
+        ...(title !== undefined ? { title } : {}),
+        ...(description !== undefined ? { description } : {}),
+        ...(reproSteps !== undefined ? { reproSteps } : {}),
+        ...(reporterContact !== undefined ? { reporterContact } : {}),
         ...(priority !== undefined ? { priority } : {}),
       },
     });
@@ -98,6 +112,38 @@ export const updateIssue = async (request: Request, response: Response): Promise
   } catch (_error) {
     response.status(500).json({
       error: 'The server could not update the issue.',
+    });
+  }
+};
+
+/**
+ * PATCH issue status
+ */
+export const updateIssueStatus = async (request: Request, response: Response): Promise<void> => {
+  const issueId = Number(request.params.id);
+  const { status } = request.body as {
+    status: 'UNSOLVED' | 'IN_PROGRESS' | 'FIXED';
+  };
+
+  try {
+    const existingIssue = await prisma.issue.findUnique({
+      where: { id: issueId },
+    });
+
+    if (!existingIssue) {
+      response.status(404).json({ error: 'No issue was found for the provided ID.' });
+      return;
+    }
+
+    const updatedIssue = await prisma.issue.update({
+      where: { id: issueId },
+      data: { status },
+    });
+
+    response.status(200).json(updatedIssue);
+  } catch (_error) {
+    response.status(500).json({
+      error: 'The server could not update the issue status.',
     });
   }
 };
