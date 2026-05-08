@@ -862,7 +862,7 @@ paths:
     get:
       tags: [Front End API]
       summary: Get enriched media details with community sentiment
-      description: 'Returns a combined frontend-ready payload with TMDB metadata, aggregate sentiment, and recent community reviews. Use this for a detail page when you want both title data and app review context in one request.'
+      description: 'Returns a combined frontend-ready payload with TMDB metadata, aggregate sentiment, and recent community reviews. Use this for a detail page when you want both title data and app review context in one request. The `id` path parameter must be the TMDB media ID for the selected `mediaType`, not a local review ID or database row ID.'
       parameters:
         - in: path
           name: mediaType
@@ -877,7 +877,7 @@ paths:
           schema:
             type: integer
             minimum: 1
-          description: The TMDB ID from the selected search result
+          description: The TMDB media ID for the selected `mediaType` (`movie` or `tv`)
       responses:
         '200':
           description: Enriched media response with metadata, aggregate sentiment, and recent reviews
@@ -1259,8 +1259,8 @@ paths:
   /v1/reviews/{id}:
     get:
       tags: [Reviews]
-      summary: Get a review by id
-      description: Returns one review by ID. Use this for review detail pages, deep links, or moderation lookups.
+      summary: Get a review by review id
+      description: Returns one review by its review ID. Use this for review detail pages, deep links, or moderation lookups.
       parameters:
         - in: path
           name: id
@@ -1756,6 +1756,62 @@ paths:
                 error: 'The server could not retrieve ratings for the requested user.'
 
   /v1/issues:
+    get:
+      tags: [Issues]
+      summary: Get all issues (admin only)
+      description: Returns all issue reports, optionally filtered by priority. Use this for admin dashboards, moderation views, or support triage workflows.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: priority
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 2
+          description: Optional issue priority filter.
+      responses:
+        '200':
+          description: Issue list retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IssueWithAuthor'
+        '400':
+          description: The issue query parameters contain invalid values.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The issue query parameters are missing required fields or contain invalid values.'
+        '401':
+          description: The request did not include a valid bearer token for the user requesting the issue list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
+        '403':
+          description: The authenticated user is not allowed to access the issue list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The authenticated user does not have permission to access this resource.'
+        '500':
+          description: The server could not retrieve the issue list because of an unexpected internal error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not retrieve the issue list.'
     post:
       tags: [Issues]
       summary: Submit a bug report
@@ -1799,6 +1855,135 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
                 error: 'The server could not submit the bug report.'
+
+  /v1/issues/{id}:
+    patch:
+      tags: [Issues]
+      summary: Update an issue
+      description: Updates an existing issue report. Use this when the issue author or an admin needs to edit report details such as content or priority.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Issue id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateIssueRequest'
+      responses:
+        '200':
+          description: Issue updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        '400':
+          description: The issue ID is invalid, or the update payload contains invalid values.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The issue update payload contains invalid values.'
+        '401':
+          description: The request did not include a valid bearer token for the user updating the issue.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
+        '403':
+          description: The authenticated user is not allowed to update this issue.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'You are only allowed to update issues that you created unless you are an admin.'
+        '404':
+          description: No issue exists for the requested ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No issue was found for the provided ID.'
+        '500':
+          description: The server could not update the issue because of an unexpected internal error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not update the issue.'
+
+    delete:
+      tags: [Issues]
+      summary: Delete an issue
+      description: Deletes an existing issue report. Use this when the issue author removes their own report or an admin performs moderation cleanup.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Issue id
+      responses:
+        '200':
+          description: Issue deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        '400':
+          description: The supplied issue ID is invalid or is not a positive integer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The issue ID in the path must be a positive integer.'
+        '401':
+          description: The request did not include a valid bearer token for the user deleting the issue.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
+        '403':
+          description: The authenticated user is not allowed to delete this issue.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'You are only allowed to delete issues that you created unless you are an admin.'
+        '404':
+          description: No issue exists for the requested ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No issue was found for the provided ID.'
+        '500':
+          description: The server could not delete the issue because of an unexpected internal error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not delete the issue.'
 
   /v1/reviews/{id}/remove-downvote:
     post:
@@ -2507,6 +2692,11 @@ components:
         id:
           type: integer
           example: 1
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 2
+          example: 2
         authorId:
           type: integer
           nullable: true
@@ -2519,6 +2709,34 @@ components:
           format: date-time
           example: '2026-05-01T12:00:00.000Z'
 
+    IssueAuthor:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 7
+        username:
+          type: string
+          example: 'skyze'
+        display_name:
+          type: string
+          nullable: true
+          example: 'Skyler'
+        email:
+          type: string
+          format: email
+          example: 'skyzen888@gmail.com'
+
+    IssueWithAuthor:
+      allOf:
+        - $ref: '#/components/schemas/Issue'
+        - type: object
+          properties:
+            author:
+              allOf:
+                - $ref: '#/components/schemas/IssueAuthor'
+              nullable: true
+
     CreateIssueRequest:
       type: object
       required: [content]
@@ -2526,3 +2744,20 @@ components:
         content:
           type: string
           example: 'The search bar is overlapping with the header on mobile.'
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 2
+          example: 2
+
+    UpdateIssueRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          example: 'Updated issue details for the search bar overlap.'
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 2
+          example: 1

@@ -121,7 +121,7 @@ export const getAllReviews = async (request: Request, response: Response): Promi
   }
 };
 
-// GET /review/:id — fetch a user by their id. Public, no auth required.
+// GET /reviews/:id — fetch a review by its review id. Public, no auth required.
 export const getReviewById = async (req: Request, res: Response): Promise<void> => {
   const id = Number(req.params.id);
   const review = await prisma.review.findUnique({ where: { id } });

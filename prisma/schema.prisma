@@ -52,6 +52,7 @@ model Rating {
 
 model Issue {
   id        Int      @id @default(autoincrement())
+  priority  Int       @default(2)
   authorId  Int?    
   author    User?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
   content   String
