@@ -1,9 +1,8 @@
 import { Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 
-/**
- * POST issues to report
- */
+/* POST issues to report */
 export const createIssue = async (request: Request, response: Response): Promise<void> => {
   try {
     const { content, priority } = request.body;
@@ -17,7 +16,6 @@ export const createIssue = async (request: Request, response: Response): Promise
         authorId,
       },
     });
-
     response.status(201).json(issue);
   } catch (_error) {
     // console.error('Error creating issue:', error);

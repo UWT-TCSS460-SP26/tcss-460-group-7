@@ -1985,6 +1985,50 @@ paths:
               example:
                 error: 'The server could not delete the issue.'
 
+  /v1/issues/{id}/status:
+    patch:
+      tags: [Issues]
+      summary: Update the status of a bug report (Admin only)
+      description: Allows administrators to change the progress of a bug report.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Issue ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [UNSOLVED, IN_PROGRESS, FIXED]
+                  example: IN_PROGRESS
+      responses:
+        '200':
+          description: Issue status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        '400':
+          description: Invalid status value
+        '401':
+          description: Missing or invalid token
+        '403':
+          description: Insufficient permissions (Admin only)
+        '404':
+          description: Issue not found
+        '500':
+          description: Server error
+
   /v1/reviews/{id}/remove-downvote:
     post:
       tags: [Reviews]
@@ -2697,13 +2741,28 @@ components:
           minimum: 0
           maximum: 2
           example: 2
+        title:
+          type: string
+          example: 'Mobile Header Bug'
+        description:
+          type: string
+          example: 'The search bar is overlapping with the header on mobile.'
+        reproSteps:
+          type: string
+          nullable: true
+          example: '1. Open on iPhone 13. 2. Look at header.'
+        reporterContact:
+          type: string
+          nullable: true
+          example: 'tester@example.com'
+        status:
+          type: string
+          enum: [UNSOLVED, IN_PROGRESS, FIXED]
+          example: 'UNSOLVED'
         authorId:
           type: integer
           nullable: true
           example: 7
-        content:
-          type: string
-          example: 'The search bar is overlapping with the header on mobile.'
         createdAt:
           type: string
           format: date-time
@@ -2739,9 +2798,12 @@ components:
 
     CreateIssueRequest:
       type: object
-      required: [content]
+      required: [title, description]
       properties:
-        content:
+        title:
+          type: string
+          example: 'Mobile Header Bug'
+        description:
           type: string
           example: 'The search bar is overlapping with the header on mobile.'
         priority:
