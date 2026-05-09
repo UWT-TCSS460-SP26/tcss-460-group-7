@@ -10,6 +10,7 @@ import {
 import { requireAuth } from '../../middleware/requireAuth';
 import {
   validateCreateOrUpdateRating,
+  validateCreateRating,
   validateDeleteRating,
   validateRatingsByTitleId,
   validateUserRatingLookup,
@@ -20,7 +21,7 @@ const ratingsRouter = Router();
 
 ratingsRouter.use(requireAuth);
 
-ratingsRouter.post('/:title_id', ...validateCreateOrUpdateRating, createRating);
+ratingsRouter.post('/:title_id', ...validateCreateRating, createRating);
 ratingsRouter.get('/title/:title_id', ...validateRatingsByTitleId, getRatingsBTitleId);
 ratingsRouter.get(
   '/user/:authorId/title/:title_id',

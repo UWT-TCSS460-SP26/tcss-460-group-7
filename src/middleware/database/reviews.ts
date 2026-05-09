@@ -18,6 +18,7 @@ const createReviewSchema = z.object({
   title_id: z.number().int('title_id is required and must be an integer'),
   content: z.string().trim().min(1, 'content is required and must be a non-empty string'),
   header: z.string().trim().optional(),
+  media_type: z.enum(['movie', 'tv']),
 });
 
 const updateReviewSchema = z.object({
