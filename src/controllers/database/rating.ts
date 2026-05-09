@@ -35,19 +35,22 @@ export const createRating = async (request: Request, response: Response) => {
 
           response.json({ data: updatedRating });
         } catch (_error) {
-          response.status(400).json({ error: 'Failed to update rating' });
+          response.status(500).json({
+            error:
+              'The existing rating could not be updated after a duplicate rating was detected.',
+          });
         }
       } else {
-        response
-          .status(500)
-          .json({ error: "Something happened and could'nt reach the server to update" });
+        response.status(500).json({
+          error: 'The server could not create the rating because of an unexpected error.',
+        });
       }
       return;
     }
 
     response
       .status(500)
-      .json({ error: "Something happened and could'nt reach the server to update" });
+      .json({ error: 'The server could not create the rating because of an unexpected error.' });
   }
 };
 
@@ -66,12 +69,16 @@ export const getRatingsBTitleId = async (request: Request, response: Response) =
     });
 
     if (ratings.length === 0) {
-      response.status(404).json({ error: 'The movie has no ratings.' });
+      response.status(404).json({
+        error: 'No ratings were found for the requested title.',
+      });
       return;
     }
     response.json({ data: ratings });
   } catch (_error) {
-    response.status(500).json({ error: 'Failed to retrieve movie rating' });
+    response.status(500).json({
+      error: 'The server could not retrieve ratings for the requested title.',
+    });
   }
 };
 
@@ -98,14 +105,16 @@ export const getRatingByUserIdMovieId = async (request: Request, response: Respo
 
     if (!rating) {
       response.status(404).json({
-        error: 'The user had not made a rating for the title',
+        error: 'No rating was found for the requested user and title combination.',
       });
       return;
     }
 
     response.status(200).json({ data: rating });
   } catch (_error) {
-    response.status(500).json({ error: 'There was an error with the server' });
+    response.status(500).json({
+      error: 'The server could not retrieve the requested rating.',
+    });
   }
 };
 
@@ -132,17 +141,23 @@ export const updateUsersRating = async (request: Request, response: Response) =>
     });
 
     if (!updatedRating) {
-      response.status(404).json({ error: 'rating not found' });
+      response.status(404).json({
+        error: 'No existing rating was found for the authenticated user and requested title.',
+      });
     }
 
     response.json({ data: updatedRating });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      response.status(404).json({ error: 'rating not found' });
+      response.status(404).json({
+        error: 'No existing rating was found for the authenticated user and requested title.',
+      });
       return;
     }
 
-    response.status(500).json({ error: 'There was a server error' });
+    response.status(500).json({
+      error: 'The server could not update the rating.',
+    });
   }
 };
 
@@ -157,12 +172,16 @@ export const getAllUserRating = async (request: Request, response: Response) => 
   const pageSize = 10;
 
   if (!Number.isInteger(authorId) || authorId <= 0) {
-    response.status(400).json({ error: 'A valid authorId is required' });
+    response.status(400).json({
+      error: 'The path parameter "authorId" must be a positive integer.',
+    });
     return;
   }
 
   if (!Number.isInteger(page) || page <= 0) {
-    response.status(400).json({ error: 'Page must be a positive integer' });
+    response.status(400).json({
+      error: 'The query parameter "page" must be a positive integer.',
+    });
     return;
   }
 
@@ -191,7 +210,9 @@ export const getAllUserRating = async (request: Request, response: Response) => 
       },
     });
   } catch (_error) {
-    response.status(500).json({ error: 'There was a server error' });
+    response.status(500).json({
+      error: 'The server could not retrieve ratings for the requested user.',
+    });
   }
 };
 
@@ -205,7 +226,9 @@ export const deleteRating = async (request: Request, response: Response) => {
   const authorId = request.user!.id;
 
   if (!Number.isInteger(title_id) || title_id <= 0) {
-    response.status(400).json({ error: 'A valid title_id is required' });
+    response.status(400).json({
+      error: 'The path parameter "title_id" must be a positive integer.',
+    });
     return;
   }
 
@@ -223,10 +246,14 @@ export const deleteRating = async (request: Request, response: Response) => {
     response.status(200).json({ data: deletedRating });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      response.status(404).json({ error: 'Rating not found' });
+      response.status(404).json({
+        error: 'No existing rating was found for the authenticated user and requested title.',
+      });
       return;
     }
 
-    response.status(500).json({ error: 'There was a server error' });
+    response.status(500).json({
+      error: 'The server could not delete the rating.',
+    });
   }
 };

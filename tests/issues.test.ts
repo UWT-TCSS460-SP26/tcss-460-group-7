@@ -34,67 +34,240 @@ describe('Issues API Endpoints', () => {
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 2, role: 2 });
   });
 
+  describe('GET /v1/issues', () => {
+    it('returns all issues for an admin user', async () => {
+      const mockIssues = [
+        {
+          id: 1,
+          priority: 2,
+          title: 'General bug report',
+          description: 'General bug report details.',
+          reproSteps: null,
+          reporterContact: null,
+          status: 'UNSOLVED',
+          authorId: 2,
+          createdAt: new Date().toISOString(),
+          author: {
+            id: 2,
+            username: 'user',
+            display_name: 'User',
+            email: 'user@dev.local',
+          },
+        },
+      ];
+      (prisma.issue.findMany as jest.Mock).mockResolvedValue(mockIssues);
+
+      const response = await request(app)
+        .get('/v1/issues')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(mockIssues);
+      expect(prisma.issue.findMany).toHaveBeenCalledWith({
+        where: {},
+        include: {
+          author: {
+            select: {
+              id: true,
+              username: true,
+              display_name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+    });
+
+    it('filters issues by priority for an admin user', async () => {
+      const mockIssues = [
+        {
+          id: 2,
+          priority: 1,
+          title: 'Critical bug report',
+          description: 'Critical bug report details.',
+          reproSteps: '1. Open page. 2. Observe crash.',
+          reporterContact: 'user@dev.local',
+          status: 'IN_PROGRESS',
+          authorId: 2,
+          createdAt: new Date().toISOString(),
+          author: {
+            id: 2,
+            username: 'user',
+            display_name: 'User',
+            email: 'user@dev.local',
+          },
+        },
+      ];
+      (prisma.issue.findMany as jest.Mock).mockResolvedValue(mockIssues);
+
+      const response = await request(app)
+        .get('/v1/issues?priority=1')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(mockIssues);
+      expect(prisma.issue.findMany).toHaveBeenCalledWith({
+        where: { priority: 1 },
+        include: {
+          author: {
+            select: {
+              id: true,
+              username: true,
+              display_name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+    });
+
+    it('returns 400 for an invalid priority filter', async () => {
+      const response = await request(app)
+        .get('/v1/issues?priority=4')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe(
+        'The issue query parameters are missing required fields or contain invalid values.'
+      );
+    });
+
+    it('returns 403 for a non-admin user', async () => {
+      const response = await request(app)
+        .get('/v1/issues')
+        .set('Authorization', `Bearer ${userToken}`);
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Insufficient permissions');
+    });
+  });
+
   describe('POST /v1/issues', () => {
-    it('should create a new issue successfully without authentication', async () => {
+    it('creates a new issue for an authenticated user', async () => {
       const mockIssue = {
         id: 1,
-        title: 'Bug title',
-        description: 'Bug description',
-        reproSteps: 'Step 1...',
+        priority: 2,
+        title: 'Mobile Header Bug',
+        description: 'The search bar is overlapping with the header on mobile.',
+        reproSteps: '1. Open on iPhone 13. 2. Look at header.',
         reporterContact: 'tester@example.com',
         status: 'UNSOLVED',
+        authorId: 2,
         createdAt: new Date().toISOString(),
-        authorId: null,
       };
       (prisma.issue.create as jest.Mock).mockResolvedValue(mockIssue);
 
       const payload = {
-        title: 'Bug title',
-        description: 'Bug description',
-        reproSteps: 'Step 1...',
+        title: 'Mobile Header Bug',
+        description: 'The search bar is overlapping with the header on mobile.',
+        reproSteps: '1. Open on iPhone 13. 2. Look at header.',
         reporterContact: 'tester@example.com',
       };
 
-      const response = await request(app).post('/v1/issues').send(payload);
+      const response = await request(app)
+        .post('/v1/issues')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(payload);
 
       expect(response.status).toBe(201);
       expect(response.body).toEqual(mockIssue);
       expect(prisma.issue.create).toHaveBeenCalledWith({
         data: {
-          ...payload,
-          authorId: undefined, // undefined because no user in request
+          priority: 2,
+          title: payload.title,
+          description: payload.description,
+          reproSteps: payload.reproSteps,
+          reporterContact: payload.reporterContact,
+          authorId: 2,
         },
       });
     });
 
-    it('should return 400 Bad Request if title or description is missing', async () => {
-      const response = await request(app).post('/v1/issues').send({ title: 'Only title' });
+    it('creates a new issue with an explicit priority', async () => {
+      const mockIssue = {
+        id: 2,
+        priority: 1,
+        title: 'Critical bug report',
+        description: 'Critical bug report details.',
+        reproSteps: null,
+        reporterContact: null,
+        status: 'UNSOLVED',
+        authorId: 2,
+        createdAt: new Date().toISOString(),
+      };
+      (prisma.issue.create as jest.Mock).mockResolvedValue(mockIssue);
+
+      const response = await request(app)
+        .post('/v1/issues')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          title: 'Critical bug report',
+          description: 'Critical bug report details.',
+          priority: 1,
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual(mockIssue);
+      expect(prisma.issue.create).toHaveBeenCalledWith({
+        data: {
+          priority: 1,
+          title: 'Critical bug report',
+          description: 'Critical bug report details.',
+          reproSteps: undefined,
+          reporterContact: undefined,
+          authorId: 2,
+        },
+      });
+    });
+
+    it('returns 400 when required fields are missing', async () => {
+      const response = await request(app)
+        .post('/v1/issues')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ description: 'Some description' });
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Invalid bug report format');
-      expect(response.body.details).toContainEqual(
-        expect.objectContaining({ path: ['description'] })
+      expect(response.body.error).toBe(
+        'The bug report payload is missing required fields or contains invalid values.'
       );
     });
 
-    it('should return 400 Bad Request if title is empty string', async () => {
-      const response = await request(app)
-        .post('/v1/issues')
-        .send({ title: '   ', description: 'Some description' });
+    it('returns 401 without authentication', async () => {
+      const response = await request(app).post('/v1/issues').send({
+        title: 'Mobile Header Bug',
+        description: 'The search bar is overlapping with the header on mobile.',
+      });
 
-      expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Invalid bug report format');
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Missing or malformed Authorization header');
     });
   });
 
   describe('PATCH /v1/issues/:id/status', () => {
-    it('should allow an admin to update the status', async () => {
-      const mockUpdatedIssue = {
+    it('allows an admin to update the status', async () => {
+      const existingIssue = {
         id: 1,
+        priority: 2,
+        title: 'Bug report',
+        description: 'Bug report details.',
+        reproSteps: null,
+        reporterContact: null,
+        status: 'UNSOLVED',
+        authorId: 2,
+        createdAt: new Date().toISOString(),
+      };
+      const mockUpdatedIssue = {
+        ...existingIssue,
         status: 'IN_PROGRESS',
       };
+      (prisma.issue.findUnique as jest.Mock).mockResolvedValue(existingIssue);
       (prisma.issue.update as jest.Mock).mockResolvedValue(mockUpdatedIssue);
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 1, role: 1 });
 
       const response = await request(app)
         .patch('/v1/issues/1/status')
@@ -102,14 +275,24 @@ describe('Issues API Endpoints', () => {
         .send({ status: 'IN_PROGRESS' });
 
       expect(response.status).toBe(200);
-      expect(response.body.status).toBe('IN_PROGRESS');
+      expect(response.body).toEqual(mockUpdatedIssue);
       expect(prisma.issue.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: { status: 'IN_PROGRESS' },
       });
     });
 
-    it('should return 403 Forbidden for a regular user', async () => {
+    it('returns 400 for an invalid status', async () => {
+      const response = await request(app)
+        .patch('/v1/issues/1/status')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ status: 'INVALID_STATUS' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('The issue status update payload contains invalid values.');
+    });
+
+    it('returns 403 for a non-admin user', async () => {
       const response = await request(app)
         .patch('/v1/issues/1/status')
         .set('Authorization', `Bearer ${userToken}`)
@@ -119,25 +302,8 @@ describe('Issues API Endpoints', () => {
       expect(response.body.error).toBe('Insufficient permissions');
     });
 
-    it('should return 400 Bad Request for an invalid status', async () => {
-      const response = await request(app)
-        .patch('/v1/issues/1/status')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({ status: 'INVALID_STATUS' });
-
-      expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Invalid status update');
-    });
-
-    it('should return 404 Not Found if issue does not exist', async () => {
-      const { Prisma } = jest.requireActual('@prisma/client');
-      (prisma.issue.update as jest.Mock).mockRejectedValue(
-        new Prisma.PrismaClientKnownRequestError('Record to update not found', {
-          code: 'P2025',
-          clientVersion: 'x.x.x',
-        })
-      );
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 1, role: 1 });
+    it('returns 404 when the issue does not exist', async () => {
+      (prisma.issue.findUnique as jest.Mock).mockResolvedValue(null);
 
       const response = await request(app)
         .patch('/v1/issues/999/status')
@@ -145,7 +311,231 @@ describe('Issues API Endpoints', () => {
         .send({ status: 'FIXED' });
 
       expect(response.status).toBe(404);
-      expect(response.body.error).toBe('Issue not found');
+      expect(response.body.error).toBe('No issue was found for the provided ID.');
+    });
+  });
+
+  describe('PATCH /v1/issues/:id', () => {
+    it('lets the issue author update their own issue', async () => {
+      const existingIssue = {
+        id: 1,
+        priority: 2,
+        title: 'Old title',
+        description: 'Old description',
+        reproSteps: null,
+        reporterContact: null,
+        status: 'UNSOLVED',
+        authorId: 2,
+        createdAt: new Date().toISOString(),
+      };
+      const updatedIssue = {
+        ...existingIssue,
+        title: 'Updated title',
+        description: 'Updated description',
+        priority: 1,
+      };
+      (prisma.issue.findUnique as jest.Mock).mockResolvedValue(existingIssue);
+      (prisma.issue.update as jest.Mock).mockResolvedValue(updatedIssue);
+
+      const response = await request(app)
+        .patch('/v1/issues/1')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          title: 'Updated title',
+          description: 'Updated description',
+          priority: 1,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(updatedIssue);
+      expect(prisma.issue.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: {
+          title: 'Updated title',
+          description: 'Updated description',
+          priority: 1,
+        },
+      });
+    });
+
+    it('lets an admin update any issue', async () => {
+      const existingIssue = {
+        id: 2,
+        priority: 2,
+        title: 'Original title',
+        description: 'Original description',
+        reproSteps: '1. Open page.',
+        reporterContact: 'reporter@example.com',
+        status: 'UNSOLVED',
+        authorId: 99,
+        createdAt: new Date().toISOString(),
+      };
+      const updatedIssue = {
+        ...existingIssue,
+        reporterContact: null,
+      };
+      (prisma.issue.findUnique as jest.Mock).mockResolvedValue(existingIssue);
+      (prisma.issue.update as jest.Mock).mockResolvedValue(updatedIssue);
+
+      const response = await request(app)
+        .patch('/v1/issues/2')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ reporterContact: null });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(updatedIssue);
+      expect(prisma.issue.update).toHaveBeenCalledWith({
+        where: { id: 2 },
+        data: {
+          reporterContact: null,
+        },
+      });
+    });
+
+    it('returns 403 when a non-admin tries to update another users issue', async () => {
+      (prisma.issue.findUnique as jest.Mock).mockResolvedValue({
+        id: 3,
+        priority: 2,
+        title: 'Someone else title',
+        description: 'Someone else description',
+        reproSteps: null,
+        reporterContact: null,
+        status: 'UNSOLVED',
+        authorId: 99,
+        createdAt: new Date().toISOString(),
+      });
+
+      const response = await request(app)
+        .patch('/v1/issues/3')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ title: 'Attempted update' });
+
+      expect(response.status).toBe(403);
+      expect(prisma.issue.update).not.toHaveBeenCalled();
+    });
+
+    it('returns 404 when the issue to update does not exist', async () => {
+      (prisma.issue.findUnique as jest.Mock).mockResolvedValue(null);
+
+      const response = await request(app)
+        .patch('/v1/issues/999')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ title: 'Attempted update' });
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('No issue was found for the provided ID.');
+    });
+
+    it('returns 400 for an invalid issue id', async () => {
+      const response = await request(app)
+        .patch('/v1/issues/not-a-number')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ title: 'Attempted update' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('The issue ID in the path must be a positive integer.');
+    });
+
+    it('returns 400 for an invalid update payload', async () => {
+      const response = await request(app)
+        .patch('/v1/issues/1')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ priority: 5 });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('The issue update payload contains invalid values.');
+    });
+  });
+
+  describe('DELETE /v1/issues/:id', () => {
+    it('lets the issue author delete their own issue', async () => {
+      const existingIssue = {
+        id: 1,
+        priority: 2,
+        title: 'Issue to delete',
+        description: 'Issue to delete description',
+        reproSteps: null,
+        reporterContact: null,
+        status: 'UNSOLVED',
+        authorId: 2,
+        createdAt: new Date().toISOString(),
+      };
+      (prisma.issue.findUnique as jest.Mock).mockResolvedValue(existingIssue);
+      (prisma.issue.delete as jest.Mock).mockResolvedValue(existingIssue);
+
+      const response = await request(app)
+        .delete('/v1/issues/1')
+        .set('Authorization', `Bearer ${userToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(existingIssue);
+      expect(prisma.issue.delete).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
+    });
+
+    it('lets an admin delete any issue', async () => {
+      const existingIssue = {
+        id: 2,
+        priority: 1,
+        title: 'Admin delete target',
+        description: 'Admin delete target description',
+        reproSteps: null,
+        reporterContact: null,
+        status: 'UNSOLVED',
+        authorId: 99,
+        createdAt: new Date().toISOString(),
+      };
+      (prisma.issue.findUnique as jest.Mock).mockResolvedValue(existingIssue);
+      (prisma.issue.delete as jest.Mock).mockResolvedValue(existingIssue);
+
+      const response = await request(app)
+        .delete('/v1/issues/2')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(existingIssue);
+    });
+
+    it('returns 403 when a non-admin tries to delete another users issue', async () => {
+      (prisma.issue.findUnique as jest.Mock).mockResolvedValue({
+        id: 3,
+        priority: 2,
+        title: 'Someone else issue',
+        description: 'Someone else issue description',
+        reproSteps: null,
+        reporterContact: null,
+        status: 'UNSOLVED',
+        authorId: 99,
+        createdAt: new Date().toISOString(),
+      });
+
+      const response = await request(app)
+        .delete('/v1/issues/3')
+        .set('Authorization', `Bearer ${userToken}`);
+
+      expect(response.status).toBe(403);
+      expect(prisma.issue.delete).not.toHaveBeenCalled();
+    });
+
+    it('returns 404 when the issue to delete does not exist', async () => {
+      (prisma.issue.findUnique as jest.Mock).mockResolvedValue(null);
+
+      const response = await request(app)
+        .delete('/v1/issues/999')
+        .set('Authorization', `Bearer ${userToken}`);
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('No issue was found for the provided ID.');
+    });
+
+    it('returns 400 for an invalid issue id', async () => {
+      const response = await request(app)
+        .delete('/v1/issues/not-a-number')
+        .set('Authorization', `Bearer ${userToken}`);
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('The issue ID in the path must be a positive integer.');
     });
   });
 });

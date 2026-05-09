@@ -49,11 +49,15 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
     res.status(existingUser ? 200 : 201).json(user);
   } catch (error) {
     if (getErrorCode(error) === 'P2002') {
-      res.status(409).json({ error: 'username or email already exists' });
+      res.status(409).json({
+        error: 'The requested username or email is already associated with another user.',
+      });
       return;
     }
 
-    res.status(500).json({ error: 'Failed to create user' });
+    res.status(500).json({
+      error: 'The server could not create or sync the user profile.',
+    });
   }
 };
 
@@ -92,7 +96,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
   const user = await prisma.user.findUnique({ where: { id } });
 
   if (!user) {
-    res.status(404).json({ error: 'User not found' });
+    res.status(404).json({ error: 'No user was found for the provided ID.' });
     return;
   }
 
@@ -105,7 +109,9 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
   const { display_name } = req.body as { display_name?: string };
 
   if (req.user!.id !== id) {
-    res.status(403).json({ error: 'You can only update your own account' });
+    res.status(403).json({
+      error: 'You are only allowed to update your own user account.',
+    });
     return;
   }
 
@@ -117,11 +123,13 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     res.status(200).json(user);
   } catch (error) {
     if (getErrorCode(error) === 'P2025') {
-      res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: 'No user was found for the provided ID.' });
       return;
     }
 
-    res.status(500).json({ error: 'Failed to update user' });
+    res.status(500).json({
+      error: 'The server could not update the user profile.',
+    });
   }
 };
 
@@ -132,7 +140,9 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
   const isSelf = req.user!.id === id;
 
   if (!isAdmin && !isSelf) {
-    res.status(403).json({ error: 'You can only delete your own account' });
+    res.status(403).json({
+      error: 'You are only allowed to delete your own user account unless you are an admin.',
+    });
     return;
   }
 
@@ -141,10 +151,12 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
     res.status(200).json({ message: 'User deleted' });
   } catch (error) {
     if (getErrorCode(error) === 'P2025') {
-      res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: 'No user was found for the provided ID.' });
       return;
     }
 
-    res.status(500).json({ error: 'Failed to delete user' });
+    res.status(500).json({
+      error: 'The server could not delete the user account.',
+    });
   }
 };

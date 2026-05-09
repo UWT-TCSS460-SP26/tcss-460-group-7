@@ -59,7 +59,7 @@ export const getSearchedMovieTitle = async (request: Request, response: Response
   if (typeof title !== 'string' || title === null || title.trim() === '') {
     return response.status(400).json({
       error: 400,
-      message: 'Missing required query parameter',
+      message: 'The required query parameter "q" must be a non-empty movie title.',
     });
   }
 
@@ -73,7 +73,7 @@ export const getSearchedMovieTitle = async (request: Request, response: Response
   if (!result.ok) {
     return response.status(result.status).json({
       error: result.status,
-      message: 'TMDB search request had failed',
+      message: 'TMDB could not complete the movie title search request.',
     });
   }
 

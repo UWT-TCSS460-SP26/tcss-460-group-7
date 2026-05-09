@@ -41,7 +41,7 @@ app.use(routes);
 
 // 404 handler — must be after all routes
 app.use((_request: Request, response: Response) => {
-  response.status(404).json({ error: 'Route not found' });
+  response.status(404).json({ error: 'No route matches the requested URL and HTTP method.' });
 });
 
 // Malformed JSON handler
@@ -52,10 +52,14 @@ app.use((err: unknown, _request: Request, response: Response, _next: NextFunctio
     'type' in err &&
     err.type === 'entity.parse.failed'
   ) {
-    response.status(400).json({ error: 'Malformed JSON in request body' });
+    response.status(400).json({
+      error: 'The request body contains malformed JSON. Fix the JSON syntax and try again.',
+    });
     return;
   }
-  response.status(500).json({ error: 'Internal server error' });
+  response.status(500).json({
+    error: 'The server encountered an unexpected error while processing the request.',
+  });
 });
 
 export { app };

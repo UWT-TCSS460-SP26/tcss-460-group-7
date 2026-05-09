@@ -29,7 +29,9 @@ export const getMovieDetails = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   if (!id) {
-    return res.status(400).json({ error: 'Missing required path parameter: id' });
+    return res.status(400).json({
+      error: 'The path parameter "id" is required and must contain a TMDB movie ID.',
+    });
   }
 
   try {
@@ -48,6 +50,8 @@ export const getMovieDetails = async (req: Request, res: Response) => {
 
     res.json(formattedMovieDetail);
   } catch (_error) {
-    res.status(502).json({ error: 'Failed to reach TMDB' });
+    res.status(502).json({
+      error: 'The API could not reach TMDB while fetching movie details.',
+    });
   }
 };

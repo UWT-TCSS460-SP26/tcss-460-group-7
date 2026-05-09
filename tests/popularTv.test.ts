@@ -156,7 +156,9 @@ describe('Popular TV Routes', () => {
     const response = await request(app).get('/v1/tv/popular');
 
     expect(response.status).toBe(500);
-    expect(response.body).toEqual({ error: 'TMDB_API_TOKEN is not configured' });
+    expect(response.body).toEqual({
+      error: 'The server is missing required configuration for TMDB_API_TOKEN.',
+    });
   });
 
   // --- TMDB Error ---
@@ -172,7 +174,10 @@ describe('Popular TV Routes', () => {
     const response = await request(app).get('/v1/tv/popular');
 
     expect(response.status).toBe(401);
-    expect(response.body).toEqual({ error: 401, message: 'TMDB search request had failed' });
+    expect(response.body).toEqual({
+      error: 401,
+      message: 'TMDB could not retrieve the list of popular TV shows.',
+    });
   });
 
   it('GET /v1/tv/popular - returns 503 when TMDB is unavailable', async () => {
@@ -187,7 +192,10 @@ describe('Popular TV Routes', () => {
     const response = await request(app).get('/v1/tv/popular');
 
     expect(response.status).toBe(503);
-    expect(response.body).toEqual({ error: 503, message: 'TMDB search request had failed' });
+    expect(response.body).toEqual({
+      error: 503,
+      message: 'TMDB could not retrieve the list of popular TV shows.',
+    });
   });
 
   // --- Null Poster ---

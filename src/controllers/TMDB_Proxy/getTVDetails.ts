@@ -32,7 +32,9 @@ export const getTVDetails = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   if (!id) {
-    return res.status(400).json({ error: 'Missing required path parameter: id' });
+    return res.status(400).json({
+      error: 'The path parameter "id" is required and must contain a TMDB TV show ID.',
+    });
   }
 
   try {
@@ -55,6 +57,8 @@ export const getTVDetails = async (req: Request, res: Response) => {
 
     res.json(formattedTVDetail);
   } catch (_error) {
-    res.status(502).json({ error: 'Failed to reach TMDB' });
+    res.status(502).json({
+      error: 'The API could not reach TMDB while fetching TV show details.',
+    });
   }
 };

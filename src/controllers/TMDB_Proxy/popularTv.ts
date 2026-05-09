@@ -71,7 +71,7 @@ export const getPopularTV = async (req: Request, res: Response) => {
   if (!result.ok) {
     return res.status(result.status).json({
       error: result.status,
-      message: 'TMDB search request had failed',
+      message: 'TMDB could not retrieve the list of popular TV shows.',
     });
   }
 

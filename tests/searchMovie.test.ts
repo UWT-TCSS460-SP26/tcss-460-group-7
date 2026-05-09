@@ -148,7 +148,9 @@ describe('Movie Search Proxy Routes', () => {
     const response = await request(app).get('/v1/movie/search/title').query({ q: 'inception' });
 
     expect(response.status).toBe(500);
-    expect(response.body).toEqual({ error: 'TMDB_API_TOKEN is not configured' });
+    expect(response.body).toEqual({
+      error: 'The server is missing required configuration for TMDB_API_TOKEN.',
+    });
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
@@ -160,7 +162,7 @@ describe('Movie Search Proxy Routes', () => {
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
       error: 400,
-      message: 'Missing required query parameter',
+      message: 'The required query parameter "q" must be a non-empty movie title.',
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });
@@ -173,7 +175,7 @@ describe('Movie Search Proxy Routes', () => {
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
       error: 400,
-      message: 'Missing required query parameter',
+      message: 'The required query parameter "q" must be a non-empty movie title.',
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });
@@ -192,7 +194,7 @@ describe('Movie Search Proxy Routes', () => {
     expect(response.status).toBe(401);
     expect(response.body).toEqual({
       error: 401,
-      message: 'TMDB search request had failed',
+      message: 'TMDB could not complete the movie title search request.',
     });
   });
 

@@ -33,7 +33,9 @@ const jwtCheck = expressjwt({
 export const requireAuth = (request: Request, response: Response, next: NextFunction): void => {
   void jwtCheck(request, response, async (err) => {
     if (err) {
-      response.status(401).json({ error: 'Invalid or expired token' });
+      response.status(401).json({
+        error: 'The bearer token is missing, invalid, or expired.',
+      });
       return;
     }
     const authHeader = request.headers.authorization as string;
@@ -47,7 +49,9 @@ export const requireAuth = (request: Request, response: Response, next: NextFunc
           headers: { Authorization: authHeader },
         });
         if (!userinfoRes.ok) {
-          response.status(401).json({ error: 'Failed to fetch user info' });
+          response.status(401).json({
+            error: 'The authenticated user could not be resolved from the identity provider.',
+          });
           return;
         }
         const userinfo = (await userinfoRes.json()) as {
@@ -70,7 +74,9 @@ export const requireAuth = (request: Request, response: Response, next: NextFunc
           },
         });
       } catch {
-        response.status(500).json({ error: 'Failed to resolve user' });
+        response.status(500).json({
+          error: 'The server could not create or load the authenticated user profile.',
+        });
         return;
       }
     }
@@ -88,11 +94,15 @@ export const requireAuth = (request: Request, response: Response, next: NextFunc
 export const requireRole = (role: number) => {
   return (request: Request, response: Response, next: NextFunction): void => {
     if (!request.user) {
-      response.status(401).json({ error: 'Not authenticated' });
+      response.status(401).json({
+        error: 'Authentication is required before accessing this resource.',
+      });
       return;
     }
     if (request.user.role !== role) {
-      response.status(403).json({ error: 'Insufficient permissions' });
+      response.status(403).json({
+        error: 'The authenticated user does not have permission to access this resource.',
+      });
       return;
     }
     next();
