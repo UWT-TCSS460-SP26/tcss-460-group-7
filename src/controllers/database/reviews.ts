@@ -6,10 +6,11 @@ import { prisma } from '../../lib/prisma';
 // POST /reviews — create a new review. Requires auth.
 export const createReview = async (req: Request, res: Response): Promise<void> => {
   const authorId = req.user!.id;
-  const { content, header, title_id } = req.body as {
+  const { content, header, title_id, media_type } = req.body as {
     content: string;
     header?: string;
     title_id: number;
+    media_type: string;
   };
 
   try {
@@ -19,6 +20,7 @@ export const createReview = async (req: Request, res: Response): Promise<void> =
         content,
         header,
         title_id,
+        media_type,
       },
     });
     res.status(201).json(review);

@@ -35,6 +35,7 @@ model Review {
   upvotes   Int      @default(0)
   downvotes Int      @default(0)
   title_id  Int
+  media_type String?
 
   @@map("reviews")
 }
@@ -45,6 +46,7 @@ model Rating {
   author   User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
   rating   Int
   title_id Int
+  media_type String?
 
   @@unique([authorId, title_id])
   @@map("ratings")
