@@ -32,4 +32,5 @@ export const prisma = {
     upsert: jest.fn(),
   },
   $transaction: jest.fn(),
+  $queryRaw: jest.fn(),
 };
