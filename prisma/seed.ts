@@ -85,76 +85,102 @@ const reviewSeeds = [
   {
     username: 'admin',
     title_id: 246,
+    media_type: 'tv',
     content: 'A truly magnificent show with great character development!',
     header: 'Masterpiece',
   },
   {
     username: 'stardust42',
     title_id: 246,
+    media_type: 'tv',
     content: 'A bit slow at the start, but gets incredible.',
     header: 'Great Watch',
   },
   {
     username: 'noodle_cat',
     title_id: 1399,
+    media_type: 'tv',
     content: 'The lore and world-building is just phenomenal.',
     header: 'Epic Fantasy',
   },
   {
     username: 'grizwald',
     title_id: 1399,
+    media_type: 'tv',
     content: 'Disappointed with the later seasons.',
     header: 'Could be better',
   },
   {
     username: 'pixel_fox',
     title_id: 1396,
+    media_type: 'tv',
     content: 'One of the best writing I have ever seen on television.',
     header: 'Incredible Writing',
   },
   {
     username: 'thunderbean',
     title_id: 1396,
+    media_type: 'tv',
     content: 'Very intense, great acting all around.',
     header: 'Intense and Gripping',
   },
   {
     username: 'stardust42',
     title_id: 66732,
+    media_type: 'tv',
     content: 'Loved the 80s nostalgia and the mystery.',
     header: 'Spooky and Fun',
   },
   {
     username: 'noodle_cat',
     title_id: 66732,
+    media_type: 'tv',
     content: 'Felt a bit repetitive after a few seasons.',
     header: 'Overrated',
   },
   {
     username: 'grizwald',
     title_id: 456,
+    media_type: 'tv',
     content: 'Classic comedy that shaped a generation.',
     header: 'Iconic',
   },
   {
     username: 'pixel_fox',
     title_id: 456,
+    media_type: 'tv',
     content: 'Has its moments, but not my absolute favorite.',
     header: 'Good for a laugh',
   },
   {
     username: 'vaderSucks',
     title_id: 1891,
+    media_type: 'movie',
     content: 'Vader really sucks a lot!',
     header: 'The Empire will fall!',
   },
 ];
 
-const ratingTitleIds = [550, 680, 13, 155, 27205, 603, 157336, 246, 1399, 1396, 66732, 456, 1891];
+const ratingTitleIds: { id: number; media_type: 'movie' | 'tv' }[] = [
+  { id: 550, media_type: 'movie' },
+  { id: 680, media_type: 'movie' },
+  { id: 13, media_type: 'movie' },
+  { id: 155, media_type: 'movie' },
+  { id: 27205, media_type: 'movie' },
+  { id: 603, media_type: 'movie' },
+  { id: 157336, media_type: 'movie' },
+  { id: 1891, media_type: 'movie' },
+  { id: 246, media_type: 'tv' },
+  { id: 1399, media_type: 'tv' },
+  { id: 1396, media_type: 'tv' },
+  { id: 66732, media_type: 'tv' },
+  { id: 456, media_type: 'tv' },
+];
 
-const buildSeededRating = (authorId: number, titleId: number) => ({
+const buildSeededRating = (authorId: number, titleId: number, media_type: 'movie' | 'tv') => ({
   authorId,
   title_id: titleId,
+  media_type,
   // Deterministic pseudo-random 1-5 rating so reseeding stays stable.
   rating: ((authorId * 17 + titleId * 7) % 5) + 1,
 });
@@ -212,6 +238,7 @@ async function seedReviews(usersByUsername: Map<string, { id: number }>) {
       data: {
         authorId: author.id,
         title_id: reviewSeed.title_id,
+        media_type: reviewSeed.media_type,
         content: reviewSeed.content,
         header: reviewSeed.header,
       },
@@ -225,8 +252,8 @@ async function seedRatings(usersByUsername: Map<string, { id: number }>) {
   console.log('Seeding ratings...');
 
   for (const user of usersByUsername.values()) {
-    for (const titleId of ratingTitleIds) {
-      const ratingSeed = buildSeededRating(user.id, titleId);
+    for (const { id: titleId, media_type } of ratingTitleIds) {
+      const ratingSeed = buildSeededRating(user.id, titleId, media_type);
 
       const rating = await prisma.rating.upsert({
         where: {
@@ -237,6 +264,7 @@ async function seedRatings(usersByUsername: Map<string, { id: number }>) {
         },
         update: {
           rating: ratingSeed.rating,
+          media_type: ratingSeed.media_type,
         },
         create: ratingSeed,
       });

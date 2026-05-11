@@ -37,6 +37,7 @@ model Review {
   title_id  Int
   media_type String?
 
+  @@unique([authorId, title_id])
   @@map("reviews")
 }
 
