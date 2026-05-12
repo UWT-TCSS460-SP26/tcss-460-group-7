@@ -245,7 +245,7 @@ describe('Issues API Endpoints', () => {
       });
 
       expect(response.status).toBe(401);
-      expect(response.body.error).toBe('Missing or malformed Authorization header');
+      expect(response.body.error).toBe('The bearer token is missing.');
     });
   });
 

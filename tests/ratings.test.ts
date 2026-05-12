@@ -36,6 +36,9 @@ const mintToken = (sub: number, role: number) =>
   jwt.sign({ sub, email: 'test@dev.local', role }, TEST_SECRET);
 
 const userToken = mintToken(7, 2);
+const expiredUserToken = jwt.sign({ sub: 7, email: 'test@dev.local', role: 2 }, TEST_SECRET, {
+  expiresIn: -10,
+});
 
 const ratingRecord = (overrides = {}) => ({
   id: 1,
@@ -84,7 +87,27 @@ describe('POST /v1/ratings/:title_id', () => {
     const res = await request(app).post('/v1/ratings/99').send({ rating: 4 });
 
     expect(res.status).toBe(401);
-    expect(res.body).toEqual({ error: 'Missing or malformed Authorization header' });
+    expect(res.body).toEqual({ error: 'The bearer token is missing.' });
+  });
+
+  it('returns 401 when the bearer token is expired', async () => {
+    const res = await request(app)
+      .post('/v1/ratings/99')
+      .set('Authorization', `Bearer ${expiredUserToken}`)
+      .send({ rating: 4 });
+
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({ error: 'The bearer token has expired.' });
+  });
+
+  it('returns 401 when the bearer token is invalid', async () => {
+    const res = await request(app)
+      .post('/v1/ratings/99')
+      .set('Authorization', 'Bearer not-a-jwt')
+      .send({ rating: 4 });
+
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({ error: 'The bearer token is invalid.' });
   });
 
   it('returns 400 for invalid rating input', async () => {

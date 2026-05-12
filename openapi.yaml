@@ -54,7 +54,7 @@ paths:
     post:
       tags: [Users]
       summary: Create or sync the authenticated user
-      description: Creates the signed-in user's profile if it does not exist, or syncs profile fields if it already does. Use this right after authentication so your app has a local user record tied to the bearer token.
+      description: Requires any authenticated user bearer token. Creates the signed-in user's profile if it does not exist, or syncs profile fields if it already does. Use this right after authentication so your app has a local user record tied to the bearer token.
       security:
         - bearerAuth: []
       requestBody:
@@ -85,13 +85,7 @@ paths:
               example:
                 error: 'The request body must include a non-empty string for "username".'
         '401':
-          description: The request did not include a valid bearer token, so the user could not be identified.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '409':
           description: The requested username or email is already in use by another account.
           content:
@@ -112,7 +106,7 @@ paths:
     get:
       tags: [Users]
       summary: Get all users (admin only)
-      description: Returns a paginated list of users with optional filters. Use this for admin dashboards, moderation tools, or user management workflows.
+      description: Requires an admin bearer token. Returns a paginated list of users with optional filters. Use this for admin dashboards, moderation tools, or user management workflows.
       security:
         - bearerAuth: []
       parameters:
@@ -153,13 +147,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedUsersResponse'
         '401':
-          description: The request did not include a valid bearer token for an authenticated admin user.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '403':
           description: The authenticated user is not allowed to view the full user list.
           content:
@@ -224,7 +212,7 @@ paths:
     put:
       tags: [Users]
       summary: Update display_name
-      description: Updates the display name for a user account. Use this from profile settings when a signed-in user wants to change how their name appears in the app.
+      description: Requires any authenticated user bearer token. Users may update only their own account. Updates the display name for a user account. Use this from profile settings when a signed-in user wants to change how their name appears in the app.
       security:
         - bearerAuth: []
       parameters:
@@ -256,13 +244,7 @@ paths:
               example:
                 error: 'The request body must include a non-empty string for "display_name".'
         '401':
-          description: The request did not include a valid bearer token for the user being updated.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '403':
           description: The authenticated user is not allowed to update this account.
           content:
@@ -291,7 +273,7 @@ paths:
     delete:
       tags: [Users]
       summary: Delete a user
-      description: Deletes a user account. Use this for self-service account removal or admin account cleanup.
+      description: Requires any authenticated user bearer token. Users may delete their own account, and admins may delete any account. Use this for self-service account removal or admin account cleanup.
       security:
         - bearerAuth: []
       parameters:
@@ -321,13 +303,7 @@ paths:
               example:
                 error: 'The user ID in the path must be a positive integer.'
         '401':
-          description: The request did not include a valid bearer token for the user being deleted.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '403':
           description: The authenticated user is not allowed to delete this account.
           content:
@@ -918,7 +894,7 @@ paths:
     post:
       tags: [Ratings]
       summary: Create or replace the authenticated user's rating for a title
-      description: Creates a rating for the signed-in user, or replaces their existing rating for the same title. Use this when a user submits a star score from a detail page or rating control.
+      description: Requires any authenticated user bearer token. Creates a rating for the signed-in user, or replaces their existing rating for the same title. Use this when a user submits a star score from a detail page or rating control.
       security:
         - bearerAuth: []
       parameters:
@@ -964,17 +940,11 @@ paths:
               example:
                 error: 'The server could not create the rating because of an unexpected error.'
         '401':
-          description: The request did not include a valid bearer token for the user submitting the rating.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
     patch:
       tags: [Ratings]
       summary: Update the authenticated user's rating for a title
-      description: Updates an existing rating for the signed-in user and title. Use this when a user changes a score they have already submitted.
+      description: Requires any authenticated user bearer token. Updates an existing rating for the signed-in user and title. Use this when a user changes a score they have already submitted.
       security:
         - bearerAuth: []
       parameters:
@@ -1006,13 +976,7 @@ paths:
               example:
                 error: 'The request body field "rating" must be an integer.'
         '401':
-          description: The request did not include a valid bearer token for the user updating the rating.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '404':
           description: No existing rating was found for the authenticated user and requested title.
           content:
@@ -1032,7 +996,7 @@ paths:
     delete:
       tags: [Ratings]
       summary: Delete the authenticated user's rating for a title
-      description: Removes the signed-in user's rating for a title. Use this when a user clears or undoes a previously submitted rating.
+      description: Requires any authenticated user bearer token. Removes the signed-in user's rating for a title. Use this when a user clears or undoes a previously submitted rating.
       security:
         - bearerAuth: []
       parameters:
@@ -1058,13 +1022,7 @@ paths:
               example:
                 error: 'The path parameter "title_id" must be a positive integer.'
         '401':
-          description: The request did not include a valid bearer token for the user deleting the rating.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '404':
           description: No existing rating was found for the authenticated user and requested title.
           content:
@@ -1086,7 +1044,7 @@ paths:
     post:
       tags: [Reviews]
       summary: Create a review
-      description: Creates a written review for a movie or TV title. Use this when a signed-in user posts their opinion and commentary for others to read.
+      description: Requires any authenticated user bearer token. Creates a written review for a movie or TV title. Use this when a signed-in user posts their opinion and commentary for others to read.
       security:
         - bearerAuth: []
       requestBody:
@@ -1111,13 +1069,7 @@ paths:
               example:
                 error: 'The review payload is missing required fields or contains invalid values.'
         '401':
-          description: The request did not include a valid bearer token for the user creating the review.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '409':
           description: The authenticated user already has a review for this title and cannot create a duplicate.
           content:
@@ -1137,7 +1089,7 @@ paths:
     get:
       tags: [Reviews]
       summary: Get all reviews (admin only)
-      description: Returns a paginated list of all reviews across the platform. Use this for admin moderation, audits, or review management tools.
+      description: Requires an admin bearer token. Returns a paginated list of all reviews across the platform. Use this for admin moderation, audits, or review management tools.
       security:
         - bearerAuth: []
       parameters:
@@ -1188,13 +1140,7 @@ paths:
               example:
                 error: 'The server could not retrieve the review list.'
         '401':
-          description: The request did not include a valid bearer token for an authenticated admin user.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '403':
           description: The authenticated user is not allowed to access the full review list.
           content:
@@ -1302,7 +1248,7 @@ paths:
     put:
       tags: [Reviews]
       summary: Update a review
-      description: Updates the title or body of an existing review. Use this when a user edits a review they have already posted.
+      description: Requires any authenticated user bearer token. Users may update only reviews they created. Updates the title or body of an existing review. Use this when a user edits a review they have already posted.
       security:
         - bearerAuth: []
       parameters:
@@ -1334,13 +1280,7 @@ paths:
               example:
                 error: 'The review update payload contains invalid values.'
         '401':
-          description: The request did not include a valid bearer token for the user updating the review.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '403':
           description: The authenticated user is not allowed to update this review.
           content:
@@ -1368,7 +1308,7 @@ paths:
     delete:
       tags: [Reviews]
       summary: Delete a review
-      description: Deletes an existing review. Use this for user-initiated removal or admin moderation actions.
+      description: Requires any authenticated user bearer token. Users may delete their own reviews, and admins may delete any review. Use this for user-initiated removal or admin moderation actions.
       security:
         - bearerAuth: []
       parameters:
@@ -1394,13 +1334,7 @@ paths:
               example:
                 error: 'The review ID in the path must be a positive integer.'
         '401':
-          description: The request did not include a valid bearer token for the user deleting the review.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '403':
           description: The authenticated user is not allowed to delete this review.
           content:
@@ -1430,7 +1364,7 @@ paths:
     get:
       tags: [Ratings]
       summary: Get all ratings for a title
-      description: Returns the rating records associated with one title. Use this when you need title-level rating data for analytics, moderation, or aggregate score calculations.
+      description: Requires any authenticated user bearer token. Returns the rating records associated with one title. Use this when you need title-level rating data for analytics, moderation, or aggregate score calculations.
       security:
         - bearerAuth: []
       parameters:
@@ -1464,13 +1398,7 @@ paths:
               example:
                 error: 'No ratings were found for the requested title.'
         '401':
-          description: The request did not include a valid bearer token for this ratings lookup.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '500':
           description: The server could not retrieve ratings for the requested title because of an unexpected internal error.
           content:
@@ -1484,7 +1412,7 @@ paths:
     get:
       tags: [Ratings]
       summary: Get one user's rating for one title
-      description: Returns a specific user's rating for one title. Use this to prefill a user's saved score on a detail page or confirm whether they have already rated it.
+      description: Requires any authenticated user bearer token. Returns a specific user's rating for one title. Use this to prefill a user's saved score on a detail page or confirm whether they have already rated it.
       security:
         - bearerAuth: []
       parameters:
@@ -1524,13 +1452,7 @@ paths:
               example:
                 error: 'No rating was found for the requested user and title combination.'
         '401':
-          description: The request did not include a valid bearer token for this ratings lookup.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '500':
           description: The server could not retrieve the requested rating because of an unexpected internal error.
           content:
@@ -1544,7 +1466,7 @@ paths:
     post:
       tags: [Reviews]
       summary: Upvote a review
-      description: Adds a positive vote to a review. Use this when a signed-in user wants to mark a review as helpful.
+      description: Requires any authenticated user bearer token. Adds a positive vote to a review. Use this when a signed-in user wants to mark a review as helpful.
       security:
         - bearerAuth: []
       parameters:
@@ -1570,13 +1492,7 @@ paths:
               example:
                 error: 'The review ID in the path must be a positive integer.'
         '401':
-          description: The request did not include a valid bearer token for the user upvoting the review.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '404':
           description: No review exists for the requested ID.
           content:
@@ -1598,7 +1514,7 @@ paths:
     post:
       tags: [Reviews]
       summary: Downvote a review
-      description: Adds a negative vote to a review. Use this when a signed-in user wants to signal that a review was not helpful.
+      description: Requires any authenticated user bearer token. Adds a negative vote to a review. Use this when a signed-in user wants to signal that a review was not helpful.
       security:
         - bearerAuth: []
       parameters:
@@ -1624,13 +1540,7 @@ paths:
               example:
                 error: 'The review ID in the path must be a positive integer.'
         '401':
-          description: The request did not include a valid bearer token for the user downvoting the review.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '404':
           description: No review exists for the requested ID.
           content:
@@ -1652,7 +1562,7 @@ paths:
     post:
       tags: [Reviews]
       summary: Remove an upvote
-      description: Removes a previously counted upvote from a review. Use this when a signed-in user undoes a helpful vote.
+      description: Requires any authenticated user bearer token. Removes a previously counted upvote from a review. Use this when a signed-in user undoes a helpful vote.
       security:
         - bearerAuth: []
       parameters:
@@ -1678,13 +1588,7 @@ paths:
               example:
                 error: 'The upvote count is already zero, so there is no upvote to remove.'
         '401':
-          description: The request did not include a valid bearer token for the user removing the upvote.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '404':
           description: No review exists for the requested ID.
           content:
@@ -1706,7 +1610,7 @@ paths:
     get:
       tags: [Ratings]
       summary: Get a paginated list of ratings by user
-      description: Returns a paginated list of ratings created by one user. Use this for profile pages, history views, or account activity screens.
+      description: Requires any authenticated user bearer token. Returns a paginated list of ratings created by one user. Use this for profile pages, history views, or account activity screens.
       security:
         - bearerAuth: []
       parameters:
@@ -1739,13 +1643,7 @@ paths:
               example:
                 error: 'The query parameter "page" must be a positive integer.'
         '401':
-          description: The request did not include a valid bearer token for this ratings lookup.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '500':
           description: The server could not retrieve the user's ratings because of an unexpected internal error.
           content:
@@ -1759,7 +1657,7 @@ paths:
     get:
       tags: [Issues]
       summary: Get all issues (admin only)
-      description: Returns all issue reports, optionally filtered by priority. Use this for admin dashboards, moderation views, or support triage workflows.
+      description: Requires an admin bearer token. Returns all issue reports, optionally filtered by priority. Use this for admin dashboards, moderation views, or support triage workflows.
       security:
         - bearerAuth: []
       parameters:
@@ -1789,13 +1687,7 @@ paths:
               example:
                 error: 'The issue query parameters are missing required fields or contain invalid values.'
         '401':
-          description: The request did not include a valid bearer token for the user requesting the issue list.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '403':
           description: The authenticated user is not allowed to access the issue list.
           content:
@@ -1815,7 +1707,7 @@ paths:
     post:
       tags: [Issues]
       summary: Submit a bug report
-      description: Creates a bug report from an authenticated user. Use this when the frontend needs to send support issues, broken behavior reports, or feedback for follow-up.
+      description: Requires any authenticated user bearer token. Creates a bug report from an authenticated user. Use this when the frontend needs to send support issues, broken behavior reports, or feedback for follow-up.
       security:
         - bearerAuth: []
       requestBody:
@@ -1840,13 +1732,7 @@ paths:
               example:
                 error: 'The bug report payload is missing required fields or contains invalid values.'
         '401':
-          description: The request did not include a valid bearer token for the user submitting the bug report.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '500':
           description: The server could not submit the bug report because of an unexpected internal error.
           content:
@@ -1860,7 +1746,7 @@ paths:
     patch:
       tags: [Issues]
       summary: Update an issue
-      description: Updates an existing issue report. Use this when the issue author or an admin needs to edit report details such as title, description, triage priority, or follow-up metadata.
+      description: Requires any authenticated user bearer token. Issue authors may update their own reports, and admins may update any report. Use this when the issue author or an admin needs to edit report details such as title, description, triage priority, or follow-up metadata.
       security:
         - bearerAuth: []
       parameters:
@@ -1892,13 +1778,7 @@ paths:
               example:
                 error: 'The issue update payload contains invalid values.'
         '401':
-          description: The request did not include a valid bearer token for the user updating the issue.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '403':
           description: The authenticated user is not allowed to update this issue.
           content:
@@ -1927,7 +1807,7 @@ paths:
     delete:
       tags: [Issues]
       summary: Delete an issue
-      description: Deletes an existing issue report. Use this when the issue author removes their own report or an admin performs moderation cleanup.
+      description: Requires any authenticated user bearer token. Issue authors may delete their own reports, and admins may delete any report. Use this when the issue author removes their own report or an admin performs moderation cleanup.
       security:
         - bearerAuth: []
       parameters:
@@ -1953,13 +1833,7 @@ paths:
               example:
                 error: 'The issue ID in the path must be a positive integer.'
         '401':
-          description: The request did not include a valid bearer token for the user deleting the issue.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '403':
           description: The authenticated user is not allowed to delete this issue.
           content:
@@ -1989,7 +1863,7 @@ paths:
     patch:
       tags: [Issues]
       summary: Update the status of a bug report (Admin only)
-      description: Allows administrators to change the progress of a bug report.
+      description: Requires an admin bearer token. Allows administrators to change the progress of a bug report.
       security:
         - bearerAuth: []
       parameters:
@@ -2027,13 +1901,7 @@ paths:
               example:
                 error: 'The issue status update payload contains invalid values.'
         '401':
-          description: The request did not include a valid bearer token for the user updating the issue status.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '403':
           description: The authenticated user is not allowed to update issue status.
           content:
@@ -2089,13 +1957,7 @@ paths:
               example:
                 error: 'The downvote count is already zero, so there is no downvote to remove.'
         '401':
-          description: The request did not include a valid bearer token for the user removing the downvote.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: 'The bearer token is missing, invalid, or expired.'
+          $ref: '#/components/responses/BearerTokenUnauthorized'
         '404':
           description: No review exists for the requested ID.
           content:
@@ -2119,7 +1981,28 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: 'Access token issued by the configured OAuth2/Auth0 issuer and sent as `Authorization: Bearer <token>`.'
+      description: 'Access token issued by the configured OAuth2/Auth0 issuer and sent as `Authorization: Bearer <token>`. Endpoints marked admin-only require a token belonging to a user with role `1`; other protected endpoints accept any authenticated user token.'
+
+  responses:
+    BearerTokenUnauthorized:
+      description: The request could not be authenticated because the bearer token was missing, expired, or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missingToken:
+              summary: Missing bearer token
+              value:
+                error: 'The bearer token is missing.'
+            expiredToken:
+              summary: Expired bearer token
+              value:
+                error: 'The bearer token has expired.'
+            invalidToken:
+              summary: Invalid bearer token
+              value:
+                error: 'The bearer token is invalid.'
 
   schemas:
     User:

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Buffer } from 'buffer';
+import { authErrorMessages } from '../../src/middleware/authErrors';
 
 // This mock implementation of requireAuth is used in tests to bypass actual authentication logic.
 // It simulates a successful authentication by attaching a mock user to the request object.
@@ -22,16 +23,22 @@ declare global {
 export const requireAuth = (request: Request, response: Response, next: NextFunction): void => {
   const authHeader = request.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
-    response.status(401).json({ error: 'Missing or malformed Authorization header' });
+    response.status(401).json({ error: authErrorMessages.missing });
     return;
   }
   try {
     const token = authHeader.slice(7);
     const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+
+    if (payload?.exp && Number(payload.exp) * 1000 <= Date.now()) {
+      response.status(401).json({ error: authErrorMessages.expired });
+      return;
+    }
+
     request.user = { sub: String(payload.sub), id: Number(payload.sub), role: payload.role };
     next();
   } catch {
-    response.status(401).json({ error: 'Invalid or expired token' });
+    response.status(401).json({ error: authErrorMessages.invalid });
   }
 };
 
