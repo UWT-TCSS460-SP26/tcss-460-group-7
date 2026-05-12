@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { expressjwt, GetVerificationKey } from 'express-jwt';
 import { expressJwtSecret } from 'jwks-rsa';
 import { prisma } from '../lib/prisma';
+import { getAuthErrorMessage } from './authErrors';
 
 export interface AuthenticatedUser {
   sub: string;
@@ -34,7 +35,7 @@ export const requireAuth = (request: Request, response: Response, next: NextFunc
   void jwtCheck(request, response, async (err) => {
     if (err) {
       response.status(401).json({
-        error: 'The bearer token is missing, invalid, or expired.',
+        error: getAuthErrorMessage(request.headers.authorization, err),
       });
       return;
     }
