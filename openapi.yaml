@@ -272,7 +272,7 @@ paths:
 
     delete:
       tags: [Users]
-      summary: Delete a user
+      summary: Delete a user (own user or admin)
       description: Requires any authenticated user bearer token. Users may delete their own account, and admins may delete any account. Use this for self-service account removal or admin account cleanup.
       security:
         - bearerAuth: []
