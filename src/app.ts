@@ -8,11 +8,33 @@ import { logger } from './middleware/logger';
 const app = express();
 
 // Application-level middleware
-const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? '')
+const configuredAllowedOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? '')
   .split(',')
   .map((o) => o.trim())
   .filter(Boolean);
-app.use(cors({ origin: allowedOrigins.length ? allowedOrigins : false }));
+const defaultAllowedOrigins = [process.env.RENDER_EXTERNAL_URL, 'http://localhost:3000'].filter(
+  Boolean
+) as string[];
+const allowedOrigins = new Set([...configuredAllowedOrigins, ...defaultAllowedOrigins]);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Non-browser clients and same-origin navigations may omit the Origin header.
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      if (allowedOrigins.size === 0 || allowedOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(null, false);
+    },
+  })
+);
 app.use(express.json());
 app.use(logger);
 
