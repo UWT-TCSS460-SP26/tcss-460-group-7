@@ -43,6 +43,7 @@ describe('Reviews API Endpoints', () => {
         id: 1,
         authorId: 2,
         title_id: 246,
+        media_type: 'movie',
         content: 'Great show',
         header: 'Awesome',
       };
@@ -51,12 +52,18 @@ describe('Reviews API Endpoints', () => {
       const response = await request(app)
         .post('/v1/reviews')
         .set('Authorization', `Bearer ${userToken}`)
-        .send({ title_id: 246, content: 'Great show', header: 'Awesome' });
+        .send({ title_id: 246, media_type: 'movie', content: 'Great show', header: 'Awesome' });
 
       expect(response.status).toBe(201);
       expect(response.body).toEqual(mockReview);
       expect(prisma.review.create).toHaveBeenCalledWith({
-        data: { authorId: 2, content: 'Great show', header: 'Awesome', title_id: 246 },
+        data: {
+          authorId: 2,
+          content: 'Great show',
+          header: 'Awesome',
+          title_id: 246,
+          media_type: 'movie',
+        },
       });
     });
 

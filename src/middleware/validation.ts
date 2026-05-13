@@ -88,9 +88,30 @@ export const requirePositiveIntegerQuery = (key: string) => {
   };
 };
 
+export const requireMediaTypeBody = (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): void => {
+  const { media_type } = request.body;
+  if (media_type !== 'movie' && media_type !== 'tv') {
+    response.status(400).json({
+      error: 'The request body field "media_type" must be "movie" or "tv".',
+    });
+    return;
+  }
+  next();
+};
+
 export const validateCreateOrUpdateRating = [
   requirePositiveIntegerParam('title_id'),
   requireIntegerBody('rating'),
+];
+
+export const validateCreateRating = [
+  requirePositiveIntegerParam('title_id'),
+  requireIntegerBody('rating'),
+  requireMediaTypeBody,
 ];
 
 export const validateRatingsByTitleId = [requirePositiveIntegerParam('title_id')];

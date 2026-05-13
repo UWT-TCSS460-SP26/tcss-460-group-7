@@ -53,13 +53,13 @@ Live URL for API doc [https://tcss-460-group-7.onrender.com/api-docs/]
 
 ### Getting a Token
 
-Use the Token Playground to generate a JWT for testing.
+Use the [Token Playground](https://tcss460-token-playground.onrender.com/) to generate a JWT for testing.
 
-When prompted for an audience, enter exactly: `group-7-api`
+When prompted for an audience, enter exactly: **`group-7-api`**
 
 Include the token in every authenticated request:
 
-```http
+```
 Authorization: Bearer <your-token>
 ```
 
@@ -80,11 +80,11 @@ To get your origin added for production, open a bug report (see below) or contac
 
 ### Filing Bug Reports
 
-Use the Bug Tracker at [https://tcss-460-group-7.onrender.com/issrep](https://tcss-460-group-7.onrender.com/issrep) (launching Sprint 5 — available by Monday).
+Use the Bug Tracker at [https://tcss-460-group-7.onrender.com/issrep](https://tcss-460-group-7.onrender.com/issrep) _(launching Sprint 5 — available by Monday)_.
 
 ### Known Limits and Quirks
 
-- TMDB metadata is fetched on demand — Endpoints that return TMDB-enriched data (`/v1/media`, `/v1/users/me/ratings`, `/v1/users/me/reviews`, `/v1/community/top-rated`) make live calls to TMDB per request. There is no cache. If TMDB is slow or down, metadata fields will return `null` rather than failing the whole request.
-- `media_type` is required on `POST /v1/ratings/:title_id` and `POST /v1/reviews`. Must be `"movie"` or `"tv"`. Omitting it returns a `400`.
-- One review per user per title — A user cannot post two reviews for the same `title_id`. A second attempt returns `409`.
-- Authentication — Most write endpoints and all `/v1/users/me/*` routes require a valid bearer token issued by [https://tcss-460-iam.onrender.com](https://tcss-460-iam.onrender.com). Public read endpoints (`/v1/community/top-rated`, `/v1/media/:type/:id`, search routes) require no token.
+- **TMDB metadata is fetched on demand** — Endpoints that return TMDB-enriched data (`/v1/media`, `/v1/users/me/ratings`, `/v1/users/me/reviews`, `/v1/community/top-rated`) make live calls to TMDB per request. There is no cache. If TMDB is slow or down, `metadata` fields will return `null` rather than failing the whole request.
+- **`media_type` is required** on `POST /v1/ratings/:title_id` and `POST /v1/reviews`. Must be `"movie"` or `"tv"`. Omitting it returns a `400`.
+- **One review per user per title** — A user cannot post two reviews for the same `title_id`. A second attempt returns `409`.
+- **Authentication** — Most write endpoints and all `/v1/users/me/*` routes require a valid bearer token issued by `https://tcss-460-iam.onrender.com`. Public read endpoints (`/v1/community/top-rated`, `/v1/media/:type/:id`, search routes) require no token.

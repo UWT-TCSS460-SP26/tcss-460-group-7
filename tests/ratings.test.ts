@@ -45,6 +45,7 @@ const ratingRecord = (overrides = {}) => ({
   authorId: 7,
   rating: 4,
   title_id: 99,
+  media_type: 'movie',
   author: {
     id: 7,
     display_name: 'Tester',
@@ -59,7 +60,7 @@ describe('POST /v1/ratings/:title_id', () => {
     const res = await request(app)
       .post('/v1/ratings/99')
       .set('Authorization', `Bearer ${userToken}`)
-      .send({ rating: 4 });
+      .send({ rating: 4, media_type: 'movie' });
 
     expect(res.status).toBe(201);
     expect(res.body).toEqual({ data: ratingRecord() });
@@ -77,7 +78,7 @@ describe('POST /v1/ratings/:title_id', () => {
     const res = await request(app)
       .post('/v1/ratings/99')
       .set('Authorization', `Bearer ${userToken}`)
-      .send({ rating: 5 });
+      .send({ rating: 5, media_type: 'movie' });
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ data: ratingRecord({ rating: 5 }) });

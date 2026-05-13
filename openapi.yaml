@@ -890,6 +890,133 @@ paths:
               example:
                 error: 'The API could not build the enriched media response because an upstream or database dependency failed.'
 
+  /v1/users/me/ratings:
+    get:
+      tags: [Front End API]
+      summary: Get the authenticated user's ratings with TMDB metadata
+      description: Returns a paginated list of the signed-in user's ratings, each enriched with TMDB title metadata. Use this to populate a profile or history screen with full title context.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number (10 items per page)
+      responses:
+        '200':
+          description: Paginated list of the user's ratings with TMDB metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyRatingsResponse'
+        '401':
+          description: The request did not include a valid bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
+        '500':
+          description: The server could not retrieve the user's ratings because of an unexpected internal error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not retrieve your ratings.'
+
+  /v1/users/me/reviews:
+    get:
+      tags: [Front End API]
+      summary: Get the authenticated user's reviews with TMDB metadata
+      description: Returns a paginated list of the signed-in user's reviews, each enriched with TMDB title metadata. Use this to populate a profile or history screen with full title context.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number (10 items per page)
+      responses:
+        '200':
+          description: Paginated list of the user's reviews with TMDB metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyReviewsResponse'
+        '401':
+          description: The request did not include a valid bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The bearer token is missing, invalid, or expired.'
+        '500':
+          description: The server could not retrieve the user's reviews because of an unexpected internal error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not retrieve your reviews.'
+
+  /v1/community/top-rated:
+    get:
+      tags: [Front End API]
+      summary: Get the community top-rated titles
+      description: Returns a ranked list of titles ordered by average community rating, then by rating count as a tiebreaker. Each item is enriched with TMDB metadata. No authentication required. Use this for a "Top Picks" or "Community Favorites" feature.
+      parameters:
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 25
+            default: 10
+          description: Results per page (max 25)
+        - in: query
+          name: minCount
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 3
+          description: Minimum number of ratings a title must have to appear in the list
+      responses:
+        '200':
+          description: Ranked list of top-rated titles with TMDB metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopRatedResponse'
+        '500':
+          description: The server could not retrieve the top-rated list because of an unexpected internal error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'The server could not retrieve the top-rated list.'
+
   /v1/ratings/{title_id}:
     post:
       tags: [Ratings]
@@ -2589,11 +2716,15 @@ components:
 
     CreateReviewRequest:
       type: object
-      required: [title_id, content]
+      required: [title_id, content, media_type]
       properties:
         title_id:
           type: integer
           example: 246
+        media_type:
+          type: string
+          enum: [movie, tv]
+          example: tv
         content:
           type: string
           example: 'This is a fantastic show with great character development!'
@@ -2638,10 +2769,15 @@ components:
       type: object
       required:
         - rating
+        - media_type
       properties:
         rating:
           type: integer
           example: 4
+        media_type:
+          type: string
+          enum: [movie, tv]
+          example: movie
 
     Issue:
       type: object
@@ -2756,3 +2892,146 @@ components:
           minimum: 0
           maximum: 2
           example: 1
+
+    MePagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        pageSize:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 13
+        totalPages:
+          type: integer
+          example: 2
+
+    MyRatingItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        title_id:
+          type: integer
+          example: 550
+        media_type:
+          type: string
+          enum: [movie, tv]
+          nullable: true
+          example: movie
+        rating:
+          type: integer
+          example: 4
+        metadata:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/EnrichedMediaMetadata'
+
+    MyRatingsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MyRatingItem'
+        pagination:
+          $ref: '#/components/schemas/MePagination'
+
+    MyReviewItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 7
+        title_id:
+          type: integer
+          example: 246
+        media_type:
+          type: string
+          enum: [movie, tv]
+          nullable: true
+          example: tv
+        content:
+          type: string
+          nullable: true
+          example: 'One of the best shows ever made.'
+        header:
+          type: string
+          nullable: true
+          example: 'A masterpiece'
+        upvotes:
+          type: integer
+          example: 3
+        downvotes:
+          type: integer
+          example: 0
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-05-01T12:00:00.000Z'
+        metadata:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/EnrichedMediaMetadata'
+
+    MyReviewsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MyReviewItem'
+        pagination:
+          $ref: '#/components/schemas/MePagination'
+
+    TopRatedItem:
+      type: object
+      properties:
+        rank:
+          type: integer
+          example: 1
+        title_id:
+          type: integer
+          example: 1396
+        media_type:
+          type: string
+          enum: [movie, tv]
+          example: tv
+        avgRating:
+          type: number
+          format: float
+          example: 4.57
+        ratingCount:
+          type: integer
+          example: 7
+        metadata:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/EnrichedMediaMetadata'
+
+    TopRatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopRatedItem'
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 10
+            total:
+              type: integer
+              example: 8
+            totalPages:
+              type: integer
+              example: 1

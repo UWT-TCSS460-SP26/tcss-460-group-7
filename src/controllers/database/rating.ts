@@ -10,11 +10,11 @@ import { Prisma } from '@prisma/client';
 export const createRating = async (request: Request, response: Response) => {
   const authorId = request.user!.id;
   const title_id = Number(request.params.title_id);
-  const { rating } = request.body;
+  const { rating, media_type } = request.body;
 
   try {
     const titleRating = await prisma.rating.create({
-      data: { authorId, title_id, rating },
+      data: { authorId, title_id, rating, media_type },
       include: { author: { select: { id: true, display_name: true } } },
     });
     response.status(201).json({ data: titleRating });
