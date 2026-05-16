@@ -131,7 +131,8 @@ export const optionalAuth = (request: Request, response: Response, next: NextFun
               name?: string;
               email?: string;
             };
-            const username = userinfo.nickname ?? userinfo.email?.split('@')[0] ?? `user_${auth.sub}`;
+            const username =
+              userinfo.nickname ?? userinfo.email?.split('@')[0] ?? `user_${auth.sub}`;
             const email = userinfo.email ?? `${auth.sub}@auth2.local`;
 
             dbUser = await prisma.user.upsert({

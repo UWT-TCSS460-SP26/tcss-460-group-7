@@ -80,7 +80,14 @@ export default [
     },
   },
   {
-    ignores: ['dist/', 'node_modules/', 'coverage/', 'jest.config.js', 'bug-tracker-fe/', '**/.next/'],
+    ignores: [
+      'dist/',
+      'node_modules/',
+      'coverage/',
+      'jest.config.js',
+      'bug-tracker-fe/',
+      '**/.next/',
+    ],
   },
   prettierConfig,
 ];

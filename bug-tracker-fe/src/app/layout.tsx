@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { Navbar } from "@/components/Navbar";
-import { ThemeProvider } from "@/context/ThemeContext";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { Navbar } from '@/components/Navbar';
+import { ThemeProvider } from '@/context/ThemeContext';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Bug Tracker",
-  description: "Report and track bugs easily",
+  title: 'Bug Tracker',
+  description: 'Report and track bugs easily',
 };
 
 export default function RootLayout({

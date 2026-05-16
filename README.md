@@ -80,13 +80,13 @@ To get your origin added for production, open a bug report (see below) or contac
 
 ### Filing Bug Reports
 
-Use the Bug Tracker Front-end located in the `bug-tracker-fe` directory. 
+Use the Bug Tracker Front-end located in the `bug-tracker-fe` directory.
 
-For development, follow the instructions in [bug-tracker-fe/README.md](./bug-tracker-fe/README.md). 
+For development, follow the instructions in [bug-tracker-fe/README.md](./bug-tracker-fe/README.md).
 
 Once deployed, bug reports can be submitted publicly at:
 [https://tcss-460-group-7.onrender.com/report](https://tcss-460-group-7.onrender.com/report)
-*(Note: Bug reports no longer require authentication as of Sprint 5).*
+_(Note: Bug reports no longer require authentication as of Sprint 5)._
 
 ### Known Limits and Quirks
 
