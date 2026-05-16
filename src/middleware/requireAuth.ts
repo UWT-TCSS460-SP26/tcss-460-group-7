@@ -94,8 +94,11 @@ export const requireAuth = (request: Request, response: Response, next: NextFunc
       request.user = { sub: auth.sub, id: dbUser.id, role: dbUser.role };
       next();
     });
-  } catch (error: any) {
-    console.error('JWT Middleware Initialization Error:', error.message);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      // eslint-disable-next-line no-console
+      console.error('JWT Middleware Initialization Error:', error.message);
+    }
     response.status(500).json({
       error: 'The server authentication middleware is not properly configured.',
     });
