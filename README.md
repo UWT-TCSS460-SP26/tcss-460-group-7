@@ -49,6 +49,18 @@ Live URL at [https://tcss-460-group-7.onrender.com](https://tcss-460-group-7.onr
 
 Live URL for API doc [https://tcss-460-group-7.onrender.com/api-docs/]
 
+## Bug Tracker Frontend
+
+A Sprint 5 public bug-report frontend lives in [frontend/README.md](/home/kassie/OneDrive/Computer/Documents/GitHub/TCSS-460/group-project-backend-group-7/frontend/README.md).
+
+Run it locally from the repository root with:
+
+```bash
+npm run frontend:dev
+```
+
+The form uses `NEXT_PUBLIC_API_URL` and posts to `POST /v1/issues` without auth headers.
+
 ## For Downstream / Partner Developers
 
 ### Getting a Token

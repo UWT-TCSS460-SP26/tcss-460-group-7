@@ -20,8 +20,8 @@ const issuesRouter = Router();
 // Authenticated users (role 1) can only get the bug reports.
 issuesRouter.get('/', requireAuth, requireRole(1), validateGetIssueQuery, getIssue);
 
-// Authenticated users (role 2 or higher) can submit bug reports
-issuesRouter.post('/', requireAuth, validateCreateIssue, createIssue);
+// Public bug report submission route
+issuesRouter.post('/', validateCreateIssue, createIssue);
 issuesRouter.patch(
   '/:id/status',
   requireAuth,

@@ -4,11 +4,13 @@ import { prisma } from '../../lib/prisma';
 /* POST issues to report */
 export const createIssue = async (request: Request, response: Response): Promise<void> => {
   try {
-    const { title, description, reproSteps, reporterContact, priority } = request.body as {
+    const { title, description, reporterName, reproSteps, reporterContact, priority } =
+      request.body as {
       title: string;
       description: string;
+      reporterName: string;
       reproSteps?: string | null;
-      reporterContact?: string | null;
+      reporterContact: string;
       priority?: number;
     };
     const authorId = request.user?.id;
@@ -19,6 +21,7 @@ export const createIssue = async (request: Request, response: Response): Promise
         priority: normalizedPriority,
         title,
         description,
+        reporterName,
         reproSteps,
         reporterContact,
         authorId,
@@ -72,11 +75,13 @@ export const getIssue = async (request: Request, response: Response): Promise<vo
 export const updateIssue = async (request: Request, response: Response): Promise<void> => {
   const issueId = Number(request.params.id);
   const isAdmin = request.user!.role === 1;
-  const { title, description, reproSteps, reporterContact, priority } = request.body as {
+  const { title, description, reporterName, reproSteps, reporterContact, priority } =
+    request.body as {
     title?: string;
     description?: string;
+    reporterName?: string;
     reproSteps?: string | null;
-    reporterContact?: string | null;
+    reporterContact?: string;
     priority?: number;
   };
 
@@ -102,6 +107,7 @@ export const updateIssue = async (request: Request, response: Response): Promise
       data: {
         ...(title !== undefined ? { title } : {}),
         ...(description !== undefined ? { description } : {}),
+        ...(reporterName !== undefined ? { reporterName } : {}),
         ...(reproSteps !== undefined ? { reproSteps } : {}),
         ...(reporterContact !== undefined ? { reporterContact } : {}),
         ...(priority !== undefined ? { priority } : {}),

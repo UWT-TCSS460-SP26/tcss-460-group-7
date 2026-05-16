@@ -1795,7 +1795,7 @@ paths:
             type: integer
             minimum: 0
             maximum: 2
-          description: Optional issue priority filter.
+          description: Optional issue priority filter. `0` = 0-24 hr, `1` = 24-48 hr, `2` = 48+ hr.
       responses:
         '200':
           description: Issue list retrieved successfully
@@ -1834,9 +1834,7 @@ paths:
     post:
       tags: [Issues]
       summary: Submit a bug report
-      description: Requires any authenticated user bearer token. Creates a bug report from an authenticated user. Use this when the frontend needs to send support issues, broken behavior reports, or feedback for follow-up.
-      security:
-        - bearerAuth: []
+      description: Public endpoint. Creates a bug report without requiring authentication. Use this when the frontend needs to send support issues, broken behavior reports, or feedback for follow-up with as little friction as possible.
       requestBody:
         required: true
         content:
@@ -1858,8 +1856,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
                 error: 'The bug report payload is missing required fields or contains invalid values.'
-        '401':
-          $ref: '#/components/responses/BearerTokenUnauthorized'
         '500':
           description: The server could not submit the bug report because of an unexpected internal error.
           content:
@@ -2781,7 +2777,7 @@ components:
 
     Issue:
       type: object
-      required: [id, priority, title, description, status, createdAt]
+      required: [id, priority, title, description, reporterName, reporterContact, status, createdAt]
       properties:
         id:
           type: integer
@@ -2790,13 +2786,17 @@ components:
           type: integer
           minimum: 0
           maximum: 2
-          example: 2
+          description: Priority window where `0` = 0-24 hr, `1` = 24-48 hr, and `2` = 48+ hr.
+          example: 0
         title:
           type: string
           example: 'Mobile Header Bug'
         description:
           type: string
           example: 'The search bar is overlapping with the header on mobile.'
+        reporterName:
+          type: string
+          example: 'Jordan Kim'
         reproSteps:
           type: string
           nullable: true
@@ -2848,7 +2848,7 @@ components:
 
     CreateIssueRequest:
       type: object
-      required: [title, description]
+      required: [title, description, reporterName, reporterContact]
       properties:
         title:
           type: string
@@ -2856,6 +2856,9 @@ components:
         description:
           type: string
           example: 'The search bar is overlapping with the header on mobile.'
+        reporterName:
+          type: string
+          example: 'Jordan Kim'
         reproSteps:
           type: string
           nullable: true
@@ -2868,7 +2871,8 @@ components:
           type: integer
           minimum: 0
           maximum: 2
-          example: 2
+          description: Priority window where `0` = 0-24 hr, `1` = 24-48 hr, and `2` = 48+ hr.
+          example: 0
 
     UpdateIssueRequest:
       type: object
@@ -2879,6 +2883,9 @@ components:
         description:
           type: string
           example: 'Updated issue details for the search bar overlap.'
+        reporterName:
+          type: string
+          example: 'Jordan Kim'
         reproSteps:
           type: string
           nullable: true
@@ -2891,6 +2898,7 @@ components:
           type: integer
           minimum: 0
           maximum: 2
+          description: Priority window where `0` = 0-24 hr, `1` = 24-48 hr, and `2` = 48+ hr.
           example: 1
 
     MePagination:

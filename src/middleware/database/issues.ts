@@ -8,13 +8,9 @@ const issueIdSchema = z.object({
 const createIssueSchema = z.object({
   title: z.string().trim().min(1, 'issue title must be filled out'),
   description: z.string().trim().min(1, 'issue description must be filled out'),
+  reporterName: z.string().trim().min(1, 'reporter name must be filled out'),
   reproSteps: z.string().trim().min(1, 'repro steps must not be empty').nullable().optional(),
-  reporterContact: z
-    .string()
-    .trim()
-    .min(1, 'reporter contact must not be empty')
-    .nullable()
-    .optional(),
+  reporterContact: z.string().trim().min(1, 'reporter contact must be filled out'),
   priority: z.number().int().min(0).max(2).optional(),
 });
 
@@ -22,19 +18,16 @@ const updateIssueSchema = z
   .object({
     title: z.string().trim().min(1, 'issue title must be filled out').optional(),
     description: z.string().trim().min(1, 'issue description must be filled out').optional(),
+    reporterName: z.string().trim().min(1, 'reporter name must be filled out').optional(),
     reproSteps: z.string().trim().min(1, 'repro steps must not be empty').nullable().optional(),
-    reporterContact: z
-      .string()
-      .trim()
-      .min(1, 'reporter contact must not be empty')
-      .nullable()
-      .optional(),
+    reporterContact: z.string().trim().min(1, 'reporter contact must be filled out').optional(),
     priority: z.number().int().min(0).max(2).optional(),
   })
   .refine(
     (data) =>
       data.title !== undefined ||
       data.description !== undefined ||
+      data.reporterName !== undefined ||
       data.reproSteps !== undefined ||
       data.reporterContact !== undefined ||
       data.priority !== undefined,
