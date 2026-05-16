@@ -238,14 +238,40 @@ describe('Issues API Endpoints', () => {
       );
     });
 
-    it('returns 401 without authentication', async () => {
-      const response = await request(app).post('/v1/issues').send({
-        title: 'Mobile Header Bug',
-        description: 'The search bar is overlapping with the header on mobile.',
-      });
+    it('creates a new issue without authentication', async () => {
+      const mockIssue = {
+        id: 3,
+        priority: 2,
+        title: 'Public Bug Report',
+        description: 'This is a bug report from an unauthenticated user.',
+        reproSteps: null,
+        reporterContact: 'public@example.com',
+        status: 'UNSOLVED',
+        authorId: null,
+        createdAt: new Date().toISOString(),
+      };
+      (prisma.issue.create as jest.Mock).mockResolvedValue(mockIssue);
 
-      expect(response.status).toBe(401);
-      expect(response.body.error).toBe('The bearer token is missing.');
+      const payload = {
+        title: 'Public Bug Report',
+        description: 'This is a bug report from an unauthenticated user.',
+        reporterContact: 'public@example.com',
+      };
+
+      const response = await request(app).post('/v1/issues').send(payload);
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual(mockIssue);
+      expect(prisma.issue.create).toHaveBeenCalledWith({
+        data: {
+          priority: 2,
+          title: payload.title,
+          description: payload.description,
+          reproSteps: undefined,
+          reporterContact: payload.reporterContact,
+          authorId: undefined,
+        },
+      });
     });
   });
 

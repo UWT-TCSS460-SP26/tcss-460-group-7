@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireAuth, requireRole } from '../../middleware/requireAuth';
+import { requireAuth, requireRole, optionalAuth } from '../../middleware/requireAuth';
 import {
   validateCreateIssue,
   validateGetIssueQuery,
@@ -20,8 +20,8 @@ const issuesRouter = Router();
 // Authenticated users (role 1) can only get the bug reports.
 issuesRouter.get('/', requireAuth, requireRole(1), validateGetIssueQuery, getIssue);
 
-// Authenticated users (role 2 or higher) can submit bug reports
-issuesRouter.post('/', requireAuth, validateCreateIssue, createIssue);
+// Anyone can submit bug reports, but we capture the user if they are logged in
+issuesRouter.post('/', optionalAuth, validateCreateIssue, createIssue);
 issuesRouter.patch(
   '/:id/status',
   requireAuth,

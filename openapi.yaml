@@ -1834,9 +1834,7 @@ paths:
     post:
       tags: [Issues]
       summary: Submit a bug report
-      description: Requires any authenticated user bearer token. Creates a bug report from an authenticated user. Use this when the frontend needs to send support issues, broken behavior reports, or feedback for follow-up.
-      security:
-        - bearerAuth: []
+      description: Publicly accessible endpoint for submitting bug reports. No authentication required. Use this for support issues, broken behavior reports, or feedback for follow-up.
       requestBody:
         required: true
         content:

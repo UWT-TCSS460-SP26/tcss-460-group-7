@@ -42,6 +42,23 @@ export const requireAuth = (request: Request, response: Response, next: NextFunc
   }
 };
 
+export const optionalAuth = (request: Request, _response: Response, next: NextFunction): void => {
+  const authHeader = request.headers.authorization;
+  if (authHeader?.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.slice(7);
+      const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+
+      if (!(payload?.exp && Number(payload.exp) * 1000 <= Date.now())) {
+        request.user = { sub: String(payload.sub), id: Number(payload.sub), role: payload.role };
+      }
+    } catch {
+      // Ignore invalid tokens in optional auth
+    }
+  }
+  next();
+};
+
 export const requireRole = (role: number) => {
   return (request: Request, response: Response, next: NextFunction): void => {
     if (!request.user) {

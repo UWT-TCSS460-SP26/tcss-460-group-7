@@ -88,6 +88,60 @@ export const requireAuth = (request: Request, response: Response, next: NextFunc
 };
 
 /**
+ * Optional authentication middleware.
+ * If a valid token is provided, it populates request.user.
+ * Otherwise, it proceeds without request.user.
+ */
+export const optionalAuth = (request: Request, response: Response, next: NextFunction): void => {
+  void jwtCheck(request, response, async (err) => {
+    if (err) {
+      // If there's an error (e.g., missing or invalid token), just proceed
+      return next();
+    }
+    const authHeader = request.headers.authorization as string;
+    const auth = (request as unknown as { auth: { sub: string } }).auth;
+
+    try {
+      let dbUser = await prisma.user.findUnique({ where: { subjectId: auth.sub } });
+
+      if (!dbUser) {
+        const userinfoRes = await fetch(`${process.env.AUTH_ISSUER}/v2/oauth/userinfo`, {
+          headers: { Authorization: authHeader },
+        });
+        if (userinfoRes.ok) {
+          const userinfo = (await userinfoRes.json()) as {
+            nickname?: string;
+            name?: string;
+            email?: string;
+          };
+          const username = userinfo.nickname ?? userinfo.email?.split('@')[0] ?? `user_${auth.sub}`;
+          const email = userinfo.email ?? `${auth.sub}@auth2.local`;
+
+          dbUser = await prisma.user.upsert({
+            where: { subjectId: auth.sub },
+            update: {},
+            create: {
+              subjectId: auth.sub,
+              username,
+              email,
+              display_name: userinfo.name ?? null,
+              role: 2,
+            },
+          });
+        }
+      }
+
+      if (dbUser) {
+        request.user = { sub: auth.sub, id: dbUser.id, role: dbUser.role };
+      }
+    } catch {
+      // Ignore errors in optional auth and just proceed
+    }
+    next();
+  });
+};
+
+/**
  * Role gate. Use after requireAuth:
  *
  *   router.delete('/reviews/:id', requireAuth, requireRole(1), handler);
