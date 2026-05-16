@@ -3,27 +3,25 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --background: 0 0% 0%;
+  --foreground: 47.9 95.8% 51.8%; /* yellow-500 */
+  --accent: 47.9 95.8% 51.8%;
+  --card: 0 0% 5%;
+  --border: 47.9 95.8% 51.8% / 0.2;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+.light-theme {
+  --background: 0 0% 100%;
+  --foreground: 142.1 76.2% 36.3%; /* neon green - green-500ish */
+  --accent: 142.1 76.2% 45.3%; /* brighter neon green */
+  --card: 0 0% 98%;
+  --border: 142.1 76.2% 36.3% / 0.2;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 @layer utilities {

@@ -1,4 +1,9 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Force load .env from the root directory immediately
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
 import { app } from './app';
 
 const PORT = parseInt(process.env.PORT || '3000', 10);

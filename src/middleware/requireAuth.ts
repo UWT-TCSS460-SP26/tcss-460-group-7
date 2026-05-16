@@ -19,96 +19,51 @@ declare global {
   }
 }
 
-const jwtCheck = expressjwt({
-  secret: expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: `${process.env.AUTH_ISSUER}/.well-known/jwks.json`,
-  }) as GetVerificationKey,
-  audience: process.env.API_AUDIENCE,
-  issuer: process.env.AUTH_ISSUER,
-  algorithms: ['RS256'],
-});
+const getJwtCheck = () => {
+  const issuer = process.env.AUTH_ISSUER;
+  if (!issuer || !issuer.startsWith('http')) {
+    throw new Error('AUTH_ISSUER environment variable is missing or invalid.');
+  }
 
-export const requireAuth = (request: Request, response: Response, next: NextFunction): void => {
-  void jwtCheck(request, response, async (err) => {
-    if (err) {
-      response.status(401).json({
-        error: getAuthErrorMessage(request.headers.authorization, err),
-      });
-      return;
-    }
-    const authHeader = request.headers.authorization as string;
-    const auth = (request as unknown as { auth: { sub: string } }).auth;
-
-    let dbUser = await prisma.user.findUnique({ where: { subjectId: auth.sub } });
-
-    if (!dbUser) {
-      try {
-        const userinfoRes = await fetch(`${process.env.AUTH_ISSUER}/v2/oauth/userinfo`, {
-          headers: { Authorization: authHeader },
-        });
-        if (!userinfoRes.ok) {
-          response.status(401).json({
-            error: 'The authenticated user could not be resolved from the identity provider.',
-          });
-          return;
-        }
-        const userinfo = (await userinfoRes.json()) as {
-          nickname?: string;
-          name?: string;
-          email?: string;
-        };
-        const username = userinfo.nickname ?? userinfo.email?.split('@')[0] ?? `user_${auth.sub}`;
-        const email = userinfo.email ?? `${auth.sub}@auth2.local`;
-
-        dbUser = await prisma.user.upsert({
-          where: { subjectId: auth.sub },
-          update: {},
-          create: {
-            subjectId: auth.sub,
-            username,
-            email,
-            display_name: userinfo.name ?? null,
-            role: 2,
-          },
-        });
-      } catch {
-        response.status(500).json({
-          error: 'The server could not create or load the authenticated user profile.',
-        });
-        return;
-      }
-    }
-
-    request.user = { sub: auth.sub, id: dbUser.id, role: dbUser.role };
-    next();
+  return expressjwt({
+    secret: expressJwtSecret({
+      cache: true,
+      rateLimit: true,
+      jwksRequestsPerMinute: 5,
+      jwksUri: `${issuer}/.well-known/jwks.json`,
+    }) as GetVerificationKey,
+    audience: process.env.API_AUDIENCE,
+    issuer: issuer,
+    algorithms: ['RS256'],
   });
 };
 
-/**
- * Optional authentication middleware.
- * If a valid token is provided, it populates request.user.
- * Otherwise, it proceeds without request.user.
- */
-export const optionalAuth = (request: Request, response: Response, next: NextFunction): void => {
-  void jwtCheck(request, response, async (err) => {
-    if (err) {
-      // If there's an error (e.g., missing or invalid token), just proceed
-      return next();
-    }
-    const authHeader = request.headers.authorization as string;
-    const auth = (request as unknown as { auth: { sub: string } }).auth;
+export const requireAuth = (request: Request, response: Response, next: NextFunction): void => {
+  try {
+    const jwtCheck = getJwtCheck();
+    void jwtCheck(request, response, async (err) => {
+      if (err) {
+        response.status(401).json({
+          error: getAuthErrorMessage(request.headers.authorization, err),
+        });
+        return;
+      }
+      const authHeader = request.headers.authorization as string;
+      const auth = (request as unknown as { auth: { sub: string } }).auth;
 
-    try {
       let dbUser = await prisma.user.findUnique({ where: { subjectId: auth.sub } });
 
       if (!dbUser) {
-        const userinfoRes = await fetch(`${process.env.AUTH_ISSUER}/v2/oauth/userinfo`, {
-          headers: { Authorization: authHeader },
-        });
-        if (userinfoRes.ok) {
+        try {
+          const userinfoRes = await fetch(`${process.env.AUTH_ISSUER}/v2/oauth/userinfo`, {
+            headers: { Authorization: authHeader },
+          });
+          if (!userinfoRes.ok) {
+            response.status(401).json({
+              error: 'The authenticated user could not be resolved from the identity provider.',
+            });
+            return;
+          }
           const userinfo = (await userinfoRes.json()) as {
             nickname?: string;
             name?: string;
@@ -128,17 +83,79 @@ export const optionalAuth = (request: Request, response: Response, next: NextFun
               role: 2,
             },
           });
+        } catch {
+          response.status(500).json({
+            error: 'The server could not create or load the authenticated user profile.',
+          });
+          return;
         }
       }
 
-      if (dbUser) {
-        request.user = { sub: auth.sub, id: dbUser.id, role: dbUser.role };
+      request.user = { sub: auth.sub, id: dbUser.id, role: dbUser.role };
+      next();
+    });
+  } catch (error: any) {
+    console.error('JWT Middleware Initialization Error:', error.message);
+    response.status(500).json({
+      error: 'The server authentication middleware is not properly configured.',
+    });
+  }
+};
+
+/**
+ * Optional authentication middleware.
+ */
+export const optionalAuth = (request: Request, response: Response, next: NextFunction): void => {
+  try {
+    const jwtCheck = getJwtCheck();
+    void jwtCheck(request, response, async (err) => {
+      if (err) {
+        return next();
       }
-    } catch {
-      // Ignore errors in optional auth and just proceed
-    }
+      const authHeader = request.headers.authorization as string;
+      const auth = (request as unknown as { auth: { sub: string } }).auth;
+
+      try {
+        let dbUser = await prisma.user.findUnique({ where: { subjectId: auth.sub } });
+
+        if (!dbUser) {
+          const userinfoRes = await fetch(`${process.env.AUTH_ISSUER}/v2/oauth/userinfo`, {
+            headers: { Authorization: authHeader },
+          });
+          if (userinfoRes.ok) {
+            const userinfo = (await userinfoRes.json()) as {
+              nickname?: string;
+              name?: string;
+              email?: string;
+            };
+            const username = userinfo.nickname ?? userinfo.email?.split('@')[0] ?? `user_${auth.sub}`;
+            const email = userinfo.email ?? `${auth.sub}@auth2.local`;
+
+            dbUser = await prisma.user.upsert({
+              where: { subjectId: auth.sub },
+              update: {},
+              create: {
+                subjectId: auth.sub,
+                username,
+                email,
+                display_name: userinfo.name ?? null,
+                role: 2,
+              },
+            });
+          }
+        }
+
+        if (dbUser) {
+          request.user = { sub: auth.sub, id: dbUser.id, role: dbUser.role };
+        }
+      } catch {
+        // Ignore errors
+      }
+      next();
+    });
+  } catch {
     next();
-  });
+  }
 };
 
 /**
