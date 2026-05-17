@@ -42,8 +42,9 @@ describe('Issues API Endpoints', () => {
           priority: 2,
           title: 'General bug report',
           description: 'General bug report details.',
+          reporterName: 'Jordan Kim',
           reproSteps: null,
-          reporterContact: null,
+          reporterContact: 'jordan@example.com',
           status: 'UNSOLVED',
           authorId: 2,
           createdAt: new Date().toISOString(),
@@ -88,6 +89,7 @@ describe('Issues API Endpoints', () => {
           priority: 1,
           title: 'Critical bug report',
           description: 'Critical bug report details.',
+          reporterName: 'Jordan Kim',
           reproSteps: '1. Open page. 2. Observe crash.',
           reporterContact: 'user@dev.local',
           status: 'IN_PROGRESS',
@@ -149,16 +151,17 @@ describe('Issues API Endpoints', () => {
   });
 
   describe('POST /v1/issues', () => {
-    it('creates a new issue for an authenticated user', async () => {
+    it('creates a new public issue report without authentication', async () => {
       const mockIssue = {
         id: 1,
         priority: 2,
         title: 'Mobile Header Bug',
         description: 'The search bar is overlapping with the header on mobile.',
+        reporterName: 'Jordan Kim',
         reproSteps: '1. Open on iPhone 13. 2. Look at header.',
         reporterContact: 'tester@example.com',
         status: 'UNSOLVED',
-        authorId: 2,
+        authorId: null,
         createdAt: new Date().toISOString(),
       };
       (prisma.issue.create as jest.Mock).mockResolvedValue(mockIssue);
@@ -166,14 +169,12 @@ describe('Issues API Endpoints', () => {
       const payload = {
         title: 'Mobile Header Bug',
         description: 'The search bar is overlapping with the header on mobile.',
+        reporterName: 'Jordan Kim',
         reproSteps: '1. Open on iPhone 13. 2. Look at header.',
         reporterContact: 'tester@example.com',
       };
 
-      const response = await request(app)
-        .post('/v1/issues')
-        .set('Authorization', `Bearer ${userToken}`)
-        .send(payload);
+      const response = await request(app).post('/v1/issues').send(payload);
 
       expect(response.status).toBe(201);
       expect(response.body).toEqual(mockIssue);
@@ -182,9 +183,10 @@ describe('Issues API Endpoints', () => {
           priority: 2,
           title: payload.title,
           description: payload.description,
+          reporterName: payload.reporterName,
           reproSteps: payload.reproSteps,
           reporterContact: payload.reporterContact,
-          authorId: 2,
+          authorId: undefined,
         },
       });
     });
@@ -195,22 +197,22 @@ describe('Issues API Endpoints', () => {
         priority: 1,
         title: 'Critical bug report',
         description: 'Critical bug report details.',
+        reporterName: 'Jordan Kim',
         reproSteps: null,
-        reporterContact: null,
+        reporterContact: 'jordan@example.com',
         status: 'UNSOLVED',
-        authorId: 2,
+        authorId: null,
         createdAt: new Date().toISOString(),
       };
       (prisma.issue.create as jest.Mock).mockResolvedValue(mockIssue);
 
-      const response = await request(app)
-        .post('/v1/issues')
-        .set('Authorization', `Bearer ${userToken}`)
-        .send({
-          title: 'Critical bug report',
-          description: 'Critical bug report details.',
-          priority: 1,
-        });
+      const response = await request(app).post('/v1/issues').send({
+        title: 'Critical bug report',
+        description: 'Critical bug report details.',
+        reporterName: 'Jordan Kim',
+        reporterContact: 'jordan@example.com',
+        priority: 1,
+      });
 
       expect(response.status).toBe(201);
       expect(response.body).toEqual(mockIssue);
@@ -219,9 +221,10 @@ describe('Issues API Endpoints', () => {
           priority: 1,
           title: 'Critical bug report',
           description: 'Critical bug report details.',
+          reporterName: 'Jordan Kim',
           reproSteps: undefined,
-          reporterContact: undefined,
-          authorId: 2,
+          reporterContact: 'jordan@example.com',
+          authorId: undefined,
         },
       });
     });
@@ -229,7 +232,6 @@ describe('Issues API Endpoints', () => {
     it('returns 400 when required fields are missing', async () => {
       const response = await request(app)
         .post('/v1/issues')
-        .set('Authorization', `Bearer ${userToken}`)
         .send({ description: 'Some description' });
 
       expect(response.status).toBe(400);
@@ -238,14 +240,44 @@ describe('Issues API Endpoints', () => {
       );
     });
 
-    it('returns 401 without authentication', async () => {
+    it('returns 400 when reporter name or contact is blank', async () => {
       const response = await request(app).post('/v1/issues').send({
         title: 'Mobile Header Bug',
         description: 'The search bar is overlapping with the header on mobile.',
+        reporterName: '   ',
+        reporterContact: '',
       });
 
-      expect(response.status).toBe(401);
-      expect(response.body.error).toBe('The bearer token is missing.');
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe(
+        'The bug report payload is missing required fields or contains invalid values.'
+      );
+    });
+
+    it('accepts unauthenticated submissions by design', async () => {
+      const mockIssue = {
+        id: 3,
+        priority: 2,
+        title: 'Mobile Header Bug',
+        description: 'The search bar is overlapping with the header on mobile.',
+        reporterName: 'Jordan Kim',
+        reproSteps: null,
+        reporterContact: 'jordan@example.com',
+        status: 'UNSOLVED',
+        authorId: null,
+        createdAt: new Date().toISOString(),
+      };
+      (prisma.issue.create as jest.Mock).mockResolvedValue(mockIssue);
+
+      const response = await request(app).post('/v1/issues').send({
+        title: 'Mobile Header Bug',
+        description: 'The search bar is overlapping with the header on mobile.',
+        reporterName: 'Jordan Kim',
+        reporterContact: 'jordan@example.com',
+      });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual(mockIssue);
     });
   });
 
@@ -256,8 +288,9 @@ describe('Issues API Endpoints', () => {
         priority: 2,
         title: 'Bug report',
         description: 'Bug report details.',
+        reporterName: 'Jordan Kim',
         reproSteps: null,
-        reporterContact: null,
+        reporterContact: 'jordan@example.com',
         status: 'UNSOLVED',
         authorId: 2,
         createdAt: new Date().toISOString(),
@@ -322,8 +355,9 @@ describe('Issues API Endpoints', () => {
         priority: 2,
         title: 'Old title',
         description: 'Old description',
+        reporterName: 'Jordan Kim',
         reproSteps: null,
-        reporterContact: null,
+        reporterContact: 'jordan@example.com',
         status: 'UNSOLVED',
         authorId: 2,
         createdAt: new Date().toISOString(),
@@ -364,6 +398,7 @@ describe('Issues API Endpoints', () => {
         priority: 2,
         title: 'Original title',
         description: 'Original description',
+        reporterName: 'Jordan Kim',
         reproSteps: '1. Open page.',
         reporterContact: 'reporter@example.com',
         status: 'UNSOLVED',
@@ -372,7 +407,7 @@ describe('Issues API Endpoints', () => {
       };
       const updatedIssue = {
         ...existingIssue,
-        reporterContact: null,
+        reporterContact: 'updated@example.com',
       };
       (prisma.issue.findUnique as jest.Mock).mockResolvedValue(existingIssue);
       (prisma.issue.update as jest.Mock).mockResolvedValue(updatedIssue);
@@ -380,14 +415,14 @@ describe('Issues API Endpoints', () => {
       const response = await request(app)
         .patch('/v1/issues/2')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ reporterContact: null });
+        .send({ reporterContact: 'updated@example.com' });
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(updatedIssue);
       expect(prisma.issue.update).toHaveBeenCalledWith({
         where: { id: 2 },
         data: {
-          reporterContact: null,
+          reporterContact: 'updated@example.com',
         },
       });
     });
@@ -398,8 +433,9 @@ describe('Issues API Endpoints', () => {
         priority: 2,
         title: 'Someone else title',
         description: 'Someone else description',
+        reporterName: 'Jordan Kim',
         reproSteps: null,
-        reporterContact: null,
+        reporterContact: 'jordan@example.com',
         status: 'UNSOLVED',
         authorId: 99,
         createdAt: new Date().toISOString(),
@@ -454,8 +490,9 @@ describe('Issues API Endpoints', () => {
         priority: 2,
         title: 'Issue to delete',
         description: 'Issue to delete description',
+        reporterName: 'Jordan Kim',
         reproSteps: null,
-        reporterContact: null,
+        reporterContact: 'jordan@example.com',
         status: 'UNSOLVED',
         authorId: 2,
         createdAt: new Date().toISOString(),
@@ -480,8 +517,9 @@ describe('Issues API Endpoints', () => {
         priority: 1,
         title: 'Admin delete target',
         description: 'Admin delete target description',
+        reporterName: 'Jordan Kim',
         reproSteps: null,
-        reporterContact: null,
+        reporterContact: 'jordan@example.com',
         status: 'UNSOLVED',
         authorId: 99,
         createdAt: new Date().toISOString(),
@@ -503,8 +541,9 @@ describe('Issues API Endpoints', () => {
         priority: 2,
         title: 'Someone else issue',
         description: 'Someone else issue description',
+        reporterName: 'Jordan Kim',
         reproSteps: null,
-        reporterContact: null,
+        reporterContact: 'jordan@example.com',
         status: 'UNSOLVED',
         authorId: 99,
         createdAt: new Date().toISOString(),

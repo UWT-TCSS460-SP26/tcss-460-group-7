@@ -34,3 +34,9 @@ src/generated/
 /generated/prisma
 
 /generated/prisma
+
+# Local frontend and generated binaries
+frontend/
+app
+tsx
+tcss460-group-project-backend@0.0.0
