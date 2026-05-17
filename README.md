@@ -53,7 +53,7 @@ Live URL for API doc [https://tcss-460-group-7.onrender.com/api-docs/]
 
 A Sprint 5 public bug-report frontend lives in [frontend/README.md](/home/kassie/OneDrive/Computer/Documents/GitHub/TCSS-460/group-project-backend-group-7/frontend/README.md).
 
-Run it locally from the repository root with:
+Live on render [https://group-7-bug-report.onrender.com/](https://group-7-bug-report.onrender.com/)
 
 ```bash
 npm run frontend:dev
