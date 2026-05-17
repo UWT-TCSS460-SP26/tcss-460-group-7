@@ -206,15 +206,13 @@ describe('Issues API Endpoints', () => {
       };
       (prisma.issue.create as jest.Mock).mockResolvedValue(mockIssue);
 
-      const response = await request(app)
-        .post('/v1/issues')
-        .send({
-          title: 'Critical bug report',
-          description: 'Critical bug report details.',
-          reporterName: 'Jordan Kim',
-          reporterContact: 'jordan@example.com',
-          priority: 1,
-        });
+      const response = await request(app).post('/v1/issues').send({
+        title: 'Critical bug report',
+        description: 'Critical bug report details.',
+        reporterName: 'Jordan Kim',
+        reporterContact: 'jordan@example.com',
+        priority: 1,
+      });
 
       expect(response.status).toBe(201);
       expect(response.body).toEqual(mockIssue);
@@ -232,7 +230,9 @@ describe('Issues API Endpoints', () => {
     });
 
     it('returns 400 when required fields are missing', async () => {
-      const response = await request(app).post('/v1/issues').send({ description: 'Some description' });
+      const response = await request(app)
+        .post('/v1/issues')
+        .send({ description: 'Some description' });
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe(

@@ -6,13 +6,13 @@ export const createIssue = async (request: Request, response: Response): Promise
   try {
     const { title, description, reporterName, reproSteps, reporterContact, priority } =
       request.body as {
-      title: string;
-      description: string;
-      reporterName: string;
-      reproSteps?: string | null;
-      reporterContact: string;
-      priority?: number;
-    };
+        title: string;
+        description: string;
+        reporterName: string;
+        reproSteps?: string | null;
+        reporterContact: string;
+        priority?: number;
+      };
     const authorId = request.user?.id;
     const normalizedPriority = priority ?? 2;
 
@@ -77,13 +77,13 @@ export const updateIssue = async (request: Request, response: Response): Promise
   const isAdmin = request.user!.role === 1;
   const { title, description, reporterName, reproSteps, reporterContact, priority } =
     request.body as {
-    title?: string;
-    description?: string;
-    reporterName?: string;
-    reproSteps?: string | null;
-    reporterContact?: string;
-    priority?: number;
-  };
+      title?: string;
+      description?: string;
+      reporterName?: string;
+      reproSteps?: string | null;
+      reporterContact?: string;
+      priority?: number;
+    };
 
   try {
     const existingIssue = await prisma.issue.findUnique({
