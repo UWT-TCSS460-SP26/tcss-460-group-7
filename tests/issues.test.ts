@@ -349,49 +349,6 @@ describe('Issues API Endpoints', () => {
   });
 
   describe('PATCH /v1/issues/:id', () => {
-    it('lets the issue author update their own issue', async () => {
-      const existingIssue = {
-        id: 1,
-        priority: 2,
-        title: 'Old title',
-        description: 'Old description',
-        reporterName: 'Jordan Kim',
-        reproSteps: null,
-        reporterContact: 'jordan@example.com',
-        status: 'UNSOLVED',
-        authorId: 2,
-        createdAt: new Date().toISOString(),
-      };
-      const updatedIssue = {
-        ...existingIssue,
-        title: 'Updated title',
-        description: 'Updated description',
-        priority: 1,
-      };
-      (prisma.issue.findUnique as jest.Mock).mockResolvedValue(existingIssue);
-      (prisma.issue.update as jest.Mock).mockResolvedValue(updatedIssue);
-
-      const response = await request(app)
-        .patch('/v1/issues/1')
-        .set('Authorization', `Bearer ${userToken}`)
-        .send({
-          title: 'Updated title',
-          description: 'Updated description',
-          priority: 1,
-        });
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual(updatedIssue);
-      expect(prisma.issue.update).toHaveBeenCalledWith({
-        where: { id: 1 },
-        data: {
-          title: 'Updated title',
-          description: 'Updated description',
-          priority: 1,
-        },
-      });
-    });
-
     it('lets an admin update any issue', async () => {
       const existingIssue = {
         id: 2,
@@ -427,26 +384,15 @@ describe('Issues API Endpoints', () => {
       });
     });
 
-    it('returns 403 when a non-admin tries to update another users issue', async () => {
-      (prisma.issue.findUnique as jest.Mock).mockResolvedValue({
-        id: 3,
-        priority: 2,
-        title: 'Someone else title',
-        description: 'Someone else description',
-        reporterName: 'Jordan Kim',
-        reproSteps: null,
-        reporterContact: 'jordan@example.com',
-        status: 'UNSOLVED',
-        authorId: 99,
-        createdAt: new Date().toISOString(),
-      });
-
+    it('returns 403 when a non-admin tries to update an issue', async () => {
       const response = await request(app)
         .patch('/v1/issues/3')
         .set('Authorization', `Bearer ${userToken}`)
         .send({ title: 'Attempted update' });
 
       expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Insufficient permissions');
+      expect(prisma.issue.findUnique).not.toHaveBeenCalled();
       expect(prisma.issue.update).not.toHaveBeenCalled();
     });
 
@@ -455,7 +401,7 @@ describe('Issues API Endpoints', () => {
 
       const response = await request(app)
         .patch('/v1/issues/999')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({ title: 'Attempted update' });
 
       expect(response.status).toBe(404);
@@ -465,7 +411,7 @@ describe('Issues API Endpoints', () => {
     it('returns 400 for an invalid issue id', async () => {
       const response = await request(app)
         .patch('/v1/issues/not-a-number')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({ title: 'Attempted update' });
 
       expect(response.status).toBe(400);
@@ -475,7 +421,7 @@ describe('Issues API Endpoints', () => {
     it('returns 400 for an invalid update payload', async () => {
       const response = await request(app)
         .patch('/v1/issues/1')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({ priority: 5 });
 
       expect(response.status).toBe(400);
@@ -484,33 +430,6 @@ describe('Issues API Endpoints', () => {
   });
 
   describe('DELETE /v1/issues/:id', () => {
-    it('lets the issue author delete their own issue', async () => {
-      const existingIssue = {
-        id: 1,
-        priority: 2,
-        title: 'Issue to delete',
-        description: 'Issue to delete description',
-        reporterName: 'Jordan Kim',
-        reproSteps: null,
-        reporterContact: 'jordan@example.com',
-        status: 'UNSOLVED',
-        authorId: 2,
-        createdAt: new Date().toISOString(),
-      };
-      (prisma.issue.findUnique as jest.Mock).mockResolvedValue(existingIssue);
-      (prisma.issue.delete as jest.Mock).mockResolvedValue(existingIssue);
-
-      const response = await request(app)
-        .delete('/v1/issues/1')
-        .set('Authorization', `Bearer ${userToken}`);
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual(existingIssue);
-      expect(prisma.issue.delete).toHaveBeenCalledWith({
-        where: { id: 1 },
-      });
-    });
-
     it('lets an admin delete any issue', async () => {
       const existingIssue = {
         id: 2,
@@ -535,25 +454,14 @@ describe('Issues API Endpoints', () => {
       expect(response.body).toEqual(existingIssue);
     });
 
-    it('returns 403 when a non-admin tries to delete another users issue', async () => {
-      (prisma.issue.findUnique as jest.Mock).mockResolvedValue({
-        id: 3,
-        priority: 2,
-        title: 'Someone else issue',
-        description: 'Someone else issue description',
-        reporterName: 'Jordan Kim',
-        reproSteps: null,
-        reporterContact: 'jordan@example.com',
-        status: 'UNSOLVED',
-        authorId: 99,
-        createdAt: new Date().toISOString(),
-      });
-
+    it('returns 403 when a non-admin tries to delete an issue', async () => {
       const response = await request(app)
         .delete('/v1/issues/3')
         .set('Authorization', `Bearer ${userToken}`);
 
       expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Insufficient permissions');
+      expect(prisma.issue.findUnique).not.toHaveBeenCalled();
       expect(prisma.issue.delete).not.toHaveBeenCalled();
     });
 
@@ -562,7 +470,7 @@ describe('Issues API Endpoints', () => {
 
       const response = await request(app)
         .delete('/v1/issues/999')
-        .set('Authorization', `Bearer ${userToken}`);
+        .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(404);
       expect(response.body.error).toBe('No issue was found for the provided ID.');
@@ -571,7 +479,7 @@ describe('Issues API Endpoints', () => {
     it('returns 400 for an invalid issue id', async () => {
       const response = await request(app)
         .delete('/v1/issues/not-a-number')
-        .set('Authorization', `Bearer ${userToken}`);
+        .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('The issue ID in the path must be a positive integer.');
