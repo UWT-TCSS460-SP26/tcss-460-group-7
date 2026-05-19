@@ -64,14 +64,8 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateUserRequest'
       responses:
-        '201':
-          description: User profile created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
         '200':
-          description: Existing user profile updated successfully
+          description: User profile created or updated successfully
           content:
             application/json:
               schema:
@@ -1036,7 +1030,12 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RatingWriteRequest'
+              type: object
+              required: [rating]
+              properties:
+                rating:
+                  type: integer
+                  example: 4
       responses:
         '201':
           description: Rating created
@@ -1086,7 +1085,12 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RatingWriteRequest'
+              type: object
+              required: [rating]
+              properties:
+                rating:
+                  type: integer
+                  example: 4
       responses:
         '200':
           description: Rating updated
@@ -1835,6 +1839,7 @@ paths:
       tags: [Issues]
       summary: Submit a bug report
       description: Public endpoint. Creates a bug report without requiring authentication. Use this when the frontend needs to send support issues, broken behavior reports, or feedback for follow-up with as little friction as possible.
+      security: []
       requestBody:
         required: true
         content:
@@ -2803,7 +2808,6 @@ components:
           example: '1. Open on iPhone 13. 2. Look at header.'
         reporterContact:
           type: string
-          nullable: true
           example: 'tester@example.com'
         status:
           type: string
@@ -2865,7 +2869,6 @@ components:
           example: '1. Open on iPhone 13. 2. Look at header.'
         reporterContact:
           type: string
-          nullable: true
           example: 'tester@example.com'
         priority:
           type: integer
@@ -2876,6 +2879,7 @@ components:
 
     UpdateIssueRequest:
       type: object
+      minProperties: 1
       properties:
         title:
           type: string
@@ -2892,7 +2896,6 @@ components:
           example: '1. Open on iPhone 13. 2. Rotate device.'
         reporterContact:
           type: string
-          nullable: true
           example: 'updated-tester@example.com'
         priority:
           type: integer
