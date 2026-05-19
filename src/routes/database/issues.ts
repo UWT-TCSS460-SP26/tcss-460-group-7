@@ -17,11 +17,13 @@ import {
 
 const issuesRouter = Router();
 
-// Authenticated users (role 1) can only get the bug reports.
+// Admin-only bug report list route.
 issuesRouter.get('/', requireAuth, requireRole(1), validateGetIssueQuery, getIssue);
 
 // Public bug report submission route
 issuesRouter.post('/', validateCreateIssue, createIssue);
+
+// Admin-only triage routes.
 issuesRouter.patch(
   '/:id/status',
   requireAuth,
@@ -30,7 +32,14 @@ issuesRouter.patch(
   validateUpdateIssueStatus,
   updateIssueStatus
 );
-issuesRouter.patch('/:id', requireAuth, validateIssueId, validateUpdateIssue, updateIssue);
-issuesRouter.delete('/:id', requireAuth, validateIssueId, deleteIssue);
+issuesRouter.patch(
+  '/:id',
+  requireAuth,
+  requireRole(1),
+  validateIssueId,
+  validateUpdateIssue,
+  updateIssue
+);
+issuesRouter.delete('/:id', requireAuth, requireRole(1), validateIssueId, deleteIssue);
 
 export { issuesRouter };

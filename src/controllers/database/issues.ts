@@ -74,7 +74,6 @@ export const getIssue = async (request: Request, response: Response): Promise<vo
  */
 export const updateIssue = async (request: Request, response: Response): Promise<void> => {
   const issueId = Number(request.params.id);
-  const isAdmin = request.user!.role === 1;
   const { title, description, reporterName, reproSteps, reporterContact, priority } =
     request.body as {
       title?: string;
@@ -92,13 +91,6 @@ export const updateIssue = async (request: Request, response: Response): Promise
 
     if (!existingIssue) {
       response.status(404).json({ error: 'No issue was found for the provided ID.' });
-      return;
-    }
-
-    if (existingIssue.authorId !== request.user!.id && !isAdmin) {
-      response.status(403).json({
-        error: 'You are only allowed to update issues that you created unless you are an admin.',
-      });
       return;
     }
 
@@ -159,7 +151,6 @@ export const updateIssueStatus = async (request: Request, response: Response): P
  */
 export const deleteIssue = async (request: Request, response: Response): Promise<void> => {
   const issueId = Number(request.params.id);
-  const isAdmin = request.user!.role === 1;
 
   try {
     const existingIssue = await prisma.issue.findUnique({
@@ -168,13 +159,6 @@ export const deleteIssue = async (request: Request, response: Response): Promise
 
     if (!existingIssue) {
       response.status(404).json({ error: 'No issue was found for the provided ID.' });
-      return;
-    }
-
-    if (existingIssue.authorId !== request.user!.id && !isAdmin) {
-      response.status(403).json({
-        error: 'You are only allowed to delete issues that you created unless you are an admin.',
-      });
       return;
     }
 

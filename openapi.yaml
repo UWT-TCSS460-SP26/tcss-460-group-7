@@ -1873,8 +1873,8 @@ paths:
   /v1/issues/{id}:
     patch:
       tags: [Issues]
-      summary: Update an issue
-      description: Requires any authenticated user bearer token. Issue authors may update their own reports, and admins may update any report. Use this when the issue author or an admin needs to edit report details such as title, description, triage priority, or follow-up metadata.
+      summary: Update an issue (admin only)
+      description: Requires an admin bearer token. Allows administrators to update an existing bug report for triage or moderation purposes. Use this when an admin needs to correct report details, adjust triage priority, or maintain the issue queue.
       security:
         - bearerAuth: []
       parameters:
@@ -1914,7 +1914,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: 'You are only allowed to update issues that you created unless you are an admin.'
+                error: 'The authenticated user does not have permission to access this resource.'
         '404':
           description: No issue exists for the requested ID.
           content:
@@ -1934,8 +1934,8 @@ paths:
 
     delete:
       tags: [Issues]
-      summary: Delete an issue
-      description: Requires any authenticated user bearer token. Issue authors may delete their own reports, and admins may delete any report. Use this when the issue author removes their own report or an admin performs moderation cleanup.
+      summary: Delete an issue (admin only)
+      description: Requires an admin bearer token. Allows administrators to remove a bug report from the issue queue. Use this for moderation cleanup, spam removal, or clearing reports that should no longer remain in the tracker.
       security:
         - bearerAuth: []
       parameters:
@@ -1969,7 +1969,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: 'You are only allowed to delete issues that you created unless you are an admin.'
+                error: 'The authenticated user does not have permission to access this resource.'
         '404':
           description: No issue exists for the requested ID.
           content:
@@ -1990,8 +1990,8 @@ paths:
   /v1/issues/{id}/status:
     patch:
       tags: [Issues]
-      summary: Update the status of a bug report (Admin only)
-      description: Requires an admin bearer token. Allows administrators to change the progress of a bug report.
+      summary: Update the status of a bug report (admin only)
+      description: Requires an admin bearer token. Allows administrators to change the progress of a bug report. Use this during triage to move an issue through states such as unsolved, in progress, and fixed.
       security:
         - bearerAuth: []
       parameters:
