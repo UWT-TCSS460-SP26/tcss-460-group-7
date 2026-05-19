@@ -94,7 +94,7 @@ To get your origin added for production, open a bug report (see below) or contac
 
 ### Filing Bug Reports
 
-Use the Bug Tracker at [https://tcss-460-group-7.onrender.com/issrep](https://tcss-460-group-7.onrender.com/issrep) _(launching Sprint 5 — available by Monday)_.
+Use the Bug Tracker at [https://group-7-bug-report.onrender.com/](https://group-7-bug-report.onrender.com/) _(launching Sprint 5 — available by Monday)_.
 
 ### Known Limits and Quirks
 
